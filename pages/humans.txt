@@ -1,0 +1,30 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Name: OpenSiteMobile
+    Site: http://opensitemobile.github.io
+    Twitter:
+    Location:
+    Email: dwight_vietzke@yahoo.com
+
+
+# THANKS
+
+    Dwight Vietzke, Creator of MobileSiteOS
+    
+
+# SITE
+
+    Last update: Date 4-5-2014
+    Language: English
+    Doctype: HTML5
+
+
+# TECHNOLOGY COLOPHON
+
+    Standards: HTML5, CSS3
+    Components: Modernizr, jQuery, jQueryUI, UnderscoreJS, Mobile-BoilerPlate, Bootstrap, BackboneJS
+    Software: MobileSiteOS
+    Programming Languages: JavaScript, Perl
