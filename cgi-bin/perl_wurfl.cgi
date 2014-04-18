@@ -1423,8 +1423,8 @@ my $length_new = $length_ua + 3;
 if (!$comp_ua) { return ($base_ua, ''); }
 
 # Stop subroutine at some point because something doesn't look right
-if ($length_new > 80) {
-    # A future string comparison > 80 characters may be required, just increase as needed
+if ($length_new > 100) {
+    # A future string comparison > 100 characters may be required, just increase as needed (was 80 in 2013).
     # (I typically find common substrings and use substitution in Config.pm file to reduce size: see sub user_agent)
     die "find_differential_user_agent -> There was a problem finding a viable user agent string for base:\n" . $base_ua . ", compare:\n" . $comp_ua;
 }

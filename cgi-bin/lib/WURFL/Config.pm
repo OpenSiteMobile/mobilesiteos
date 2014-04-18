@@ -38,7 +38,7 @@ $config_vars = {
     wurfl_path => './lib/WURFL/',
     wurfl_status => '',
     # Set this to your WURFL customer specific download valt url
-    wurfl_url => 'http://sourceforge.net/projects/wurfl/files/WURFL/2.3.3/wurfl-2.3.3.gz/download',
+    wurfl_url => 'http://sourceforge.net/projects/wurfl/files/WURFL/2.3.5/wurfl-2.3.5.xml.gz/download',
     # Stats for file at wurfl_file
     wurfl_local => [0, 0],
     # Stats for file at wurfl_url

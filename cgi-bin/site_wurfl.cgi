@@ -6,42 +6,18 @@ use warnings;
 #
 # Copyright Notice:
 my $script_name = 'Site-WURFL';
-my $script_vers = '13.4.6';
-my $script_date = 'Apr. 6, 2013';
+my $script_vers = '14.4.16';
+my $script_date = 'Apr. 16, 2014';
 my $script_year = '2013';
 
 #  Copyright© - OpenSiteMobile
-my $copyright_year = '2008-2013';
+my $copyright_year = '2008-2014';
 
 #  All rights reserved
 #
 # Description:
 #
 # Site-Wurfl is a simple perl script used to test/demo the access of WURFL Data via Perl
-#
-# License Agreement:
-#
-# This script is free software distributed under the GNU GPL version 2 or higher, 
-# GNU LGPL version 2.1 or higher and Apache Software License 2.0 or higher. This means
-# you may choose one of the three and use it as you like. In case you want to review
-# these licenses, you may find them online in various formats at http://www.gnu.org and
-# http://www.apache.org.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY 
-#   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-#   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE 
-#   AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
-#   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-#   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-#   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Use of this script:
-#
-# Selling the code for this script without prior written consent is expressly
-# forbidden. You must obtain written permission before redistributing this
-# script for profit over the Internet or in any other medium. In any and all
-# cases, copyright and header information must remain intact.
 #
 # Contact Information:
 #
@@ -77,29 +53,8 @@ my $accept = $ENV{"HTTP_ACCEPT"};
 my $output_json = '{ "missing" : "output" }';
 
 %def = (
-
-    'back_url'      => ($q->param('back_url') || $ENV{'HTTP_REFERER'} || 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' )),
-    'home_url'      => 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' ),
     'script_url'    => $q->url,
-
-    nav_txt => {
-
-        'back'        => 'Back',
-        'back_mes'    => 'Back to link page',
-        'script'      => 'Script',
-        'script_mes'  => 'Rerun Site-WURFL',
-        'home'        => 'Home',
-        'home_mes'    => 'Go to our home page'
-    }
 );
-
-# -- Page navigation....
-$def{'back_url'} =~ s/&/&amp;/g;
-$def{'cgi_url'} = "$def{'script_url'}?back_url=$def{'back_url'}";
-
-$def{'navigate'}  = "<a class='btn btn-msos' href='$def{'back_url'}'    title='$def{'nav_txt'}{'back_mes'}'>		$def{'nav_txt'}{'back'}	</a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'cgi_url'}'     title='$def{'nav_txt'}{'script_mes'}'>		$def{'nav_txt'}{'script'} </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'home_url'}'	title='$def{'nav_txt'}{'home_mes'}'>		$def{'nav_txt'}{'home'}	</a>\n";
 
 # -- Add all our external config variables
 foreach ( keys %$MSOS::Base::defined ) { $def{$_} = $MSOS::Base::defined->{$_}; }
@@ -161,12 +116,7 @@ if ($accept =~ /application\/json/) {
         -last_modified	=> scalar(gmtime)
     );
 
-    print &MSOS::Base::start_print($q, \%def);
-
     &print_body($q, \%def);
-
-    print &MSOS::Base::end_print($q, \%def);
-
 }
 
 #  End of Script
@@ -193,7 +143,7 @@ sub print_body {
     foreach (@{$dref->{'wurfl_ua_build'}})		{ $ua_build_text.= "<li>" . $_ . "</li>\n"; }
 
     foreach my $group (sort {lc($a) cmp lc($b)} keys (%$capabilities)) {
-        $ua_capab_text .= "<li><span class='alert'>" . $group . "</span>:<br />\n";
+        $ua_capab_text .= "<li><span style='color: red;'>" . $group . "</span>:<br />\n";
         foreach my $capability (sort {lc($a) cmp lc($b)} keys (%{$capabilities->{$group}})) {
             $ua_capab_text .= " .. $capability: " . $capabilities->{$group}->{$capability} . "<br />\n";
         }
@@ -201,48 +151,55 @@ sub print_body {
     }
 
 print qq~
-<article>
+
     <section>
         <h2>WURFL Data via Perl/MySQL</h2>
 
-        <div class='pgrph'>
-            This script demo's our WURFL Data via Perl/MySQL device capabilities lookup.
-			Use it to test mobile devices against your WURFL Data via Perl/MySQL installation.
-			Use a 'User Agent Switcher' in your favorite browser, or different devices, and
-			watch the process at work. The included WURLF device data should produce similar
-			results to other WURFL API's. 
+        <div class='pgrph well'>
+            Here is the output from our WURFL Data via Perl/MySQL device capabilities lookup, for your
+			current user agent string. Use this page to test mobile devices against your WURFL Data via
+			Perl/MySQL installation. Use a 'User Agent Switcher' in your favorite browser, or different
+			devices, and watch the output change accordingly. 
         </div>
 
-        <h2>WURFL Info</h2>
-        <div class='msos_width' style='overflow-x:scroll; padding:5px 0 10px 0;'>
-            <ul>
-                <li>HTTP user agent:<br />$dref->{'http_user_agent'}</li>
-                <li>Encoded user agent:<br />$dref->{'encoded_user_agent'}</li>
-            </ul>
-        </div>
+		<div class='msos_legend'>
+			<h2>WURFL Info</h2>
+			<div style='overflow-x:auto; padding:5px 0 10px 0;'>
+				<ul>
+					<li>HTTP user agent:<br />$dref->{'http_user_agent'}</li>
+					<li>Encoded user agent:<br />$dref->{'encoded_user_agent'}</li>
+				</ul>
+			</div>
+		</div>
 
-        <h2>List of Possible User Agent Match</h2>
-        <div class='msos_width' style='overflow-x:scroll; padding:5px 0 10px 0;'>
-            <ul>
-                $possibiles
-            </ul>
-        </div>
+		<div class='msos_legend'>
+			<h2>List of Possible User Agent Match</h2>
+			<div style='overflow-x:auto; padding:5px 0 10px 0;'>
+				<ul>
+					$possibiles
+				</ul>
+			</div>
+		</div>
 
-        <h2>WURFL-Perl Build w/Fall-backs</h2>
-        <div class='msos_width' style='overflow-x:scroll; padding:5px 0 10px 0;'>
-            <ul>
-                $ua_build_text
-            </ul>
-        </div>
+		<div class='msos_legend'>
+			<h2>WURFL-Perl Build w/Fall-backs</h2>
+			<div style='overflow-x:auto; padding:5px 0 10px 0;'>
+				<ul>
+					$ua_build_text
+				</ul>
+			</div>
+		</div>
 
-        <h3>User Agent Capabilities</h3>
-        <div class='msos_width' style='overflow-x:scroll; padding:5px 0 10px 0;'>
-            <ul class="msos_list">
-                $ua_capab_text
-            </ul>
-        </div>
+		<div class='msos_legend'>
+			<h3>User Agent Capabilities</h3>
+			<div style='overflow-x:auto; padding:5px 0 10px 0;'>
+				<ul class="msos_list">
+					$ua_capab_text
+				</ul>
+			</div>
+		</div>
     </section>
-</article>
+
 ~;
 
     print "\n<pre style='text-align:left;'>\n$dref->{'debug'}</pre>\n" if $r->param('debug') && ($r->param('debug') eq 'yes');

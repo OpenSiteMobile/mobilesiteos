@@ -5,12 +5,12 @@ use diagnostics;
 #
 # Copyright Notice:
 my $script_name = 'Site-Troubleshooter';
-my $script_vers = '13.4.6';
-my $script_date = 'Apr. 6, 2013';
-my $script_year = '2013';
+my $script_vers = '14.4.16';
+my $script_date = 'Apr. 16, 2014';
+my $script_year = '2014';
 
 #  Copyright© - OpenSiteMobile
-my $copyright_year = '2008-2013';
+my $copyright_year = '2008-2014';
 #  All rights reserved
 #
 # Description:
@@ -19,30 +19,6 @@ my $copyright_year = '2008-2013';
 # modules are installed on your server, server paths, perl configuration settings,
 # browser information and the CGI environment. It is designed to work (hopefully)
 # with mobile devices to aid in troubleshooting and testing of the mobile web.
-#
-# License Agreement:
-#
-# This script is free software distributed under the GNU GPL version 2 or higher, 
-# GNU LGPL version 2.1 or higher and Apache Software License 2.0 or higher. This means
-# you may choose one of the three and use it as you like. In case you want to review
-# these licenses, you may find them online in various formats at http://www.gnu.org and
-# http://www.apache.org.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-#   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-#   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
-#   AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-#   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-#   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-#   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Use of this script:
-#
-# Selling the code for this script without prior written consent is expressly
-# forbidden. You must obtain written permission before redistributing this
-# script for profit over the Internet or in any other medium. In any and all
-# cases, copyright and header information must remain intact.
 #
 # Contact Information:
 #
@@ -88,8 +64,6 @@ my $q = new CGI;
 
     'javascript'    => '',
 
-    'back_url'      => ($q->param('back_url') || $ENV{'HTTP_REFERER'} || 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' )),
-    'home_url'      => 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' ),
     'script_url'    => $q->url,
 
 	'test_txt' => {
@@ -173,26 +147,8 @@ my $q = new CGI;
 		'browser_envi'	=>  'Java is',
 		'browser_envj'	=>  'Not',
 		'browser_envk'	=>  'Enabled'
-	},
-
-    nav_txt => {
-
-        'back'        => 'Back',
-        'back_mes'    => 'Back to link page',
-        'script'      => 'Script',
-        'script_mes'  => 'Rerun Site-Text-Display',
-        'home'        => 'Home',
-        'home_mes'    => 'Go to our home page'
-    }
+	}
 );
-
-# -- Page navigation....
-$def{'back_url'} =~ s/&/&amp;/g;
-$def{'cgi_url'} = "$def{'script_url'}?back_url=$def{'back_url'}";
-
-$def{'navigate'}  = "<a class='btn btn-msos' href='$def{'back_url'}'    title='$def{'nav_txt'}{'back_mes'}'>		$def{'nav_txt'}{'back'}	</a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'cgi_url'}'     title='$def{'nav_txt'}{'script_mes'}'>		$def{'nav_txt'}{'script'} </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'home_url'}'	title='$def{'nav_txt'}{'home_mes'}'>		$def{'nav_txt'}{'home'}	</a>\n";
 
 # -- Add all our external config variables
 foreach ( keys %$MSOS::Base::defined ) { $def{$_} = $MSOS::Base::defined->{$_}; }
@@ -268,30 +224,24 @@ print $q->header(
 	-last_modified	=> scalar(gmtime)
 );
 
-# Print start html
+
+# Display Options
 # -----------------------------
-print &MSOS::Base::start_print($q, \%def);
-
-	# Display Options
-	# -----------------------------
-	&checkbox($q, \%def);
+&checkbox($q, \%def);
 
 
-	# Printout results for calculated sections
-	# -----------------------------
-	print "<article>\n\t<section>\n" . $def{'results_list'} . "\n\t</section>\n</article>\n";
-
-    # Add javascript if present
-    # -----------------------------
-    if ($def{'javascript'}) { print $def{'javascript'}; }
-
-    # Add debugging if requested
-    # -----------------------------
-    if ($def{'debug'}) { print $def{'debug_list'}; }
-
-# Print end html
+# Printout results for calculated sections
 # -----------------------------
-print &MSOS::Base::end_print($q, \%def);
+print "\t<section>\n" . $def{'results_list'} . "\n\t</section>\n";
+
+# Add javascript if present
+# -----------------------------
+if ($def{'javascript'}) { print $def{'javascript'}; }
+
+# Add debugging if requested
+# -----------------------------
+if ($def{'debug'}) { print $def{'debug_list'}; }
+
 
 
 #  End Body of Script
@@ -451,7 +401,6 @@ sub checkbox {
                 "</table>";
 
     $output .=  "<div style='margin-top:6px;'><input type='submit' class='btn btn-success' name='send_checkbox' value='$dref->{'test_txt'}->{'checkbox7'}' />\n" .
-                    "<input type='hidden' name='back_url' value='$dref->{'back_url'}' />" .
                 "</div></form>\n";
 
 	if ($r->param('ss_display')) { $output .= "\n<hr /><br />\n"; }

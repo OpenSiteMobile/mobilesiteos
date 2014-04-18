@@ -5,8 +5,8 @@ use CGI qw(:cgi);
 #
 # Copyright Notice:
 my $script_name = 'MSOS::Base';
-my $script_vers = '14.3.27';
-my $script_date = 'Mar. 3, 2014';
+my $script_vers = '14.4.16';
+my $script_date = 'Apr. 16, 2014';
 my $script_year = '2014';
 
 #  Copyright© - OpenSiteMobile
@@ -27,24 +27,13 @@ my $doc_root = $ENV{'DOCUMENT_ROOT'};
 
 $defined = {
 
-    'msos_cookie'	    => '',
-    'msos_cookie_array'	=> '',
     'content_type'      => 'text/html; charset=utf-8',
     'cache_age'		    => 3600,
-    'cookies_on'        => '',
-    'display_detect'	=> 'na',
     'date_time'		    => "Date $date[4]-$date[3]-$date[5], Time $date[2]:$date[1]:$date[0]",
     'debug'		        => '',
     'debug_list'	    => '',
-    'display'		    => 'phone',
     'os'                => $CGI::OS,
-    'javascript_on'	    => '',
-    'prior_cart'	    => undef,
-    'prior_cart_cookie'	=> '',
     'results_list'	    => '',
-    'prior_cart_flag'	=> 0,
-    'template'		    => 'home',
-    'user_status'       => '',
 
 	# Set 'site_base_dir' to the folder path containing: ./msos, ./jquery, ./underscore, etc. (typically ./htdocs)
 	'site_base_dir' => $doc_root,
@@ -53,21 +42,16 @@ $defined = {
     'site_base_url'	=> 'http://' . $ENV{'SERVER_NAME'},
 
     # Application 'common folder' definitions
-    'appl_templ_folder' => '/templates',
-    'appl_img_folder'   => '/img',
-    'appl_js_folder'    => '/js',
-    'appl_img_sized'    => '/img/sized',
+    'appl_img_folder'   => '/images',
+    'appl_img_sized'    => '/images/sized',
 
     # Application 'common file' definitions (must match actual values in config.js file)
-    'appl_config_js'        => 'config.js',    # Must always be in the 'appl_js_folder' folder (ref. msos.get_script_location())
+    'appl_config_js'        => 'config.js',
     'appl_config_img_json'  => 'config_images.json',
 
     # MobileSiteOS 'common folder' definitions 
     'msos_nls_folder'   => '/msos/nls',
     'msos_states_folder'=> '/msos/states',
-
-    # MobileSiteOS 'common file' definitions
-    'msos_base_js'      => 'msos/base.min.js',
 
     'msos' => {
         'company_alt'	=> 'OpenSiteMobile - Open Source Software for the Mobile Web',
@@ -112,212 +96,6 @@ $defined = {
 #  BASE SUBROUTINES
 # =========================================================
 
-sub start_print {
-# -----------------------------
-
-	my $r = shift;
-	my $dref = shift;
-
-	my $output = qq~<!DOCTYPE html>
-<html lang="en">
-<head>
-
-<meta charset="utf-8" />
-<meta name="handheldfriendly" content="true" />
-<meta name="mobileoptimized"  content="width" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="Open source software for the mobile web!" />
-<meta name="author" content="Dwight Vietzke" />
-
-    <title>$dref->{'msos'}->{'company_alt'}</title>
-
-<style type="text/css">
-/* <![CDATA[ */
-
-	html, body {
-		background-color: #A1A1A1;
-	}
-	body {
-		background-image: url($dref->{'site_base_url'}/images/grid_bg.png);
-		background-repeat: repeat-x;
-	}
-	#body {
-		display: none;
-	}
-
-	#no_javascript {
-		background-color: #FFF;
-		border: 2px solid #999;
-		border-radius: 0.4em;
-		margin-left: auto;
-		margin-right: auto;
-		width: 60%;
-	}
-	#no_javascript > i {
-		color: red;
-	}
-    #copyright {
-        margin: 0.2em;
-        font-size: small;
-    }
-    #copyright > a {
-        font-size: x-small;
-    }
-
-/* ]]> */
-</style>
-
-<link rel='shortcut icon' href='$dref->{'site_base_url'}/images/osm.ico' />
-
-<script src="$dref->{'site_base_url'}/$dref->{'msos_base_js'}"></script>
-
-<script>
-
-msos.console.info('config -> start, (&MSOS::Base::start_print).');
-msos.console.time('config');
-
-// After page loads, display...
-msos.onload_func_post.push(function () { jQuery('#body').css('display', 'block'); });
-
-// --------------------------
-// Stylesheets to load (CSS injection)
-// --------------------------
-
-if (msos.config.debug_css) {
-	
-	msos.deferred_css = [
-		msos.resource_url('css', 'normalize.css'),
-		msos.resource_url('css', 'fawe.css'),
-		msos.resource_url('css', 'msos.css'),
-		msos.resource_url('css', 'msos_bs.css'),
-		msos.resource_url('css', 'msos_theme.css'),
-	];
-
-} else {
-
-	msos.deferred_css = [
-		msos.resource_url('css', 'bundle.min.css')
-	];
-
-}
-
-// --------------------------
-// Scripts to 'defer' load (script injection)
-// --------------------------
-
-if (msos.config.debug_script) {
-
-	// Debug full scripts (line no's mean something)
-    msos.deferred_scripts = [
-		msos.resource_url('modernizr', 'v271.uc.js'),		// no class selectors - see build.txt note in /htdocs/modernizr
-		msos.resource_url('jquery', 'v210.uc.js'),
-		msos.resource_url('jquery', 'ui/v1104.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
-		msos.resource_url('underscore', 'v160.uc.js'),
-		msos.resource_url('hammer', 'v106.uc.js'),			// jQuery.hammer.js version of Hammer.js
-		msos.resource_url('backbone', 'v110.uc.js'),
-		msos.resource_url('marionette', 'v123.uc.js'),
-		msos.resource_url('msos', 'site.uc.js'),			// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'core.uc.js')
-	];
-
-	if (!msos.config.json) {
-		msos.deferred_scripts.push(msos.resource_url('utils', 'json2.uc.js'));
-	}
-
-} else {
-
-	// Standard site provided (including ext. bundles) scripts
-    msos.deferred_scripts = [
-		msos.resource_url('msos', 'bundle.min.js'),			// Modernizr, jQuery, jQuery-UI, Hammer.js, Underscore, Backbone, Marionette bundled together
-		msos.resource_url('msos', 'site.min.js'),
-		msos.resource_url('msos', 'core.min.js')
-	];
-
-	if (!msos.config.json) {
-		msos.deferred_scripts.push(msos.resource_url('utils', 'json2.min.js'));
-	}
-}
-
-msos.css_loader(msos.deferred_css);
-msos.script_loader(msos.deferred_scripts);
-
-msos.console.info('config -> done!');
-msos.console.timeEnd('config');
-
-</script>
-
-</head>
-
-<body>
-
-<noscript>
-	<h3 id="no_javascript">
-		<i class="fa fa-ban"></i> We're sorry, but this site requires JavaScript be enabled!
-	</h3>
-</noscript>
-
-<div id='body'>
-    <div id='marquee'>OpenSiteMobile</div>
-    <div id='slogan'>Open source software for the mobile web!</div>
-
-    <div id='header' class='msos_navbar'>
-	$dref->{'navigate'}
-    </div>
-~;
-
-	return $output;
-}
-
-sub end_print {
-# -----------------------------
-
-	my $r = shift;
-	my $dref = shift;
-
-	my $output = qq~
-
-    <div id='footer' class='msos_navbar'>
-    $dref->{'navigate'}
-    </div>
-    
-    <div id='copyright'>
-        Powered by:
-        <a class='btn btn-msos' href='$dref->{'msos'}->{'company_url'}' title='Copyright©$dref->{'script_info'}->{'year'} $dref->{'msos'}->{'company_name'} - All rights reserved'>
-            $dref->{'script_info'}->{'name'} v$dref->{'script_info'}->{'version'}
-        </a>
-    </div>
-
-</div>
-</body>
-</html>
-~;
-
-	return $output;
-}
-
-sub missing_template {
-# -----------------------------
-
-	my $r = shift;
-	my $dref = shift;
-
-    my $http_accept = $ENV{"HTTP_ACCEPT"};
-
-    $dref->{'user_status'} = "The page called via the 'page=" . $dref->{'template'} . "' query value is not available!";
-
-    $http_accept =~ s/;/; /g;
-    $http_accept =~ s/,/, /g;
-
-    my  $temp_txt  = "<h2>Missing Template</h2>\n";
-		$temp_txt .= "<div class='w_large'>\n<ul class='msos_list'>\n";
-		$temp_txt .= "<li>Page (template): " . $dref->{'template'}		. "</li>\n";
-		$temp_txt .= "<li>HTTP_USER_AGENT: " . $ENV{"HTTP_USER_AGENT"}	. "</li>\n";
-		$temp_txt .= "<li>HTTP_ACCEPT: "	 . $http_accept		        . "</li>\n";
-		$temp_txt .= "<li>JavaScript: "		 . $dref->{'javascript_on'}	. "</li>\n";
-		$temp_txt .= "</ul>\n</div>";
-
-	return &start_print($r, $dref) . $temp_txt . &end_print($r, $dref);
-}
 
 sub run_debugging {
 # -----------------------------

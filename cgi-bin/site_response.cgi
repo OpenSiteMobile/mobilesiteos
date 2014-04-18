@@ -7,12 +7,12 @@ use diagnostics;
 #
 # Copyright Notice:
 my $script_name = 'Site-Response';
-my $script_vers = '13.4.6';
-my $script_date = 'Apr. 6, 2013';
-my $script_year = '2013';
+my $script_vers = '14.4.16';
+my $script_date = 'Apr. 16, 2014';
+my $script_year = '2014';
 
 #  Copyright© - OpenSiteMobile
-my $copyright_year = '2008-2013';
+my $copyright_year = '2008-2014';
 
 #  All rights reserved
 #
@@ -20,30 +20,6 @@ my $copyright_year = '2008-2013';
 #
 # Site-Respone is a simple perl script used to examime the HTTP server response to different
 # HTTP server requests.
-#
-# License Agreement:
-#
-# This script is free software distributed under the GNU GPL version 2 or higher, 
-# GNU LGPL version 2.1 or higher and Apache Software License 2.0 or higher. This means
-# you may choose one of the three and use it as you like. In case you want to review
-# these licenses, you may find them online in various formats at http://www.gnu.org and
-# http://www.apache.org.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-#   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-#   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
-#   AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-#   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-#   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-#   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Use of this script:
-#
-# Selling the code for this script without prior written consent is expressly
-# forbidden. You must obtain written permission before redistributing this
-# script for profit over the Internet or in any other medium. In any and all
-# cases, copyright and header information must remain intact.
 #
 # Contact Information:
 #
@@ -80,8 +56,6 @@ for my $p ($q->param) {
 
 %def = (
 
-    'back_url'      => ($q->param('back_url') || $ENV{'HTTP_REFERER'} || 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' )),
-    'home_url'      => 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' ),
     'script_url'    => $q->url,
 
 	'resp_txt' => {
@@ -100,26 +74,8 @@ for my $p ($q->param) {
 		'http_msgd'	=>  'Check HTTP Header Info',
 		'http_msge'	=>  'Output saved to:',
 		'http_msgf'	=>  'Page Output Available'
-	},
-
-    nav_txt => {
-
-        'back'        => 'Back',
-        'back_mes'    => 'Back to link page',
-        'script'      => 'Script',
-        'script_mes'  => 'Rerun Site-Response',
-        'home'        => 'Home',
-        'home_mes'    => 'Go to our home page'
-    }
+	}
 );
-
-# -- Page navigation....
-$def{'back_url'} =~ s/&/&amp;/g;
-$def{'cgi_url'} = "$def{'script_url'}?back_url=$def{'back_url'}";
-
-$def{'navigate'}  = "<a class='btn btn-msos' href='$def{'back_url'}'    title='$def{'nav_txt'}{'back_mes'}'>		$def{'nav_txt'}{'back'}	</a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'cgi_url'}'     title='$def{'nav_txt'}{'script_mes'}'>		$def{'nav_txt'}{'script'} </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'home_url'}'	title='$def{'nav_txt'}{'home_mes'}'>		$def{'nav_txt'}{'home'}	</a>\n";
 
 # -- Add all our external config variables
 foreach ( keys %$MSOS::Base::defined ) { $def{$_} = $MSOS::Base::defined->{$_}; }
@@ -285,7 +241,6 @@ $output = qq~<h3>$dref->{'resp_txt'}->{'http_msg1'}</h3>
 			<div class='row'>
 				<div class='span12'><input type='submit' class="btn btn-success" /></div>
 			</div>
-			<input type='hidden' name='back_url' value='$dref->{'script_info'}->{'back_url'}' />
 		</form>
 ~;
 
@@ -403,9 +358,7 @@ $output = qq~<h3>$dref->{'resp_txt'}->{'http_msg1'}</h3>
 			-last_modified	=> scalar(gmtime)
 		);
 
-		print &MSOS::Base::start_print($r, $dref);
-
-		print "<article>\n\t<section>\n<h2>$dref->{'script_info'}->{'name'} v$dref->{'script_info'}->{'version'}</h2>\n";
+		print "\t<section>\n<h2>$dref->{'script_info'}->{'name'} v$dref->{'script_info'}->{'version'}</h2>\n";
 		print "<h2>$dref->{'resp_txt'}->{'http_msg8'}</h2>\n";
 		print "<div style='overflow: scroll; border: 2px inset;'><pre>\n";
 		print $request;
@@ -432,8 +385,7 @@ $output = qq~<h3>$dref->{'resp_txt'}->{'http_msg1'}</h3>
 			# print "REF: $content_type, Type: $meta_type, Charset: $meta_charset<br />\n";
 			print "</p>";
 		}
-		print "\n\t</section>\n</article>";
-		print &MSOS::Base::end_print($r, $dref);
+		print "\n\t</section>\n";
 
 	} else {
 
@@ -445,14 +397,12 @@ $output = qq~<h3>$dref->{'resp_txt'}->{'http_msg1'}</h3>
 			-last_modified	=> scalar(gmtime)
 		);
 
-		print &MSOS::Base::start_print($r, $dref);
-
-		print "<article>\n\t<section>\n<h2>$dref->{'script_info'}->{'name'} v$dref->{'script_info'}->{'version'}</h2>\n";
+		print "\t<section>\n<h2>$dref->{'script_info'}->{'name'} v$dref->{'script_info'}->{'version'}</h2>\n";
 		print "<h2>$dref->{'resp_txt'}->{'http_msgd'}</h2>\n";
 		print $output;
 
 		# print "<h3>@http_chse</h3>";
-		print "\n\t</section>\n</article>";
-		print &MSOS::Base::end_print($r, $dref);
+		print "\n\t</section>\n";
+
 	  }
 }

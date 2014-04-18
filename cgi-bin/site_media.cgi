@@ -18,32 +18,7 @@ my $copyright_year = '2008-2013';
 # Description:
 #
 # Site-Media is a simple perl script used to resize images for display in responsive
-# designed web pages. Just upload images to the './img/sized' folder and run ?page=console
-# from your MobileSiteOS CGI script.
-#
-# License Agreement:
-#
-# This script is free software distributed under the GNU GPL version 2 or higher,
-# GNU LGPL version 2.1 or higher and Apache Software License 2.0 or higher. This means
-# you may choose one of the three and use it as you like. In case you want to review
-# these licenses, you may find them online in various formats at http://www.gnu.org and
-# http://www.apache.org.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-#   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-#   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
-#   AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-#   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-#   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-#   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Use of this script:
-#
-# Selling the code for this script without prior written consent is expressly
-# forbidden. You must obtain written permission before redistributing this
-# script for profit over the Internet or in any other medium. In any and all
-# cases, copyright and header information must remain intact.
+# designed web pages.
 #
 # Contact Information:
 #
@@ -78,9 +53,7 @@ my $q   = new CGI;
 
 %def = (
 
-    'back_url'      => ($q->param('back_url') || $ENV{'HTTP_REFERER'} || 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' )),
-    'home_url'      => 'http://' . ( $ENV{'SERVER_NAME'} || 'opensite.mobi' ),
-    'script_url'    => $q->url,
+   'script_url'    => $q->url,
 
     # Set 'site_appl_rel_path' via input parameter (specific for each application)
     'site_appl_rel_path' => '',
@@ -132,18 +105,6 @@ my $q   = new CGI;
 		'build_img5'  => 'No additions or updates to image files!',
 		'build_img6'  => 'Removed image',
         'build_img7'  => 'Removed directory and sub files'
-    },
-
-    nav_txt => {
-
-        'back'          => 'Back',
-        'back_mes'      => 'Back to link page',
-        'script'        => 'Script',
-        'script_mes'    => 'Rerun Site-Media',
-        'home'          => 'Home',
-        'home_mes'      => 'Go to our home page',
-        'run'           => 'Update',
-        'run_mes'       => 'Run mobile image creator/updater',
     }
 );
 
@@ -182,17 +143,6 @@ if ($def{'site_appl_rel_path'}) {
     );
 }
 
-# -- Page navigation....
-$def{'back_url'} =~ s/&/&amp;/g;
-$def{'cgi_url'}     = "$def{'script_url'}?application_rel_path=$def{'site_appl_rel_path'}&amp;back_url=$def{'back_url'}";
-$def{'run_image'}   = "$def{'script_url'}?application_rel_path=$def{'site_appl_rel_path'}&amp;back_url=$def{'back_url'}&amp;run_img=sizing";
-
-$def{'navigate'}  = "<a class='btn btn-msos' href='$def{'back_url'}'    title='$def{'nav_txt'}{'back_mes'}'>	$def{'nav_txt'}{'back'}     </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'cgi_url'}'     title='$def{'nav_txt'}{'script_mes'}'>	$def{'nav_txt'}{'script'}   </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'home_url'}'	title='$def{'nav_txt'}{'home_mes'}'>	$def{'nav_txt'}{'home'}     </a> <span class='msos_spacer'>::</span>\n";
-$def{'navigate'} .= "<a class='btn btn-msos' href='$def{'run_image'}'   title='$def{'nav_txt'}{'run_mes'}'>     $def{'nav_txt'}{'run'}      </a>\n";
-
-
 # -- Get mobile image generation information
 if ( $q->param('run_img') eq 'sizing' ) {
 
@@ -224,13 +174,9 @@ print $q->header(
     -last_modified => scalar(gmtime)
 );
 
-print &MSOS::Base::start_print( $q, \%def );
-
 # -- Run mobile image generation subroutine
 if ( $q->param('run_img') eq 'sizing' ) { print $def{'results_list'} }
 else                                    { print &print_body( $q, \%def ); }
-
-print &MSOS::Base::end_print( $q, \%def );
 
 
 #  End of Script
