@@ -25,7 +25,7 @@
     addthis_config: true
 */
 
-msos.console.info('config -> start, (/demo/config.js file).');
+msos.console.info('config -> start, (/config.js file).');
 msos.console.time('config');
 
 // Set specific flags for this configuration:
