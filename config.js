@@ -29,10 +29,10 @@ msos.console.info('config -> start, (/config.js file).');
 msos.console.time('config');
 
 // Set specific flags for this configuration:
-//msos.config.run_ads = true;
-//msos.config.run_analytics = true;
+msos.config.run_ads = true;
+msos.config.run_analytics = true;
 //msos.config.run_onerror = true;
-//msos.config.run_social = true;
+msos.config.run_social = true;
 //msos.config.run_translate = true;
 
 
