@@ -178,7 +178,6 @@ msos.require("msos.stickup");
 msos.require("msos.style");
 msos.require("msos.syntaxhighlighter");
 msos.require("msos.tab");
-msos.require("msos.table");
 msos.require("msos.tools.kbdpos");
 msos.require("msos.touch.tap");
 msos.require("msos.translate");
