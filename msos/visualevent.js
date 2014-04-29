@@ -18,7 +18,7 @@
 */
 
 msos.provide("msos.visualevent");
-msos.require("msos.syntaxhighlighter.jscript");
+msos.require("syntaxhighlighter.brushes.jscript");
 msos.require("bootstrap.table");
 
 msos.visualevent.version = new msos.set_version(13, 11, 6);
