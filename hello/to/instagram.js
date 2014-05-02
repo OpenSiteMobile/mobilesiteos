@@ -141,4 +141,4 @@ hello.to.instagram.init = function () {
     msos.console.debug('hello.to.instagram.init -> done!');
 };
 
-msos.add_onload_func_start(hello.to.instagram.init);
+msos.onload_func_start.push(hello.to.instagram.init);
