@@ -68,4 +68,4 @@ hello.to.foursquare.init = function () {
     msos.console.debug('hello.to.foursquare.init -> done!');
 };
 
-msos.add_onload_func_start(hello.to.foursquare.init);
+msos.onload_func_start.push(hello.to.foursquare.init);

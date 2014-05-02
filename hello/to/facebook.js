@@ -73,4 +73,4 @@ hello.to.facebook.init = function () {
     msos.console.debug('hello.to.facebook.init -> done!');
 };
 
-msos.add_onload_func_start(hello.to.facebook.init);
+msos.onload_func_start.push(hello.to.facebook.init);

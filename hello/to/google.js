@@ -80,4 +80,4 @@ hello.to.google.init = function () {
 };
 
 
-msos.add_onload_func_start(hello.to.google.init);
+msos.onload_func_start.push(hello.to.google.init);

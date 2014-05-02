@@ -64,4 +64,4 @@ hello.to.twitter.init = function () {
     msos.console.debug('hello.to.twitter.init -> done!');
 };
 
-msos.add_onload_func_start(hello.to.twitter.init);
+msos.onload_func_start.push(hello.to.twitter.init);

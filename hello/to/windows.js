@@ -75,4 +75,4 @@ hello.to.windows.init = function () {
 };
 
 
-msos.add_onload_func_start(hello.to.windows.init);
+msos.onload_func_start.push(hello.to.windows.init);
