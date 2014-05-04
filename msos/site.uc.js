@@ -301,7 +301,7 @@ msos.site.addthis_share = function () {
 
 			atl.load(
 				'addthis_share_api',
-				'http://s7.addthis.com/js/300/addthis_widget.js#pubid=' + msos.config.addthis_pubid + '&async=1&domready=1',
+				'//s7.addthis.com/js/300/addthis_widget.js#pubid=' + msos.config.addthis_pubid + '&async=1&domready=1',
 				'js'
 			);
 		};
