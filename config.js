@@ -200,7 +200,7 @@ msos.load_adsense = function () {
 		msos.google_ad_vars();
 
 		if (msos.config.doctype === 'html5') {
-			window.document.write('<script src="http://pagead2.googlesyndication.com/pagead/show_ads.js"></script>');
+			window.document.write('<script src="//pagead2.googlesyndication.com/pagead/show_ads.js"></script>');
 
 			msos.console.time('google_adsense');
 			msos.console.debug(temp_la + 'code inserted!');
