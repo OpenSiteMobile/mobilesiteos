@@ -21,7 +21,7 @@ var hello = {
 
     settings: {
         // OAuth 2 authentication defaults
-        redirect_uri: 'https://opensitemobile.com/hello/redirect.html',		// Full uri path including protocal
+        redirect_uri: msos.config.hellojs_redirect,		// Full uri path including protocal
         response_type: 'token',
         display: 'popup',
         state: '',

@@ -236,6 +236,9 @@ msos.config = {
 		hide_tooltip: {}
 	},
 
+	// Set full url in config.js file
+	hellojs_redirect: '/mobilesiteos/hello/redirect.html',
+
     // See 'msos.i18n' and the 'MSOS Available Language Matrix' for ref.
     i18n: {
         select_trans_msos: {},
