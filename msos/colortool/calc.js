@@ -801,11 +801,11 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
                 hex_color = '';
 
             temp_txt += 'Canvas x:' + pos.x + ', y:' + pos.y + "\n";
-            temp_txt += 'Page  x:' + evt.pageX + ', y:' + evt.pageY + "\n";
+            temp_txt += 'Client  x:' + evt.clientX + ', y:' + evt.clientY + "\n";
 
             // Get x,y coordinates from center of color wheel 
-            x = (evt.pageX - pos.x) - 80;
-            y = (evt.pageY - pos.y) - 80;
+            x = (evt.clientX - pos.x) - 80;
+            y = (evt.clientY - pos.y) - 80;
 
             temp_txt += 'Calc  x:' + x + ', y:' + y;
 
