@@ -330,16 +330,16 @@ msos.site.auto_init = function () {
 
     // Based on page elements and configuration -> run functions or add modules
     if (cfg.run_ads
-	 && bdwidth > 200
+	 && bdwidth > 150
      && jQuery('#google_ad').length === 1
 	 && jQuery('#rotate_marquee').length === 1)	{ msos.require("msos.google.ad"); }
     if (cfg.run_social
-	 && bdwidth > 200
+	 && bdwidth > 150
      && jQuery('#social_ties').length)			{ msos.site.addthis_share(); }
 
 	// Or based on configuration settings
-	if (cfg.run_analytics && bdwidth > 200)		{ msos.site.google_analytics(); }
-	if (cfg.run_translate && bdwidth > 200)		{ msos.require("msos.google.translate"); }
+	if (cfg.run_analytics && bdwidth > 150)		{ msos.site.google_analytics(); }
+	if (cfg.run_translate && bdwidth > 150)		{ msos.require("msos.google.translate"); }
 
 	// Bootstrap transitions: Always use this if "true"
 	if (Modernizr.csstransitions)				{ msos.require("bootstrap.transition"); }
