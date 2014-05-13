@@ -950,9 +950,9 @@ msos.connection = function() {
 	if (con_type === 'na') {
 		con_type = between(con_bwidth, 1, 50)
 					? "slow"
-					: between(con_bwidth, 51, 200)				// actual is approx. 100-150kbps
+					: between(con_bwidth, 51, 150)				// actual is approx. 100-150kbps
 						? "2g"
-						: between(con_bwidth, 201, 600)			// actual is approx. 600-1400kbps
+						: between(con_bwidth, 151, 600)			// actual is approx. 600-1400kbps
 							? "3g"
 							: between(con_bwidth, 601, 1000)	// actual is approx. 3000-6000kbps 
 								? "4g"

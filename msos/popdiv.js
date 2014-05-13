@@ -205,7 +205,7 @@ msos.popdiv.create_tool = function (pop_name, pop_size_ext, pop_size_url, pop_co
             pop_size = '',
             pop_css = '';
 
-        msos.console.debug(temp_tool + sty_txt + 'size index input: ' + pop_idx);
+        msos.console.debug(temp_tool + sty_txt + 'size index input: ' + pop_idx, pop_ary);
 
         // Don't go outside our defined sizes
         if (pop_idx > pop_lgt) {

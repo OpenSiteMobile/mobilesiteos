@@ -32,6 +32,7 @@ msos.google.ad.run = function () {
 
     var ad_txt = 'msos.google.ad.run',
         google_position = null,
+        google_size_change = null,
         rt = msos.record_times;
 
     if (!msos.config.run_ads) {
@@ -81,6 +82,14 @@ msos.google.ad.run = function () {
         }
     };
 
+    google_size_change = function () {
+
+        msos.console.debug(ad_txt + ' - google_size_change -> fired!');
+
+        // Can't adjust it, so discard
+        jQuery('#google_ad').remove();
+    };
+
     msos.console.timeEnd('google_adsense');
 
     // Add to delay as a buffer for slow ad response
@@ -94,6 +103,9 @@ msos.google.ad.run = function () {
 
     // Add the google_position function to the 'onresize' queue
     msos.onresize_functions.push(google_position);
+
+    // Add size change function (google dynamic switching is too restrictive)
+    msos.ondisplay_size_change.push(google_size_change);
 
     msos.console.debug(ad_txt + ' -> done!');
 };
