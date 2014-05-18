@@ -653,8 +653,6 @@ Object.keys(msos.config.size_wide).map(
 			msos.config.size_array.push(d[0]);
 		}
 	);
-// Largest -> smallest display
-msos.config.size_array.reverse();
 
 msos.console = (function () {
 	"use strict";

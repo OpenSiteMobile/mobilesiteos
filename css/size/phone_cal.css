@@ -5,16 +5,16 @@
 
   #calendar_container {
     width:244px;
-    height:276px;
+    height:300px;
   }
   #calendar_header, #calendar_footer, #calendar_control {
     width:240px;
   }
   #calendar_control {
-    top:24px;
+    top:25px;
   }
   #calendar_footer {
-    top:250px;
+    top:270px;
   }
   #calendar_table {
     top:46px;

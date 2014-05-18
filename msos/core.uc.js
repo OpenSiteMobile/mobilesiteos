@@ -18,7 +18,7 @@
     _: false
 */
 
-msos.version = new msos.set_version(14, 3, 17);
+msos.version = new msos.set_version(14, 5, 17);
 
 msos.console.info('msos/core -> start, ' + msos.version);
 msos.console.time('core');
@@ -123,7 +123,11 @@ msos.set_display_size = function () {
 
 	msos.console.debug(temp_rd + 'start.');
 
-	loader_obj.toggle_css = msos.config.size_array;
+	loader_obj.toggle_css = msos.config.size_array.slice(0);
+
+	// Largest -> smallest display
+	loader_obj.toggle_css.reverse();
+
 	loader_obj.add_resource_onload.push(function () { setTimeout(run_on_display_change, 150); });
 
 	// Load sizing stylesheet

@@ -21,7 +21,7 @@ msos.provide("msos.popdiv");
 msos.require("msos.i18n.popdiv");
 msos.require("msos.common");
 
-msos.popdiv.version = new msos.set_version(13, 12, 13);
+msos.popdiv.version = new msos.set_version(14, 5, 17);
 
 
 msos.popdiv.count = 0;
@@ -41,7 +41,6 @@ msos.popdiv.create_tool = function (pop_name, pop_size_ext, pop_size_url, pop_co
 
     var temp_tool = 'msos.popdiv.create_tool',
         popup_obj = this,
-        css_size_array = msos.config.size_array,
         j = 0,
         sml_but = document.createElement("button"),
         lrg_but = document.createElement("button"),
@@ -79,7 +78,7 @@ msos.popdiv.create_tool = function (pop_name, pop_size_ext, pop_size_url, pop_co
 
     // Popup size - specified by 'fixed' (1st), if 'display changed' use it (2nd), popup cookie (3rd), fall back to config
     this.pop_size = fixed_size || msos.config.query.size || msos.cookie(this.pop_cookie) || msos.config.size;
-    this.pop_size_arry = css_size_array.reverse();
+    this.pop_size_arry = msos.config.size_array;
     this.pop_size_idx = _.indexOf(this.pop_size_arry, this.pop_size);
     this.pop_dynamic = new msos.loader();
     this.pop_position = pop_position;
