@@ -1,0 +1,71 @@
+
+	<style type="text/css">
+	/* <![CDATA[ */
+
+		#change_size {
+			margin-bottom: 0.4em;
+		}
+
+	/* ]]> */
+	</style>
+
+    <section>
+
+		<h2>Responsive Design via JavaScript,&nbsp;<u>CSS</u></h2>
+
+		<select id='change_size'></select>
+
+		<div class='pgrph well'>
+			<div id='amazon_prod_ad'></div>
+			<p>
+				Our basic approach is different from many "responsive website display"
+				strategies. We use fixed display sized web pages based on the view size
+				of the device, or on the user's preference. This differs from the more
+				typical use of media queries and/or self-sizing page elements that are
+				more commonly employed.
+			</p>
+
+			<p>
+				Our reasoning is this. It is easier to design and troubleshoot a page layout
+				when you know what each layout's end result should be. We apply specific
+				<u>CSS</u>&nbsp;to size pages in several standard widths, similar to common
+				media query break points. This allows any browser to view each sized page, with
+				a JavaScript determined size being the default.
+			</p>
+
+			<p>
+				Is this the only way to do it? No. We use JavaScript to determine which
+				<u>CSS</u>&nbsp;to load on demand. You could however just as easily use media queries
+				and our sizing&nbsp;<u>CSS</u>&nbsp;or yours, to do the same thing. Again,
+				one advantage doing it our way is that we only load style information as needed
+				for that page's display. No loading all&nbsp;<u>CSS</u>&nbsp;'media query' sizing
+				code, when only one version is actually being used on that particular device. And
+				our sizing output can be used to control other size specific code as well. Think
+				advertizing displays and widget controls, etc.
+			</p>
+		</div>
+
+		<div class='msos_legend'>
+			<h2>Yet Another Responsive Grid System</h2>
+
+			<div class='pgrph'>
+				So, yes, we have our own responsive grid system. But in all fairness, we have been
+				developing it for a long, long time. Our latest version is heavily derived from the
+				excellent work done in&nbsp;<u>Twitter's Bootstrap</u>&nbsp;framework, but with our
+				past improvements applied. Our version is more "mobile specific" in that it is only
+				a 12 section grid and is only based on percentage width sections. Very light,
+				but very flexible. Plus it adds the ability to be very "diplay size" specific since
+				our grid system isn't based on media queries. We don't have the problem of working
+				through the "cascading" of media query grid rules because each sized grid stylesheet
+				is enable/disabled independently by our display size control code.
+			</div>
+
+			<div class='pgrph'>
+				Is it better than&nbsp;<u>Bootstrap's</u>&nbsp;grid code? We think so, especially
+				for mobile applications. Are you forced to use our grid? Not at all. If you prefer,
+				you can use&nbsp;<u>Bootstrap's</u>&nbsp;version instead. We have a module for that,
+				ready to go. Or you can use any one of the other fine examples available on the web.
+			</div>
+		</div>
+
+    </section>

@@ -1,0 +1,119 @@
+
+
+    <section>
+		<h2><u>MobileSiteOS™</u></h2>
+
+		<figure class="picture" data-zoom='zoom' style='margin-bottom:0.5em;'>
+			<span data-src="<%= config.images_url %>/sized/240/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/320/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/480/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/640/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/960/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/1280/miami.jpg"></span>
+			<span data-src="<%= config.images_url %>/sized/1920/miami.jpg"></span>
+			<noscript>
+				<img src="<%= config.images_url %>/sized/miami.jpg" alt="Miami Beach, USA!">
+			</noscript>
+		</figure>
+
+		<h2>Open Source Software</h2>
+
+		<div class='pgrph well'>
+			<p>
+				It is not our intention to replace any of the established libraries that
+				you may already be using althugh&nbsp;<u>MobileSiteOS™</u>&nbsp;is dependent on several
+				you may be familiar with (jQuery, jQuery-UI,&nbsp;<u>Modernizr</u>&nbsp;and&nbsp;<u>Underscore.js</u>).
+				You can use&nbsp;<u>MobileSiteOS™</u>&nbsp;with any other library or JavaScript code
+				you like. Almost all of our code falls under one global variable:&nbsp;<code>'msos'</code>.
+				&nbsp;<u>MobileSiteOS™</u>&nbsp;is more like an extension to these libraries in that we
+				try to add mobile website specific functionality on top of them.
+			</p>
+
+			<p>
+				What really makes us different is our style of coding and our methods of code execution.
+				We try very hard to place all code into specific function modules, which we then only
+				load as needed. Our emphasis is on "multi-content-page" websites where each page's specific
+				functionality is loaded on demand, not all at once. And&nbsp;<u>MobileSiteOS™</u>&nbsp;can
+				be used for websites made up of many individual HTML5 pages, or by utilizing our
+				&nbsp;<code>msos.page</code>&nbsp;module for creating a single-page, content injection website.
+			</p>
+		</div>
+
+		<div class="msos_legend">
+			<h3>Methodology</h3>
+
+			<div class='pgrph'>
+				First, by using typical JavaScript script injection, we load our library dependencies and base
+				code as deferred scripts (ie: order is important). Then we load all&nbsp;<u>MobileSiteOS™</u>&nbsp;
+				modules individually and asynchronously. Order and dependencies here are not important
+				because no dependent code is executed until all code is loaded. We do this using our
+				&nbsp;<code>msos.require()</code>&nbsp;and&nbsp;<code>msos.provide()</code>&nbsp;module
+				loading functions. Dependent modules are 'required' at the top of each module, and each
+				module is registered by our&nbsp;<code>msos.provide()</code>&nbsp;method.
+			</div>
+
+			<div class='pgrph'>
+				Plus,&nbsp;<u>MobileSiteOS™</u>&nbsp;takes care to only load modules once, while
+				holding execution until everything is ready. Thus module dependencies can chain
+				down without having to know or care what dependencies lie below. And yes, this
+				does add some complexity to module design. We aren't saying this is the best way
+				or the only way to write JavaScript. It is a process which we have tried to
+				refine as a 'best compromise' between speed and simplicity for the development of
+				small to medium size mobile websites. And it does allow the introduction of new
+				HTML, CSS and JavaScript code at any time in our "content" rendering process.
+			</div>
+		</div>
+
+		<div class="msos_legend">
+
+			<h3>Why use "responsive website design" instead of "mobile only" or "device apps"?</h3>
+
+			<div class='pgrph'>
+				The maintenance of multiple websites for displaying similar content in
+				different formats is difficult for small business or individuals to justify.
+				And maintaining "mobile apps" for each platform is becoming a nightmare too.
+				If a single website can do a reasonably good job of mobile through desktop
+				content rendering, the cost savings in time and resources can be quite
+				significant.
+			</div>
+
+			<div class='pgrph'>
+				That is the reason we only develop "web app" applications, and not
+				"phone app" or "tablet app" specific software. "Mobile apps" were a reasonable
+				path to take when the first iPhone and Android phones were introduced, given
+				the manufacturer's desire for suitable functionality and control. But with
+				all the variations and new players entering the market, it will become ever
+				harder to maintain phone or tablet specific apps for each and every variant.
+				Nor does providing content via smartphones or tablets necessarily require
+				an app. It is our opinion that there will always be a place for good browser
+				based web applications providing useful or entertaining content.
+			</div>
+
+			<div class='pgrph'>
+				And just because we develop "web app" software doesn't mean our software
+				or modules couldn't be used in HTML5 driven "mobile app" applications. By all
+				means, we would encourage others to do so. We use only open source technologies
+				such as JavaScript,&nbsp;<u>CSS</u>&nbsp;and&nbsp;<u>HTML5</u>, so all
+				software can be modified or patterned as required for your particular needs.
+			</div>
+		</div>
+
+		<div class="msos_legend">
+			<h3>Programming</h3>
+
+			<div class='pgrph'>
+				Our specialty is open source programming using&nbsp;<u>Perl/CGI</u>, Javascript,&nbsp;<u>HTML5</u>&nbsp;
+				and&nbsp;<u>CSS</u>&nbsp;for the development of "responsive web design" websites.
+			</div>
+
+			<h3>For a quote on your programming needs, please contact:</h3>
+
+			<p style="text-align: center;">
+				<a class="btn btn-msos" href='mailto:dwight_vietzke@yahoo.com' title='Service questions email address'>dwight_vietzke@yahoo.com</a>
+			</p>	
+		</div>
+
+		<h3>Site Reference</h3>
+
+		<a class="btn btn-msos notranslate" href="./humans.txt"> humans.txt </a>
+    </section>
