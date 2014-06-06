@@ -21,7 +21,7 @@ msos.provide("msos.size");
 msos.require("msos.common");
 msos.require("msos.i18n.common");   // required in msos.common too, but here to ref. dependency
 
-msos.size.version = new msos.set_version(13, 12, 9);
+msos.size.version = new msos.set_version(14, 6, 6);
 
 
 // This code is very similar to the 'msos.demo' module
@@ -44,27 +44,34 @@ msos.size.selection = function ($container) {
     $container.change(
         function () {
 
+            var cc = msos.config.cookie;
+
             msos.config.query.size = jQuery.trim(this.value);
 
-            // Make sure body is hidden, then run display change
-            jQuery('#body').fadeOut(
-                'fast',
-                function () {
-                    var cc = msos.config.cookie;
+            // Get the new display size
+            msos.get_display_size();
 
-                    msos.get_display_size();
-                    msos.set_display_size();
-
-                    jQuery('#body').fadeIn('slow');
-
-                    // Reset site user cookie for new size
-                    msos.cookie(
-                        cc.site_pref.name,
-                        cc.site_pref.value,
-                        cc.site_pref.params
-                    );
-                }
+            // Reset site user cookie for new size
+            msos.cookie(
+                cc.site_pref.name,
+                cc.site_pref.value,
+                cc.site_pref.params
             );
+
+            if (msos.config.run_ads) {
+                // Reload page (so Google AdSense sizes correctly)
+                window.location.reload(false);
+            } else {
+                // OR make sure body is hidden, then run display change
+                jQuery('#body').fadeOut(
+                    'fast',
+                    function () {
+                        // Set display size (w/ proper css)
+                        msos.set_display_size();
+                        jQuery('#body').fadeIn('slow');
+                    }
+                );
+            }
         }
     );
 };
