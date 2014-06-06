@@ -87,13 +87,26 @@ section {
 #body, #pyromane, #debug {
   width: 320px;
 }
+#rotate_marquee {
+  height: 52px;
+}
 #marquee {
-  font-size: x-large;
   width: 316px;
+  font-size: x-large;
+  top: 0;
+  left: 0;
+  height: 40px;
+  line-height: 40px;
 }
 #slogan {
+  width: 316px;
   font-size: small;
+  top: 40px;
+  left: 0;
+  height: 10px;
+  line-height: 10px;
 }
+
 .btn,
 .add-on {
   line-height: 1.3em;
@@ -110,6 +123,15 @@ section {
 }
 .w_demi {
   width: 95%;
+}
+
+/* Google AdSense sizing (special case: shifted for full width) */
+.osm-responsive-2014 {
+  position: relative;
+  top: 2px;
+  left: -2px;
+  width: 320px;
+  height: 50px;
 }
 
 /* Size specific adjustments */
