@@ -87,13 +87,26 @@ section {
 #body, #pyromane, #debug {
   width: 760px;
 }
+#rotate_marquee {
+  height: 92px;
+}
 #marquee {
-  font-size: xx-large;
   width: 754px;
+  font-size: xx-large;
+  top: 0;
+  left: 0;
+  height: 70px;
+  line-height: 70px;
 }
 #slogan {
-  font-size: small;
+  width: 754px;
+  font-size: medium;
+  top: 70px;
+  left: 0;
+  height: 22px;
+  line-height: 22px;
 }
+
 .btn,
 .add-on {
   line-height: 1.2em;	/* Why this needs adjustment from tablet/phone line-height, not sure? */
@@ -109,6 +122,11 @@ section {
   padding: 0 10px;
 }
 
+/* Google AdSense sizing */
+.osm-responsive-2014 {
+  width: 728px;
+  height: 90px;
+}
 
 /* MSOS Grid specific css */
 .row {

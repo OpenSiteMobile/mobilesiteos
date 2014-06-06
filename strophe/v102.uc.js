@@ -243,8 +243,7 @@
 			if (window.DOMParser) {
 				dbg = 'DOMParser';
 				parser = new DOMParser();
-				// Because FF wants valid XML, with correct namespaces!
-				doc = parser.parseFromString("<body xmlns:stream='foo' >" + html + "</body>", "text/xml").documentElement.firstChild;
+				doc = parser.parseFromString(html, "text/xml").documentElement;
 			} else if (window.ActiveXObject) {
 				dbg = 'ActiveXObject';
 				doc = new ActiveXObject("MSXML2.DOMDocument");

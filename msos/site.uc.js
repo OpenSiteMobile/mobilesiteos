@@ -331,7 +331,6 @@ msos.site.auto_init = function () {
     // Based on page elements and configuration -> run functions or add modules
     if (cfg.run_ads
 	 && bdwidth > 150
-     && jQuery('#google_ad').length === 1
 	 && jQuery('#rotate_marquee').length === 1)	{ msos.require("msos.google.ad"); }
     if (cfg.run_social
 	 && bdwidth > 150

@@ -418,6 +418,23 @@ msos.i18n.logic = function (lang) {
 };
 
 // --------------------------
+// Replace %s's in i18n language strings
+// --------------------------
+
+msos.i18n.simple_printf = function (string, in_array) {
+    "use strict";
+
+    var i = 0;
+
+	if (in_array && in_array.length > 0) {
+        for (i = 0; i < in_array.length; i += 1) {
+            string = string.replace(/%s/, in_array[i]);
+        }
+    }
+	return string;
+};
+
+// --------------------------
 // Setup i18n environment
 // --------------------------
 

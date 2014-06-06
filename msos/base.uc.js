@@ -53,7 +53,7 @@ var msos = {
     // *** Do NOT edit the key/value pairs below ***
 	// *******************************************
 
-    base_site_url: 'http://' + document.domain,
+    base_site_url: '//' + document.domain,
 	base_script_url: '',
 	base_config_url: '',
 	base_images_url: '',
