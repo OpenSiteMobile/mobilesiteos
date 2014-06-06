@@ -14,26 +14,28 @@
 /*global
     msos: false,
     jQuery: false,
-    google_loader_experiment: false
+    adsbygoogle: true
 */
 
 msos.provide("msos.google.ad");
 
-msos.google.ad.version = new msos.set_version(13, 12, 3);
+msos.google.ad.version = new msos.set_version(14, 6, 6);
 
+
+// Set Google AdSense variable immediately
+(adsbygoogle = window.adsbygoogle || []).push({});
 
 // --------------------------
 // Google AdSense Display
 // --------------------------
 
-msos.google.ad.delay = 3000;
+msos.google.ad.delay = 4000;
 msos.google.ad.run = function () {
     "use strict";
 
     var ad_txt = 'msos.google.ad.run',
-        google_position = null,
-        google_size_change = null,
-        rt = msos.record_times;
+        google_script = null,
+        google_check = null;
 
     if (!msos.config.run_ads) {
         msos.console.warn(ad_txt + ' -> called, but run_ads = false!');
@@ -42,29 +44,29 @@ msos.google.ad.run = function () {
 
     msos.console.debug(ad_txt + ' -> start.');
 
-    google_position = function () {
-        var pos_temp = ' - google_position -> ',
+    google_script = new msos.loader();
+    google_script.load(
+        'adsbygoogle_js',
+        '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js',
+        'js'
+    );
+
+    google_check = function () {
+        var temp_gc = ' - google_check -> ',
             g_iframe = jQuery('#google_ad > iframe');
 
         // If script didn't load...
         if (!window.google_unique_id) {
-            msos.console.warn(ad_txt + pos_temp + 'failed, show_ad.js missing!');
+            msos.console.warn(ad_txt + temp_gc + 'missing AdSense script!');
             return;
         } else if (!jQuery('#google_ad > ins').length && !g_iframe.length) {
-            msos.console.warn(ad_txt + pos_temp + 'failed, not loaded!');
+            msos.console.warn(ad_txt + temp_gc + 'ad not loaded!');
             return;
         } else {
 
             // Run when ready (probably is, but in case of very slow ad response)
             jQuery(g_iframe).ready(
                 function () {
-                    jQuery('#google_ad').position({
-                        of: jQuery('#rotate_marquee'),
-                        my: 'center',
-                        at: 'center',
-                        collision: 'none'
-                    });
-    
                     jQuery('#slogan').fadeOut(
     
                     function () {
@@ -75,37 +77,14 @@ msos.google.ad.run = function () {
                         });
                     });
 
-                    msos.console.debug(ad_txt + pos_temp + 'ad positioned and viewable, delay: ' + msos.google.ad.delay);
-            
+                    msos.console.debug(ad_txt + temp_gc + 'ad is viewable, delay: ' + msos.google.ad.delay);
                 }
             );
         }
     };
 
-    google_size_change = function () {
-
-        msos.console.debug(ad_txt + ' - google_size_change -> fired!');
-
-        // Can't adjust it, so discard
-        jQuery('#google_ad').remove();
-    };
-
-    msos.console.timeEnd('google_adsense');
-
-    // Add to delay as a buffer for slow ad response
-    if (typeof rt['google_adsense_time'] === 'number'
-     && typeof rt['google_adsense_timeEnd'] === 'number') {
-        msos.google.ad.delay = msos.google.ad.delay + rt['google_adsense_timeEnd'] - rt['google_adsense_time'];
-    }
-
     // Show the ad after delay (ins and iframe elements have been injected into DOM)
-    setTimeout(google_position, msos.google.ad.delay);
-
-    // Add the google_position function to the 'onresize' queue
-    msos.onresize_functions.push(google_position);
-
-    // Add size change function (google dynamic switching is too restrictive)
-    msos.ondisplay_size_change.push(google_size_change);
+    setTimeout(google_check, msos.google.ad.delay);
 
     msos.console.debug(ad_txt + ' -> done!');
 };

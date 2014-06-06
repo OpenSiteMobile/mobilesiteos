@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					config.js
-//			Copyright©2012-2013 - OpenSiteMobile
+//			Copyright©2012-2014 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -10,22 +10,17 @@
 //			Email:  dwight_vietzke@yahoo.com
 
 /*
-	OpenSiteMobile MobileSiteOS demo pages configuration file
+	OpenSiteMobile - MobileSiteOS demo pages (base) configuration file
 */
 
 /*global
 	msos: false,
-    google: false,
-    google_ad_client: true,
-    google_ad_slot: true,
-    google_ad_width: true,
-    google_ad_height: true,
     _gaq: true,
     ___gcfg: true,
     addthis_config: true
 */
 
-msos.console.info('config -> start, (/config.js file).');
+msos.console.info('config -> start, (/mobilesiteos/config.js file).');
 msos.console.time('config');
 
 // Set specific flags for this configuration:
@@ -102,11 +97,7 @@ if (msos.config.debug_script) {
 // --------------------------
 
 // Replace with your site specific Google and other variables
-var google_ad_client = 'pub-0581487774111572',	// Google AdSense publish key
-    google_ad_slot = '3750415767',				// Only use 234px x 60px spec's here!
-    google_ad_width = 234,						// See 'msos.google_ad_vars' below for
-    google_ad_height = 60,						// additional size ad spec's.
-    _gaq = [],
+var _gaq = [],
     ___gcfg = {},
 	addthis_config = {							// AddThis (addthis.com) configuration object
 		username: 'MobileSiteOS',
@@ -123,13 +114,6 @@ _gaq.push(['_setAccount', 'UA-24170958-1']);
 _gaq.push(['_trackPageview']);
 // Ref. 'msos.site.google_analytics' in site.uc.js -> site.min.js
 msos.config.google.analytics_domain = 'opensitemobile.com';
-
-
-// Add your Google Checkout Javascript API merchant id here. Test your code
-// using sandbox merchant id and 'google_use_sandbox' = 'true' before going live.
-msos.config.google.merchant_id = '752887290038807';		// Google Checkout merchant id
-msos.config.google.sandbox_id =  '166486397016135';		// Google Checkout Sandbox merchant id
-msos.config.google.use_sandbox = true;					// boolean true or false
 
 // Add your Google Web Page Translator Widget ID here.
 msos.config.google.translate_id = '7aa52b36fcd8fcb6-07fbdbdc6a976e62-g7261f6c2de6e277c-d';
@@ -153,65 +137,6 @@ msos.config.social = {
 	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
 };
 
-
-// More Google AdSense
-msos.google_ad_vars = function () {
-	"use strict";
-
-	var display = msos.config.size || 'phone';
-
-	// Define 3 additional levels of Google Adsense ads
-	if (display === 'desktop' || display === 'large' || display === 'medium') {
-		google_ad_slot = "6015992869";
-		google_ad_width = 728;
-		google_ad_height = 90;
-	} else if (display === 'small' || display === 'tablet') {
-		google_ad_slot = "4194371168";
-		google_ad_width = 468;
-		google_ad_height = 60;
-	} else {
-		google_ad_slot = "4755521744";
-		google_ad_width = 320;
-		google_ad_height = 50;
-	}
-};
-
-
-// --------------------------
-// Load Google Adsense
-// --------------------------
-msos.load_adsense = function () {
-    "use strict";
-
-	// 'msos.load_adsense' is here because 'msos/site.js' may not be ready when this is called.
-	// Google uses 'document.write' in their code which precludes it from being run after page load.
-	var temp_la = 'msos.load_adsense -> ',
-		bdwidth = msos.config.cookie.site_bdwd.value ?  parseInt(msos.config.cookie.site_bdwd.value, 10) : 0;
-
-    if (!msos.config.run_ads) {
-		msos.console.debug(temp_la + 'ads are off!');
-        return;
-    }
-
-    if (bdwidth > 200) {
-
-		// Set ad size to display
-		msos.google_ad_vars();
-
-		if (msos.config.doctype === 'html5') {
-			window.document.write('<script src="//pagead2.googlesyndication.com/pagead/show_ads.js"></script>');
-
-			msos.console.time('google_adsense');
-			msos.console.debug(temp_la + 'code inserted!');
-		} else {
-			msos.console.warn(temp_la + 'skipped, ads not xhtml5 compliant!');
-		}
-
-	} else {
-
-		msos.console.warn(temp_la + 'skipped, slow connection!');
-	}
-};
 
 msos.css_loader(msos.deferred_css);
 msos.script_loader(msos.deferred_scripts);

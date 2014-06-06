@@ -87,13 +87,26 @@ section {
 #body, #pyromane, #debug {
   width: 480px;
 }
+#rotate_marquee {
+  height: 62px;
+}
 #marquee {
-  font-size: xx-large;
   width: 474px;
+  font-size: xx-large;
+  top: 0;
+  left: 0;
+  height: 50px;
+  line-height: 50px;
 }
 #slogan {
+  width: 474px;
   font-size: small;
+  top: 50px;
+  left: 0;
+  height: 12px;
+  line-height: 12px;
 }
+
 .btn,
 .add-on {
   line-height: 1.3em;
@@ -112,6 +125,11 @@ section {
   left: -25%;
 }
 
+/* Google AdSense sizing */
+.osm-responsive-2014 {
+  width: 468px;
+  height: 60px;
+}
 
 /* MSOS Grid specific css */
 .row {
