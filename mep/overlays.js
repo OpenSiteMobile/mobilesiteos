@@ -15,7 +15,7 @@
 
 msos.provide("mep.overlays");
 
-mep.overlays.version = new msos.set_version(14, 6, 2);
+mep.overlays.version = new msos.set_version(14, 6, 14);
 
 
 mep.overlays.start = function () {
@@ -49,7 +49,7 @@ mep.overlays.start = function () {
 					at: 'center'
 				};
 
-				// Position loading overlay using jquery.ui.position object
+				// Position loading indicator using jquery.ui.position object
 				loading.position(loading_posn);
 
 				ovl_error = jQuery('<div class="mejs-overlay">');
@@ -91,8 +91,8 @@ mep.overlays.start = function () {
 					'play',
 					function () {
 						ovl_butt.hide();
-						ovl_load.hide();
-						if (ply_obj.buffer) { ply_obj.buffer.hide(); }
+						ovl_load.fadeOut('slow');
+						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
 						ovl_error.hide();
 					},
 					false
@@ -102,8 +102,8 @@ mep.overlays.start = function () {
 					'playing',
 					function () {
 						ovl_butt.hide();
-						ovl_load.hide();
-						if (ply_obj.buffer) { ply_obj.buffer.hide(); }
+						//ovl_load.hide();
+						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
 						ovl_error.hide();
 					},
 					false
@@ -121,8 +121,8 @@ mep.overlays.start = function () {
 				ply_obj.media.addEventListener(
 					'seeked',
 					function () {
-						ovl_load.hide();
-						if (ply_obj.buffer) { ply_obj.buffer.hide(); }
+						ovl_load.fadeOut('slow');
+						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
 					},
 					false
 				);
@@ -157,8 +157,8 @@ mep.overlays.start = function () {
 				ply_obj.media.addEventListener(
 					'canplay',
 					function () {
-						ovl_load.hide();
-						if (ply_obj.buffer) { ply_obj.buffer.hide(); }
+						ovl_load.fadeOut('slow');
+						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
 					},
 					false
 				);
@@ -167,8 +167,8 @@ mep.overlays.start = function () {
 				ply_obj.media.addEventListener(
 					'error',
 					function () {
-						ovl_load.hide();
-						if (ply_obj.buffer) { ply_obj.buffer.hide(); }
+						ovl_load.fadeOut('slow');
+						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
 						ovl_error.show();
 						error_ol.html("Error loading this resource");
 					},
@@ -187,7 +187,6 @@ mep.overlays.start = function () {
 			}
 		}
 	);
-
 };
 
 // Load early, but after 'mep.player' has loaded

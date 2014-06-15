@@ -6,7 +6,7 @@
 
 msos.provide("mep.current");
 
-mep.current.version = new msos.set_version(14, 6, 2);
+mep.current.version = new msos.set_version(14, 6, 15);
 
 
 mep.current.start = function () {

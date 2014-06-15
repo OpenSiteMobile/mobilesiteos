@@ -15,7 +15,7 @@
 
 msos.provide("mep.poster");
 
-mep.poster.version = new msos.set_version(14, 6, 2);
+mep.poster.version = new msos.set_version(14, 6, 15);
 
 
 mep.poster.start = function () {

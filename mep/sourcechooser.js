@@ -15,7 +15,7 @@
 
 msos.provide("mep.sourcechooser");
 
-mep.sourcechooser.version = new msos.set_version(14, 6, 2);
+mep.sourcechooser.version = new msos.set_version(14, 6, 15);
 
 
 // Start by loading our progress.css stylesheet

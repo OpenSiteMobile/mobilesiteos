@@ -15,7 +15,7 @@
 
 msos.provide("mep.playpause");
 
-mep.playpause.version = new msos.set_version(14, 6, 2);
+mep.playpause.version = new msos.set_version(14, 6, 14);
 
 
 mep.playpause.start = function () {
@@ -37,7 +37,7 @@ mep.playpause.start = function () {
 						function (e) {
 							msos.do_nothing(e);
 
-							msos.console.debug('buildplaypause - click -> play/pause fired.');
+							msos.console.debug('mep.playpause.start - buildplaypause - click -> play/pause fired.');
 							if (ply_obj.media.paused)	{ ply_obj.media.play();  }
 							else						{ ply_obj.media.pause(); }
 

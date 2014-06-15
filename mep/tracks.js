@@ -15,7 +15,7 @@
 
 msos.provide("mep.tracks");
 
-mep.tracks.version = new msos.set_version(14, 6, 2);
+mep.tracks.version = new msos.set_version(14, 6, 15);
 
 
 // Language selection text, ref. 'msos.config.i18n.select_trans_msos'

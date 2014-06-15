@@ -6,7 +6,7 @@
 
 msos.provide("mep.duration");
 
-mep.duration.version = new msos.set_version(14, 6, 2);
+mep.duration.version = new msos.set_version(14, 6, 15);
 
 
 mep.duration.start = function () {

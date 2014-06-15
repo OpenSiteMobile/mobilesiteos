@@ -31,12 +31,17 @@ msos.require("msos.fitmedia");
 mep.player.css = new msos.loader();
 mep.player.css.load('mep_css_player', msos.resource_url('mep', 'css/player.css'));
 
+// Only load css3 if supported
+if (Modernizr.cssgradients) {
+	mep.player.css.load('mep_css_gradient',	msos.resource_url('mep', 'css/gradient.css'));
+}
+
 msos.console.debug('mep.player -> loading start.');
 
 // Namespace
 mep.player = {
 
-	version: new msos.set_version(14, 6, 2),
+	version: new msos.set_version(14, 6, 13),
 	org_version: '2.10.3',		// from original version by John Dyer
 	meIndex: 0,
 	mepIndex: 0,
@@ -46,6 +51,7 @@ mep.player = {
 	options: {},
 	plugins: {},
 	features: [],
+	specific: [],
 	controls: {},
 
 	html5_interface: {
@@ -169,7 +175,6 @@ mep.player = {
 			// Build out our container w/controls, etc.
 			ply_obj.layers			= jQuery('<div class="mejs-layers">');
 			ply_obj.controls		= jQuery('<div class="mejs-controls">');
-			ply_obj.clear			= jQuery('<div class="mejs-clear">');
 
 			// Isolate the controls div from other layers
 			ply_obj.controls.bind(
@@ -180,8 +185,7 @@ mep.player = {
 			// Place it in DOM
 			ply_obj.container.append(
 				ply_obj.layers,
-				ply_obj.controls,
-				ply_obj.clear
+				ply_obj.controls
 			);
 
 			// Add classes for user and content

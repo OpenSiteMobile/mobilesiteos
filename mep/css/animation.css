@@ -1,7 +1,7 @@
 @charset "utf-8";
 
 
-.mejs-controls .mejs-time-rail .mejs-time-buffering {
+.mejs-time-buffering {
   -webkit-animation: buffering-stripes 2s linear infinite;
 	 -moz-animation: buffering-stripes 2s linear infinite;
       -ms-animation: buffering-stripes 2s linear infinite;

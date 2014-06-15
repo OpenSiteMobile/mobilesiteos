@@ -15,7 +15,7 @@
 
 msos.provide("mep.volume");
 
-mep.volume.version = new msos.set_version(14, 6, 2);
+mep.volume.version = new msos.set_version(14, 6, 15);
 
 
 // Start by loading our volume.css stylesheet

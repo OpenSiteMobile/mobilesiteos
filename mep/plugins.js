@@ -23,7 +23,7 @@ msos.provide("mep.plugins");
 
 mep.plugins = {
 
-	version: new msos.set_version(14, 6, 9),
+	version: new msos.set_version(14, 6, 15),
 	name: 'mep.plugins',
 	detected: {},
 

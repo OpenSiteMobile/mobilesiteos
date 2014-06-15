@@ -15,7 +15,7 @@
 
 msos.provide("mep.loop");
 
-mep.loop.version = new msos.set_version(14, 6, 2);
+mep.loop.version = new msos.set_version(14, 6, 15);
 
 mep.loop.start = function () {
 	"use strict";

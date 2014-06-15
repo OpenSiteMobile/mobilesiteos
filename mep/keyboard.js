@@ -15,7 +15,7 @@
 
 msos.provide("mep.keyboard");
 
-mep.keyboard.version = new msos.set_version(14, 6, 2);
+mep.keyboard.version = new msos.set_version(14, 6, 15);
 
 
 mep.keyboard.start = function () {

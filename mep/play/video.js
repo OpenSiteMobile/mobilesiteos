@@ -1,22 +1,25 @@
 
 /*global
     msos: false,
+    mep: false,
     jQuery: false,
-    Modernizr: false
+    Modernizr: false,
+    _: false
 */
 
 msos.provide("mep.play.video");
 msos.require("mep.player");
 
+
 mep.play.video = {
 
-	version: new msos.set_version(14, 6, 9),
+	version: new msos.set_version(14, 6, 15),
 
 	config: {
 		// auto:			attempts to detect what the browser can do
 		// native:			forces HTML5 playback
 		// shim:			disallows HTML5, will attempt Flash
-		mode: 'shim',
+		mode: _.indexOf(['auto', 'native', 'shim'], msos.config.query.player_mode) > 0 ? msos.config.query.player_mode : 'auto',
 		poster: '',
 		// remove or reorder to change plugin priority and availability
 		plugins: ['flash', 'youtube', 'vimeo'],
@@ -87,12 +90,18 @@ mep.play.video = {
 
 		success_function: function (player_object) {
 			"use strict";
-            msos.console.info('mep.play.video.success_function -> called: ' + player_object.id);
+
+			var temp_sf = 'mep.play.video.success_function -> ';
+
+            msos.console.info(temp_sf + 'called: ' + player_object.id);
 		},
 
 		error_function:	 function (player_object) {
 			"use strict";
-            msos.console.error('mep.play.video.error_function -> called: ' + player_object.id);
+
+			var temp_ef = 'mep.play.video.error_function -> ';
+
+            msos.console.error(temp_ef + 'for: ' + player_object.id);
 		}
 	},
 
@@ -162,14 +171,14 @@ mep.play.video.fullscreen_tests = function () {
 
 	if (!msos.var_is_null(vid)) {
 
-		r.can_play_type = 	(vid.canPlayType !== undefined);
+		r.can_play_type =	(vid.canPlayType !== undefined);
 		r.can_play_mp4 =	(vid.canPlayType
 						  && vid.canPlayType("video/mp4")	!== undefined);		// basic tests
 
 		r.semi_native =		(vid.webkitEnterFullscreen		!== undefined);		// iOS
 		r.webkit_native =	(vid.webkitRequestFullScreen	!== undefined);		// Webkit
 		r.moz_native =		(vid.mozRequestFullScreen		!== undefined);		// firefox
-		r.ms_native = 		(vid.msRequestFullscreen		!== undefined);		// MicroSoft
+		r.ms_native =		(vid.msRequestFullscreen		!== undefined);		// MicroSoft
 
 		r.true_native = (r.webkit_native || r.moz_native || r.ms_native);
 
@@ -215,19 +224,43 @@ mep.play.video.fullscreen_tests = function () {
 	return r;
 };
 
+mep.play.video.specific_features = function () {
+	"use strict";
+
+	var temp_sf = 'mep.play.video.specific_features -> ',
+		spec_features = [],
+		$video_nodes = jQuery('video');
+
+    if ($video_nodes.find('track').length > 0) {
+		spec_features.push('tracks');
+	}
+
+	if ($video_nodes.find('script[type="text/postroll"]').length > 0) {
+		spec_features.push('postroll');
+	}
+
+	if (spec_features.length && msos.config.verbose) {
+		msos.console.debug(temp_sf + 'add:', spec_features);
+	}
+
+	return spec_features;
+};
 
 mep.play.video.init = function () {
     "use strict";
 
     var temp_vi = 'mep.play.video.init -> ',
         vid_feat = mep.play.video.features_by_size,
-        features = vid_feat[msos.config.size] || vid_feat.pda_sml,
+        features = vid_feat[msos.config.size] || vid_feat.phone,
         v_cfg = mep.play.video.config;
 
     msos.console.debug(temp_vi + 'start, screen size: ' + msos.config.size);
 
     // Check browser/device fullscreen capabilities
     mep.player.support.fs = mep.play.video.fullscreen_tests();
+
+	// Check video tag for specific features
+	mep.player.specific = mep.play.video.specific_features();
 
     // Check browser/device HTML5 Media capabilities
     mep.player.support.html5_media = Modernizr.video;
@@ -240,17 +273,46 @@ mep.play.video.init = function () {
     // Add needed modules, per 'features_by_size' and  logic
     mep.player.load_modules(features);
 
+	// Add needed modules, as specified by individual video tags
+	if (mep.player.specific.length > 0) {
+		mep.player.load_modules(mep.player.specific);
+	}
+
     jQuery.fn.html5video = function (options) {
 
         return this.each(
             function () {
-                var $this = jQuery(this),
-                    mep_obj = new mep.player.build($this, v_cfg, mep.player.config, options);
+                var temp_h5 = 'mep.play.video.init - jQuery.fn.html5video',
+					$this = jQuery(this),
+                    mep_obj = new mep.player.build($this, v_cfg, mep.player.config, options),
+					events = [
+						'loadstart', 'loadeddata',
+						'play', 'playing',
+						'seeking', 'seeked',
+						'pause', 'waiting',
+						'ended', 'canplay', 'error'
+					],
+					i = 0;
 
                 // Start up
                 mep_obj.init();
+
                 // Store each player
                 mep.player.players.push(mep_obj);
+
+				// Add some intense debugging
+				if (msos.config.verbose) {
+					msos.console.debug(temp_h5 + ' -> player object:', mep_obj);
+
+					for (i = 0; i < events.length; i += 1) {
+						mep_obj.media.addEventListener(
+							events[i],
+							function (e) {
+								msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
+							}
+						);
+					}
+				}
             }
         );
     };
@@ -258,12 +320,5 @@ mep.play.video.init = function () {
     msos.console.debug(temp_vi + 'done!');
 };
 
-mep.play.video.start = function () {
-    "use strict";
-
-    jQuery('video').html5video();
-};
-
 
 msos.onload_func_start.push(mep.play.video.init);
-msos.onload_func_done.push(mep.play.video.start);

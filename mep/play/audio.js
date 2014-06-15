@@ -10,13 +10,13 @@ msos.require("mep.player");
 
 mep.play.audio = {
 
-	version: new msos.set_version(14, 6, 9),
+	version: new msos.set_version(14, 6, 14),
 
 	config: {
 		// auto:			attempts to detect what the browser can do
 		// native:			forces HTML5 playback
 		// shim:			disallows HTML5, will attempt Flash
-		mode: 'auto',
+		mode: _.indexOf(['auto', 'native', 'shim'], msos.config.query.player_mode) > 0 ? msos.config.query.player_mode : 'auto',
 		poster: '',
 		// remove or reorder to change plugin priority and availability
 		plugins: ['flash', 'youtube', 'vimeo'],
@@ -74,11 +74,18 @@ mep.play.audio = {
 
 		success_function: function (player_object) {
 			"use strict";
-            msos.console.info('mep.play.audio.success_function -> called: ' + player_object.id);
+
+			var temp_sf = 'mep.play.audio.success_function -> ';
+
+            msos.console.info(temp_sf + 'called: ' + player_object.id);
 		},
+
 		error_function:	 function (player_object) {
 			"use strict";
-			msos.console.error('mep.play.audio.error_function -> called: ' + player_object.id);
+
+			var temp_ef = 'mep.play.audio.error_function -> ';
+
+            msos.console.error(temp_ef + 'for: ' + player_object.id);
 		}
 	},
 
@@ -134,7 +141,7 @@ mep.play.audio.init = function () {
 
     var temp_ai = 'mep.play.audio.init -> ',
         aud_feat = mep.play.audio.features_by_size,
-        features = aud_feat[msos.config.size] || aud_feat.pda_sml,
+        features = aud_feat[msos.config.size] || aud_feat.phone,
         a_cfg = mep.play.audio.config;
 
     msos.console.debug(temp_ai + 'start, screen size: ' + msos.config.size);
@@ -154,13 +161,36 @@ mep.play.audio.init = function () {
 
 		return this.each(
 			function () {
-				var $this = jQuery(this),
-					mep_obj = new mep.player.build($this, a_cfg, mep.player.config, options);
+				var temp_h5 = 'mep.play.audio.init - jQuery.fn.html5audio',
+					$this = jQuery(this),
+					mep_obj = new mep.player.build($this, a_cfg, mep.player.config, options),
+						events = [
+						'loadstart', 'loadeddata',
+						'play', 'playing',
+						'seeking', 'seeked',
+						'pause', 'waiting',
+						'ended', 'canplay', 'error'
+					],
+					i = 0;
 
 				// Start up
 				mep_obj.init();
 				// Store each player
 				mep.player.players.push(mep_obj);
+
+				// Add some intense debugging
+				if (msos.config.verbose) {
+					msos.console.debug(temp_h5 + ' -> player object:', mep_obj);
+
+					for (i = 0; i < events.length; i += 1) {
+						mep_obj.media.addEventListener(
+							events[i],
+							function (e) {
+								msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
+							}
+						);
+					}
+				}
 			}
 		);
 	};
@@ -177,4 +207,3 @@ mep.play.audio.start = function () {
 
 
 msos.onload_func_start.push(mep.play.audio.init);
-msos.onload_func_done.push(mep.play.audio.start);

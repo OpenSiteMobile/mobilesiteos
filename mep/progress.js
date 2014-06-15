@@ -1,20 +1,28 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    Modernizr: false
 */
 
 msos.provide("mep.progress");
 
-mep.progress.version = new msos.set_version(14, 6, 2);
+mep.progress.version = new msos.set_version(14, 6, 13);
 
 
 // Start by loading our progress.css stylesheet
 mep.progress.css = new msos.loader();
-mep.progress.css.load('mep_progress_css', msos.resource_url('mep', 'css/progress.css'));
+mep.progress.css.load('mep_css_progress', msos.resource_url('mep', 'css/progress.css'));
+
+// Only load css3 if supported
+if (Modernizr.cssanimations && Modernizr.csstransforms) {
+	mep.progress.css.load('mep_css_animation',	msos.resource_url('mep', 'css/animation.css'));
+}
 
 mep.progress.start = function () {
 	"use strict";
+
+	var temp_ps = 'mep.progress.start - ';
 
 	// progress/loaded bar
 	jQuery.extend(
@@ -45,7 +53,7 @@ mep.progress.start = function () {
 
 				rail.appendTo(ply_obj.controls);
 
-				buffer.hide();	// (what up with this?)
+				buffer.hide();
 
 				handleMouseMove = function (e) {
 					// mouse position relative to the object
@@ -63,7 +71,7 @@ mep.progress.start = function () {
 							x = width + offset.left;
 						}
 
-						pos = x - offset.left;
+						pos = parseInt(x - offset.left, 10);
 						percentage = (pos / width);
 						newTime = (percentage <= 0.02) ? 0 : percentage * ply_obj.media.duration;
 
@@ -77,6 +85,7 @@ mep.progress.start = function () {
 							tfloat.css('left', pos);
 							tfltcur.html(mep.player.utils.secondsToTimeCode(newTime));
 							tfloat.show();
+							//msos.console.debug(temp_ps + 'buildprogress - handleMouseMove -> fired, for pos: ' + pos);
 						}
 					}
 				};

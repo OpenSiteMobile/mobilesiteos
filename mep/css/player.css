@@ -1,9 +1,11 @@
 @charset "utf-8";
 
 
-.mejs-container {	/* position:relative is set by fitmedia css code */
+/* position:relative is set by fitmedia css code */
+.mejs-container {
 	background-color:#999;
-	text-indent:0;
+	overflow: hidden;
+	z-index: 200;
 }
 .mejs-container-fullscreen {
 	position:fixed;
@@ -40,18 +42,19 @@
 }
 .mejs-overlay-button,
 .mejs-overlay-loading {
-	font-size: x-large;
+	font-size: xx-large;
 	background-color:transparent;
 }
 .mejs-overlay-button {
 	color: #FFF;
-	cursor:pointer;
+	cursor: pointer;
+	opacity: 0.7;
 }
-mejs-overlay-loading {
+.mejs-overlay-loading > i.loading {
 	color: orange;
 }
 .mejs-overlay-button:hover {
-	opacity:0.7;
+	opacity:1;
 }
 .mejs-controls {
 	position:absolute;
@@ -123,10 +126,6 @@ mejs-overlay-loading {
 }
 .mejs-controls .mejs-unfullscreen button > i.fa-square-o {
 	display:inline;
-}
-
-.mejs-clear {
-	clear:both;
 }
 
 .me-cannotplay > a > img {

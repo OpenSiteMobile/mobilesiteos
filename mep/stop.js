@@ -15,7 +15,7 @@
 
 msos.provide("mep.stop");
 
-mep.stop.version = new msos.set_version(14, 6, 2);
+mep.stop.version = new msos.set_version(14, 6, 15);
 
 
 mep.stop.start = function () {

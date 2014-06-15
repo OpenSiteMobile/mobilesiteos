@@ -6,7 +6,7 @@
 
 msos.provide("mep.postroll");
 
-mep.postroll.version = new msos.set_version(14, 6, 2);
+mep.postroll.version = new msos.set_version(14, 6, 15);
 
 
 // Start by loading our progress.css stylesheet
@@ -23,7 +23,7 @@ mep.postroll.start = function () {
 
 		buildpostroll: function(ply_obj) {
 
-			var postrollLink = ply_obj.container.find('link[rel="postroll"]').attr('href');
+			var postrollLink = ply_obj.container.find('script[type="text/postroll"]').attr('src');
 
 			if (postrollLink !== undefined) {
 				ply_obj.postroll =

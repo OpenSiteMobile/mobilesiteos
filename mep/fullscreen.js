@@ -20,7 +20,7 @@
 
 msos.provide("mep.fullscreen");
 
-mep.fullscreen.version = new msos.set_version(14, 6, 2);
+mep.fullscreen.version = new msos.set_version(14, 6, 15);
 
 
 mep.fullscreen.start = function () {

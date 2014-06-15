@@ -15,7 +15,7 @@
 
 msos.provide("mep.contextmenu");
 
-mep.contextmenu.version = new msos.set_version(14, 6, 2);
+mep.contextmenu.version = new msos.set_version(14, 6, 15);
 
 
 // Start by loading our contextmenu.css stylesheet

@@ -63,10 +63,10 @@ div.mejs-time-rail {
 	-webkit-border-radius:3px;
 	   -moz-border-radius:3px;
 			border-radius:3px;
-	top:-26px;
-	margin-left:-20px;
+	top:-24px;
+	left: 0;
+	margin-left: -20px;		/* offset to center indicator */
 	color:#111;
-	text-align:center;
 }
 .mejs-time-float-current {
 	font-size:11px;
