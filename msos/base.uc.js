@@ -141,6 +141,7 @@ msos.config = {
 	visualevent: false,
 
     run_ads: false,
+	run_size: false,
 	run_analytics: false,
     run_onerror: false,
 	run_overflowscroll: false,
@@ -197,7 +198,7 @@ msos.config = {
 		'console',
 		'debug', 'debug_script', 'debug_css', 'debug_output',
 		'mobile', 'verbose', 'visualevent',
-		'run_ads', 'run_analytics', 'run_onerror',
+		'run_ads', 'run_size', 'run_analytics', 'run_onerror',
 		'run_overflowscroll', 'run_social', 'run_translate', 'run_amazon_prev',
 		'use_date', 'use_color', 'use_number', 'use_range',
 		'clear_cookies', 'clear_storage'

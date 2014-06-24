@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				    size.js
-//			Copyright©2012-2013 - OpenSiteMobile
+//			Copyright©2012-2014 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -21,8 +21,35 @@ msos.provide("msos.size");
 msos.require("msos.common");
 msos.require("msos.i18n.common");   // required in msos.common too, but here to ref. dependency
 
-msos.size.version = new msos.set_version(14, 6, 6);
+msos.size.version = new msos.set_version(14, 6, 23);
 
+
+msos.size.set_display = function () {
+	"use strict";
+
+	var temp_rd = 'msos.size.set_display -> ',
+		loader_obj = new msos.loader(),
+		run_on_display_change = function () {
+			var j = 0,
+				odc = msos.ondisplay_size_change;
+
+			for (j = 0; j < odc.length; j += 1) { odc[j](); }
+		};
+
+	msos.console.debug(temp_rd + 'start.');
+
+	loader_obj.toggle_css = msos.config.size_array.slice(0);
+
+	// Largest -> smallest display
+	loader_obj.toggle_css.reverse();
+
+	loader_obj.add_resource_onload.push(function () { setTimeout(run_on_display_change, 150); });
+
+	// Load sizing stylesheet
+    loader_obj.load(msos.config.size, msos.resource_url('css', 'size/' + msos.config.size + '.css'));
+
+	msos.console.debug(temp_rd + 'done: ' + msos.config.size);
+};
 
 // This code is very similar to the 'msos.demo' module
 msos.size.selection = function ($container) {
@@ -67,7 +94,7 @@ msos.size.selection = function ($container) {
                     'fast',
                     function () {
                         // Set display size (w/ proper css)
-                        msos.set_display_size();
+                        msos.size.set_display();
                         jQuery('#body').fadeIn('slow');
                     }
                 );
@@ -75,3 +102,9 @@ msos.size.selection = function ($container) {
         }
     );
 };
+
+// Run immediately
+msos.size.set_display();
+
+// Run on orientation change
+msos.onorientationchange_functions.push(msos.size.set_display);

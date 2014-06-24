@@ -109,33 +109,6 @@ msos.byid = function (id, in_doc) {
 	return null;
 };
 
-msos.set_display_size = function () {
-	"use strict";
-
-	var temp_rd = 'msos.set_display_size -> ',
-		loader_obj = new msos.loader(),
-		run_on_display_change = function () {
-			var j = 0,
-				odc = msos.ondisplay_size_change;
-
-			for (j = 0; j < odc.length; j += 1) { odc[j](); }
-		};
-
-	msos.console.debug(temp_rd + 'start.');
-
-	loader_obj.toggle_css = msos.config.size_array.slice(0);
-
-	// Largest -> smallest display
-	loader_obj.toggle_css.reverse();
-
-	loader_obj.add_resource_onload.push(function () { setTimeout(run_on_display_change, 150); });
-
-	// Load sizing stylesheet
-    loader_obj.load(msos.config.size, msos.resource_url('css', 'size/' + msos.config.size + '.css'));
-
-	msos.console.debug(temp_rd + 'done: ' + msos.config.size);
-};
-
 msos.run_onresize = function () {
     "use strict";
 
@@ -187,7 +160,6 @@ msos.run_onorientationchange = function () {
 
 	// Set display accordingly
 	msos.get_display_size();
-	msos.set_display_size();
 
 	// Run all window onorientationchange functions now
 	for (m = 0; m < msos.onorientationchange_functions.length; m += 1) {
@@ -741,7 +713,6 @@ msos.check_deferred_scripts = function () {
 			// Order is important!
 			if (msos.config.mobile) { msos.hide_mobile_url(); }
 
-			msos.set_display_size();	// msos.site.uc.js or msos.site.min.js is already loaded (ref. FitText.js)
 			msos.notify.add();
 			msos.run_intial();
 			msos.run_onload();
