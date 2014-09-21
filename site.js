@@ -347,25 +347,7 @@ msos.site.auto_init = function () {
 	// Bootstrap transitions: Always use this if "true"
 	if (Modernizr.csstransitions)				{ msos.require("bootstrap.transition"); }
 
-	// Based on touch environment (add for desktop debugging)
-	if (cfg.debug
-	 && !Hammer.HAS_TOUCHEVENTS
-	 && !Hammer.HAS_POINTEREVENTS) {
-		msos.require("hammer.util.showtouches");
-		msos.require("hammer.util.fakemultitouch");
-	}
-
 	msos.console.debug(temp_ai + 'done!');
-};
-
-msos.site.hammer_for_desktop = function () {
-	"use strict";
-
-	// For desktop/laptop browsers
-	if (Hammer.plugins) {
-		if (Hammer.plugins.showTouches)     { Hammer.plugins.showTouches();     }
-		if (Hammer.plugins.fakeMultitouch)  { Hammer.plugins.fakeMultitouch();  }
-	}
 };
 
 msos.site.css_load = function () {
@@ -403,9 +385,6 @@ msos.site.css_load = function () {
 
 // Load site specific setup code
 msos.onload_func_pre.push(msos.site.auto_init);
-
-// Execute Hammer.js desktop funtions if applicable
-msos.onload_func_done.push(msos.site.hammer_for_desktop);
 
 // Load additional CSS last, if supported
 msos.onload_func_post.push(msos.site.css_load);
