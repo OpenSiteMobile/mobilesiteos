@@ -663,6 +663,20 @@ msos.console = (function () {
 		idx = msos.log_methods.length - 1,
 		aps = Array.prototype.slice;
 
+	// From AngularJS
+    function formatError(arg) {
+      if (arg instanceof Error) {
+        if (arg.stack) {
+          arg = (arg.message && arg.stack.indexOf(arg.message) === -1)
+              ? 'Error: ' + arg.message + '\n' + arg.stack
+              : arg.stack;
+        } else if (arg.sourceURL) {
+          arg = arg.message + '\n' + arg.sourceURL + ':' + arg.line;
+        }
+      }
+      return arg;
+    }
+
 	while (idx >= 0) {
 
 		(function (method) {
@@ -670,14 +684,16 @@ msos.console = (function () {
 			console_obj[method] = function () {
 
 				var cfg = msos.config,
-					filter = cfg.query.debug_filter || '';
+					filter = cfg.query.debug_filter || '',
+					i = 0;
 			
 				if (method === 'debug' && !cfg.debug) { return; }
 
 				var args = aps.apply(arguments),
 					name = args[0] ? args[0].replace(/\W/g, '_') : 'missing_args',
 					console_org = console_win[method] || console_win.log,
-					log_output = [];
+					log_output = [],
+					out_args = [];
 
 				if (method === 'debug' && cfg.verbose && filter && /^[0-9a-zA-Z.]+$/.test(filter)) {
 					filter = new RegExp('^' + filter.replace('.', "\."));
@@ -703,8 +719,11 @@ msos.console = (function () {
 				// if window console, add it
 				if (console_win) {
 					if (console_org.apply) {
+						for (i = 0; i < args.length; i += 1) {
+							out_args.push(formatError(args[i]));
+						}
 						// Do this for normal browsers
-						console_org.apply(console_win, arguments);
+						console_org.apply(console_win, out_args);
 					} else {
 						// Do this for IE9
 						var message = args.join(' ');
@@ -800,27 +819,17 @@ msos.generate_url_name = function (url) {
 
 	var path,
 		parts = [],
-		pl = 0,
-		j = 0,
-		idx = 0,
-		last = '',
 		name = '';
 
 	path = msos.purl(url).attr('path');
 
 	parts = path.split('/');
-	pl = parts.length;
-	last = parts[pl - 1];
-	idx = last.indexOf('?');
-	name = idx !== -1 ? last.substring(0, idx) : last;
 
-	// Add back folder names
-	for (j = 2; j < (pl - j); j += 1) {
-		name = parts[pl - j] + ':' + name;
-	}
+	// Remove first two "commom" elements and clean up for use as key
+	name = parts.slice(2).join(':');
+	name = name.replace(/[^0-9a-zA-Z]/g, '_');
 
-	// Clean up for use as key
-	return name.replace(/[^0-9a-zA-Z]/g, '_');
+	return name;
 };
 
 msos.run_function_array = function (name) {
@@ -834,7 +843,7 @@ msos.run_function_array = function (name) {
 	msos.console.debug(temp_fa + 'start: ' + name);
 
 	if (!msos[name] || !(_.isArray(msos[name]))) {
-		msos.console.error(temp_fa + 'for name: ' + name + ', failed.');
+		msos.console.error(temp_fa + 'for: ' + name + ', failed.');
 		return;
 	}
 
@@ -845,7 +854,7 @@ msos.run_function_array = function (name) {
 		try {
 			msos[name][m]();
 		} catch (e) {
-			msos.console.error(temp_fa + 'for: ' + name + ', name: ' + e.name + ', error: ' +  e.message);
+			msos.console.error(temp_fa + 'for: ' + name, e);
 		}
 	}
 

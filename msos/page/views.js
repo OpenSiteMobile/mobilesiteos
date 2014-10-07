@@ -114,9 +114,15 @@ msos.page.views.BBViewHeader = Backbone.View.extend({
     render: function () {
 		"use strict";
 
+		var template_fn = null,
+			header = '';
+
         msos.console.debug(this.bv_name + 'render -> called.');
 
-        this.$el.html(_.template(msos.page.config.header.text, msos.page));
+		template_fn = _.template(msos.page.config.header.text);
+		header = template_fn(msos.page);
+
+        this.$el.html(header);
 		this.$el.hammer();
 
         return this;
@@ -287,9 +293,15 @@ msos.page.views.BBViewFooter = Backbone.View.extend({
     render: function () {
 		"use strict";
 
+		var template_fn = null,
+			footer = '';
+
         msos.console.debug(this.bv_name + 'render -> called.');
 
-        this.$el.html(_.template(msos.page.config.footer.text, msos.page));
+		template_fn = _.template(msos.page.config.footer.text);
+		footer = template_fn(msos.page);
+
+        this.$el.html(footer);
 		this.$el.hammer();
 
         return this;
