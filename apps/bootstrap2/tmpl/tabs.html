@@ -1,0 +1,102 @@
+<section id="tabs">
+    <div class="page-header">
+        <a href="#top" class="btn btn-primary" style="float:right;"><i class="glyphicon glyphicon-chevron-up"></i></a>
+        <h1>Tabs
+            <small>(
+                <a target="_blank" href="https://github.com/angular-ui/bootstrap/tree/master/src/tabs">ui.bootstrap.tabs</a>)</small>
+        </h1>
+    </div>
+    <div class="row">
+        <div class="col-md-6 show-grid">
+            <div ng-controller="apps.bootstrap2.controllers.tabs.ctrl">
+                <p>Select a tab by setting active binding to true:</p>
+                <p>
+                    <button class="btn btn-default btn-sm" ng-click="tabs[0].active = true">Select second tab</button>
+                    <button class="btn btn-default btn-sm" ng-click="tabs[1].active = true">Select third tab</button>
+                </p>
+                <p>
+                    <button class="btn btn-default btn-sm" ng-click="tabs[1].disabled = ! tabs[1].disabled">Enable / Disable third tab</button>
+                </p>
+                <hr />
+                <tabset>
+                    <tab heading="Static title">Static content</tab>
+                    <tab ng-repeat="tab in tabs" heading="{{tab.title}}" active="tab.active" disabled="tab.disabled">{{tab.content}}</tab>
+                    <tab select="alertMe()">
+                        <tab-heading>
+                            <i class="glyphicon glyphicon-bell"></i>Alert!</tab-heading>I've got an HTML heading, and a select callback.
+                        Pretty cool!</tab>
+                </tabset>
+                <hr />
+                <tabset vertical="true" type="pills">
+                    <tab heading="Vertical 1">Vertical content 1</tab>
+                    <tab heading="Vertical 2">Vertical content 2</tab>
+                </tabset>
+                <hr />
+                <tabset justified="true">
+                    <tab heading="Justified">Justified content</tab>
+                    <tab heading="SJ">Short Labeled Justified content</tab>
+                    <tab heading="Long Justified">Long Labeled Justified content</tab>
+                </tabset>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p>AngularJS version of the tabs directive.</p>
+            <h3>Settings</h3>
+            <h4>
+                <code>&lt;tabset&gt;</code>
+            </h4>
+            <ul>
+                <li>
+                    <p>
+                        <code>vertical</code>
+                        <em>(Defaults: false)</em>: Whether tabs appear vertically stacked.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>justified</code>
+                        <em>(Defaults: false)</em>: Whether tabs fill the container and have a consistent
+                        width.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>type</code>
+                        <em>(Defaults: 'tabs')</em>: Navigation type. Possible values are 'tabs' and
+                        'pills'.</p>
+                </li>
+            </ul>
+            <h4>
+                <code>&lt;tab&gt;</code>
+            </h4>
+            <ul>
+                <li>
+                    <p>
+                        <code>heading</code>or
+                        <code>&lt;tab-heading&gt;</code>: Heading text or HTML markup.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>active</code>
+                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <em>(Defaults: false)</em>: Whether tab is currently selected.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>disabled</code>
+                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <em>(Defaults: false)</em>: Whether tab is clickable and can be activated.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>select()</code>
+                        <em>(Defaults: null)</em>: An optional expression called when tab is activated.</p>
+                </li>
+                <li>
+                    <p>
+                        <code>deselect()</code>
+                        <em>(Defaults: null)</em>: An optional expression called when tab is deactivated.</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+</section>

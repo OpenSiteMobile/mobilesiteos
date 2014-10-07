@@ -1,0 +1,93 @@
+<div class="modal-header">
+    <h4>Create a Custom Build
+        <br>
+        <small>Select the modules you wish to download</small>
+    </h4>
+</div>
+<div class="modal-body">
+    <div ng-show="buildErrorText">
+        <h4 style="text-align: center;">{{buildErrorText}}</h4>
+    </div>
+    <div ng-hide="buildErrorText">
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.transition}" ng-model="module.transition"
+            btn-checkbox ng-change="selectedChanged('transition', module.transition)">Transition</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.collapse}" ng-model="module.collapse"
+            btn-checkbox ng-change="selectedChanged('collapse', module.collapse)">Collapse</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.accordion}" ng-model="module.accordion"
+            btn-checkbox ng-change="selectedChanged('accordion', module.accordion)">Accordion</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.alert}" ng-model="module.alert" btn-checkbox
+            ng-change="selectedChanged('alert', module.alert)">Alert</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.bindHtml}" ng-model="module.bindHtml"
+            btn-checkbox ng-change="selectedChanged('bindHtml', module.bindHtml)">Bind Html</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.buttons}" ng-model="module.buttons" btn-checkbox
+            ng-change="selectedChanged('buttons', module.buttons)">Buttons</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.carousel}" ng-model="module.carousel"
+            btn-checkbox ng-change="selectedChanged('carousel', module.carousel)">Carousel</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.dateparser}" ng-model="module.dateparser"
+            btn-checkbox ng-change="selectedChanged('dateparser', module.dateparser)">Dateparser</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.position}" ng-model="module.position"
+            btn-checkbox ng-change="selectedChanged('position', module.position)">Position</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.datepicker}" ng-model="module.datepicker"
+            btn-checkbox ng-change="selectedChanged('datepicker', module.datepicker)">Datepicker</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.dropdown}" ng-model="module.dropdown"
+            btn-checkbox ng-change="selectedChanged('dropdown', module.dropdown)">Dropdown</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.modal}" ng-model="module.modal" btn-checkbox
+            ng-change="selectedChanged('modal', module.modal)">Modal</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.pagination}" ng-model="module.pagination"
+            btn-checkbox ng-change="selectedChanged('pagination', module.pagination)">Pagination</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.tooltip}" ng-model="module.tooltip" btn-checkbox
+            ng-change="selectedChanged('tooltip', module.tooltip)">Tooltip</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.popover}" ng-model="module.popover" btn-checkbox
+            ng-change="selectedChanged('popover', module.popover)">Popover</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.progressbar}" ng-model="module.progressbar"
+            btn-checkbox ng-change="selectedChanged('progressbar', module.progressbar)">Progressbar</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.rating}" ng-model="module.rating" btn-checkbox
+            ng-change="selectedChanged('rating', module.rating)">Rating</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.tabs}" ng-model="module.tabs" btn-checkbox
+            ng-change="selectedChanged('tabs', module.tabs)">Tabs</button>
+        </div>
+        <div class="btn-group" style="width: 100%;">
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.timepicker}" ng-model="module.timepicker"
+            btn-checkbox ng-change="selectedChanged('timepicker', module.timepicker)">Timepicker</button>
+            <button type="button" class="btn btn-default" style="width: 33%; border-radius: 0;"
+            ng-class="{'btn-primary': module.typeahead}" ng-model="module.typeahead"
+            btn-checkbox ng-change="selectedChanged('typeahead', module.typeahead)">Typeahead</button>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-default" ng-click="cancel()">Close</a>
+        <a class="btn btn-primary" ng-disabled="!selectedModules.length" ng-href="{{selectedModules.length ? download(selectedModules) : ''}}">
+            <i class="glyphicon glyphicon-download-alt"></i> Download {{selectedModules.length}} Modules
+        </a>
+    </div>
+</div>
