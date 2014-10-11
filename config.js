@@ -25,6 +25,7 @@ msos.console.time('config');
 
 // Set specific flags for this configuration:
 msos.config.run_ads = true;
+msos.config.run_size = true;
 msos.config.run_analytics = true;
 //msos.config.run_onerror = true;
 msos.config.run_social = true;
@@ -42,7 +43,7 @@ if (msos.config.debug_css) {
 		msos.resource_url('css', 'fawe.css'),
 		msos.resource_url('css', 'msos.css'),
 		msos.resource_url('css', 'msos_bs.css'),
-		msos.resource_url('css', 'msos_theme.css'),
+		msos.resource_url('css', 'msos_theme.css')
 	];
 
 } else {
@@ -62,33 +63,24 @@ if (msos.config.debug_script) {
 
 	// Debug full scripts (line no's mean something)
     msos.deferred_scripts = [
-		msos.resource_url('modernizr', 'v271.uc.js'),		// no class selectors - see build.txt note in /htdocs/modernizr
-		msos.resource_url('jquery', 'v210.uc.js'),
+		msos.resource_url('modernizr', 'v283.uc.js'),		// no class selectors - see build.txt note in /htdocs/modernizr
+		msos.resource_url('jquery', 'v211.uc.js'),
 		msos.resource_url('jquery', 'ui/v1104.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
-		msos.resource_url('underscore', 'v160.uc.js'),
-		msos.resource_url('hammer', 'v106.uc.js'),			// jQuery.hammer.js version of Hammer.js
-		msos.resource_url('backbone', 'v110.uc.js'),
-		msos.resource_url('marionette', 'v123.uc.js'),
-		msos.resource_url('msos', 'site.uc.js'),			// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
+		msos.resource_url('underscore', 'v170.uc.js'),
+		msos.resource_url('hammer', 'v203.uc.js'),			// jQuery.hammer.js version of Hammer.js
+		msos.resource_url('backbone', 'v112.uc.js'),
+		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
 		msos.resource_url('msos', 'core.uc.js')
 	];
-
-	if (!msos.config.json) {
-		msos.deferred_scripts.push(msos.resource_url('utils', 'json2.uc.js'));
-	}
 
 } else {
 
 	// Standard site provided (including ext. bundles) scripts
     msos.deferred_scripts = [
-		msos.resource_url('msos', 'bundle.min.js'),			// Modernizr, jQuery, jQuery-UI, Hammer.js, Underscore, Backbone, Marionette bundled together
-		msos.resource_url('msos', 'site.min.js'),
+		msos.resource_url('msos', 'bundle.min.js'),			// Modernizr, jQuery, jQuery-UI, Hammer.js, Underscore, Backbone bundled together
+		msos.resource_url('','site.js'),
 		msos.resource_url('msos', 'core.min.js')
 	];
-
-	if (!msos.config.json) {
-		msos.deferred_scripts.push(msos.resource_url('utils', 'json2.min.js'));
-	}
 }
 
 

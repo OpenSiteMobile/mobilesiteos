@@ -28,7 +28,7 @@ msos.require("msos.i18n.candy");
 if (candy.wrapper.use_timeago)	{ msos.require("candy.date.timeago"); }
 else							{ msos.require("candy.date.international"); }
 
-candy.view.version = new msos.set_version(13, 6, 25);
+candy.view.version = new msos.set_version(14, 10, 8);
 
 
 candy.view.init = function (container, options) {
@@ -70,7 +70,7 @@ candy.view.init = function (container, options) {
 	candy.core.event.init();
 
 	// Set path to emoticons
-	candy.util.Parser.setEmoticonPath(msos.resource_url('images', 'candy/emoticons/'));
+	candy.util.Parser.setEmoticonPath(msos.resource_url('candy', 'images/emoticons/'));
 
 	// Start DOMination...
 	_current.container = container;
@@ -84,7 +84,7 @@ candy.view.init = function (container, options) {
 				tooltipStatusmessage :	_i18n.tooltipStatusmessage,
 				tooltipAdministration :	_i18n.tooltipAdministration,
 				tooltipUsercount :		_i18n.tooltipUsercount,
-				image_resource_path : msos.resource_url('images', 'candy/'),
+				image_resource_path : msos.resource_url('candy', 'images/'),
 				media_resource_path : msos.resource_url('media',  'candy/')
 			},
 			{
