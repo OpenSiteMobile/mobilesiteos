@@ -11,7 +11,7 @@
 
 msos.provide("hello.to.instagram");
 
-hello.to.instagram.version = new msos.set_version(13, 10, 31);
+hello.to.instagram.version = new msos.set_version(14, 10, 14);
 
 
 hello.to.instagram.config = {
@@ -36,6 +36,8 @@ hello.to.instagram.config = {
 			basic: 'basic',
 			friends: 'relationships'
 		},
+
+		scope_delim : ' ',
 
 		base: 'https://api.instagram.com/v1/',
 
