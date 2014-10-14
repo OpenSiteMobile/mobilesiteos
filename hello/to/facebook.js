@@ -10,7 +10,7 @@
 
 msos.provide("hello.to.facebook");
 
-hello.to.facebook.version = new msos.set_version(13, 10, 31);
+hello.to.facebook.version = new msos.set_version(14, 10, 14);
 
 
 hello.to.facebook.config = {
@@ -22,8 +22,22 @@ hello.to.facebook.config = {
 
         oauth: {
             version: 2,
-            auth: 'https://www.facebook.com/dialog/oauth/'
+            auth: 'https://www.facebook.com/dialog/oauth/',
+            grant: 'https://graph.facebook.com/oauth/access_token'
         },
+
+		logout: function (callback) {
+			// Assign callback to a global handler
+			var callbackID = hello.utils.globalEvent(callback),
+                redirect = encodeURIComponent(hello.settings.redirect_uri + "?" + hello.utils.param({ callback: callbackID, result: JSON.stringify({ force: true }), state : '{}' })),
+                token = (hello.utils.store('facebook') || {}).access_token;
+
+            hello.utils.iframe('https://www.facebook.com/logout.php?next=' + redirect + '&access_token=' + token);
+
+			if (!token) { return false; }
+
+            return true;
+		},
 
         // Authorization scopes
         scope: {
@@ -38,7 +52,6 @@ hello.to.facebook.config = {
 
             publish_files: 'user_photos,user_videos,publish_stream',
             publish: 'publish_stream',
-            create_event: 'create_event',
 
             offline_access: 'offline_access'
         },

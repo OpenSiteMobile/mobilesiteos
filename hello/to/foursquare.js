@@ -8,7 +8,7 @@
 */
 msos.provide("hello.to.foursquare");
 
-hello.to.foursquare.version = new msos.set_version(13, 10, 31);
+hello.to.foursquare.version = new msos.set_version(14, 10, 14);
 
 
 hello.to.foursquare.config = {
@@ -19,7 +19,8 @@ hello.to.foursquare.config = {
 
         oauth: {
             version: 2,
-            auth: 'https://foursquare.com/oauth2/authenticate'
+            auth: 'https://foursquare.com/oauth2/authenticate',
+			grant : 'https://foursquare.com/oauth2/access_token'
         },
 
         scope: {},
