@@ -7,7 +7,7 @@
 
 msos.provide("hello.to.monitor");
 
-hello.to.monitor.version = new msos.set_version(13, 10, 31);
+hello.to.monitor.version = new msos.set_version(14, 10, 14);
 
 
 // Start monitoring
@@ -24,7 +24,7 @@ hello.to.monitor.version = new msos.set_version(13, 10, 31);
 	_win.name = _win.name || 'parent_window';
 
 	// Let ref. where this script is
-	tmp_mt = _win.name + ' - monitoring 8==> ',
+	tmp_mt = _win.name + ' - monitoring 8==> ';
 
 	msos.console.debug(tmp_mt + 'start.');
 
@@ -33,7 +33,6 @@ hello.to.monitor.version = new msos.set_version(13, 10, 31);
         var CURRENT_TIME = ((new Date()).getTime() / 1e3),
 			name,
 			session,
-			provider,
 			oldsess,
 			cb,
 			checked = 0,
@@ -61,7 +60,6 @@ hello.to.monitor.version = new msos.set_version(13, 10, 31);
 
                 // Get session
                 session =	_hello.utils.store(name) || {};
-                provider =	_hello.services[name];
                 oldsess =	old_session[name] || {};
 
 				if (msos.config.verbose) {
@@ -83,7 +81,7 @@ hello.to.monitor.version = new msos.set_version(13, 10, 31);
 						try {
 							_win[cb](session);
 						} catch (e) {
-							msos.console.error(tmp_mt + 'check -> execute callback: ' + cb + ', failed: ' + e.message);
+							msos.console.error(tmp_mt + 'check -> execute callback: ' + cb + ', failed:', e);
 						}
 
 					} else {
@@ -148,7 +146,7 @@ hello.to.monitor.version = new msos.set_version(13, 10, 31);
 					}
 					// We check more often when we get nearer a session expiration (the .8 part)
 					if ((session.expires - CURRENT_TIME) < (self_timeout / 1e3)) {
-						self_timeout = (session.expires - CURRENT_TIME) * 1e3 * .8;
+						self_timeout = (session.expires - CURRENT_TIME) * 1e3 * 0.8;
 					}
 				}
             }

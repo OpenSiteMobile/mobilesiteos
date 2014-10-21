@@ -56,8 +56,9 @@ hello.to.google.config = {
 
         // Map GET requests
         get: {
-            'me': 'oauth2/v1/userinfo?alt=json',
-            'me/friends': 'https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=@{limit|1000}&start-index=@{start|1}',
+            //'me': 'oauth2/v1/userinfo?alt=json',
+			'me': 'plus/v1/people/me',
+            'me/friends': 'plus/v1/people/me/people/visible?maxResults=@{limit|100}',
             'me/following': 'https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=@{limit|1000}&start-index=@{start|1}',
             'me/followers': 'https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=@{limit|1000}&start-index=@{start|1}',
             'me/share': 'plus/v1/people/me/activities/public?maxResults=@{limit|100}',

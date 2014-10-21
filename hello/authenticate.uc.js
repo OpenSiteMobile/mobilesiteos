@@ -11,6 +11,8 @@
  */
 
 /*global
+	msos: false,
+	hello: false,
     _: false
 */
 
@@ -21,11 +23,15 @@
 		utils = _hello.utils,
 		_win_parent = _win.opener || _win.parent,
 		_win_loc = _win.location,
+		relocate = function (path) {
+			if (_win_loc.assign) {
+				_win_loc.assign(path);
+			} else {
+				_win_loc.href = path;
+			}
+		},
 		p = {},
-		q = {},
-		a,
-		state,
-		path;
+		a;
 
     // Make sure we have a window name
 	_win.name = _win.name || 'child_' + parseInt(Math.random() * 1e12, 10).toString(36);
@@ -33,8 +39,21 @@
 	// Lets note where this is coming from
 	tmp_at = _win.name + ' - authenticating 8==> ';
 
-	// Note to self: don't bother with msos.config.debug, etc. (not main window)
 	msos.console.debug(tmp_at + 'start, location: ' + _win_loc);
+
+	function closeWindow() {
+
+		try {
+			_win.close();
+		} catch (e) {
+			msos.console.warn(tmp_at + 'closeWindow: failed!');
+		}
+
+		// IOS bug wont let us close a popup if still loading
+		if (_win.addEventListener) {
+			_win.addEventListener('load', function () { _win.close(); });
+		}
+	}
 
     function auth_cb(network, obj) {
 
@@ -61,16 +80,17 @@
 				try {
 					_win_parent[cb](obj);
 				} catch (e) {
-					msos.console.error(tmp_at + tmp_ac + 'callback: ' + cb + ', failed: ' + e.message);
+					msos.console.error(tmp_at + tmp_ac + 'callback: ' + cb + ', failed: ', e);
 				}
 
                 // Update store
                 utils.store(obj.network, obj);
+
             } else {
 				msos.console.warn(tmp_at + tmp_ac + 'no parent.');
 			}
 
-            _win.close();
+            closeWindow();
 
         } else {
 			msos.console.debug(tmp_at + tmp_ac + 'skipped page.');
@@ -135,7 +155,9 @@
             }
         }
 
-    } else {
+    } else if (p && p.oauth_redirect) {
+		relocate(decodeURIComponent(p.oauth_redirect));
+	} else {
 		msos.console.warn(tmp_at + 'no query returned.');
 	}
 

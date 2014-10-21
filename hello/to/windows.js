@@ -10,7 +10,7 @@
 
 msos.provide("hello.to.windows");
 
-hello.to.windows.version = new msos.set_version(13, 10, 31);
+hello.to.windows.version = new msos.set_version(14, 10, 14);
 
 
 hello.to.windows.config = {
@@ -24,6 +24,10 @@ hello.to.windows.config = {
             version: 2,
             auth: 'https://login.live.com/oauth20_authorize.srf'
         },
+
+		logout: function () {
+			return 'https://login.live.com/oauth20_logout.srf?ts=' + (new Date()).getTime();
+		},
 
         scope: {
             basic:		'wl.signin,wl.basic',
