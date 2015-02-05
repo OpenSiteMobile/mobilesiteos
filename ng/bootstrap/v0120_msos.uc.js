@@ -2,16 +2,34 @@
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
 
- * Version: 0.11.2 - 2014-09-26
+ * Version: 0.12.0 - 2014
  * License: MIT
  */
 
-// Reduced version of angular-ui-bootstrap for just these components...which we rename for standarization with other MSOS ones
-angular.module('ng.bootstrap.ui.transition', []).factory('$transition', ['$q', '$timeout', '$rootScope', function ($q, $timeout, $rootScope) {
+// Reduced version of angular-ui-bootstrap for just these components.
+// We rename them for standarization with other MSOS ones (follows directory structure)
+// ui.bootstrap.transition      -> ng.bootstrap.ui.transition,
+// ui.bootstrap.collapse        -> ng.bootstrap.ui.collapse,
+// ui.bootstrap.bindHtml        -> ng.bootstrap.ui.bindHtml,
+// ui.bootstrap.position        -> ng.bootstrap.ui.position,
+// ui.bootstrap.dropdown        -> ng.bootstrap.ui.dropdown
+
+// Also Note: our adaptation of $q, $qq (ref. function qFactory where $q.defer acceptes a name)
+angular.module(
+    "ng.bootstrap.ui",
+    [
+        "ng.bootstrap.ui.transition",   "ng.bootstrap.ui.collapse",
+        "ng.bootstrap.ui.bindHtml",     "ng.bootstrap.ui.position",
+        "ng.bootstrap.ui.dropdown"
+    ]);
+
+angular.module('ng.bootstrap.ui.transition', [])
+
+.factory('$transition', ['$q', '$timeout', '$rootScope', function ($q, $timeout, $rootScope) {
 
     var $transition = function (element, trigger, options) {
             options = options || {};
-            var deferred = $q.defer();
+            var deferred = $q.defer('$transition');
             var endEventName = $transition[options.animation ? 'animationEndEventName' : 'transitionEndEventName'];
 
             var transitionEndHandler = function (event) {
@@ -80,7 +98,9 @@ angular.module('ng.bootstrap.ui.transition', []).factory('$transition', ['$q', '
     return $transition;
 }]);
 
-angular.module('ng.bootstrap.ui.collapse', ['ng.bootstrap.ui.transition']).directive('collapse', ['$transition', function ($transition) {
+angular.module('ng.bootstrap.ui.collapse', ['ng.bootstrap.ui.transition'])
+
+.directive('collapse', ['$transition', function ($transition) {
 
     return {
         link: function (scope, element, attrs) {
@@ -164,7 +184,9 @@ angular.module('ng.bootstrap.ui.collapse', ['ng.bootstrap.ui.transition']).direc
     };
 }]);
 
-angular.module('ng.bootstrap.ui.bindHtml', []).directive('bindHtmlUnsafe', function () {
+angular.module('ng.bootstrap.ui.bindHtml', [])
+
+.directive('bindHtmlUnsafe', function () {
     return function (scope, element, attr) {
         element.addClass('ng-binding').data('$binding', attr.bindHtmlUnsafe);
         scope.$watch(attr.bindHtmlUnsafe, function bindHtmlUnsafeWatchAction(value) {
@@ -173,7 +195,9 @@ angular.module('ng.bootstrap.ui.bindHtml', []).directive('bindHtmlUnsafe', funct
     };
 });
 
-angular.module('ng.bootstrap.ui.position', []).factory('$position', ['$document', '$window', function ($document, $window) {
+angular.module('ng.bootstrap.ui.position', [])
+
+.factory('$position', ['$document', '$window', function ($document, $window) {
 
     function getStyle(el, cssprop) {
         if (el.currentStyle) { //IE
@@ -350,8 +374,11 @@ angular.module('ng.bootstrap.ui.dropdown', [])
     };
 
     var closeDropdown = function (evt) {
-
-            if (!openScope) { return; }     // already done
+            // This method may still be called during the same mouse event that
+            // unbound this event handler. So check openScope before proceeding.
+            if (!openScope) {
+                return;
+            }
 
             var toggleElement = openScope.getToggleElement();
             if (evt && toggleElement && toggleElement[0].contains(evt.target)) {
@@ -440,7 +467,6 @@ angular.module('ng.bootstrap.ui.dropdown', [])
 
 .directive('dropdown', function () {
     return {
-        restrict: 'CA',
         controller: 'DropdownController',
         link: function (scope, element, attrs, dropdownCtrl) {
             dropdownCtrl.init(element);
@@ -450,7 +476,6 @@ angular.module('ng.bootstrap.ui.dropdown', [])
 
 .directive('dropdownToggle', function () {
     return {
-        restrict: 'CA',
         require: '?^dropdown',
         link: function (scope, element, attrs, dropdownCtrl) {
             if (!dropdownCtrl) {
@@ -476,6 +501,7 @@ angular.module('ng.bootstrap.ui.dropdown', [])
                 'aria-haspopup': true,
                 'aria-expanded': false
             });
+
             scope.$watch(dropdownCtrl.isOpen, function (isOpen) {
                 element.attr('aria-expanded', !! isOpen);
             });
