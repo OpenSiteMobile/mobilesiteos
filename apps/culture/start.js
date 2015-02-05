@@ -23,7 +23,7 @@ msos.onload_func_done.push(
             ]
         );
 
-		angular.bootstrap(document, ['apps.culture.start']);
+		angular.bootstrap('body', ['apps.culture.start']);
 
 		msos.console.debug(temp_sd + 'done!');
 	}

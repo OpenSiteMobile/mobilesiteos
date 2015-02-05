@@ -1,6 +1,5 @@
 
 msos.provide('apps.mongolab.start');
-msos.require('ng.util.route');
 msos.require('ng.resource.mongolab');
 msos.require('apps.mongolab.services.project');
 msos.require('apps.mongolab.controllers.todoform');
@@ -15,7 +14,7 @@ msos.onload_functions.push(
 
 		msos.console.debug(temp_ml + 'start.');
 
-		app = angular.module('apps.mongolab.start', ['ng.util.route', 'ng.resource.mongolab']);
+		app = angular.module('apps.mongolab.start', ['ngRoute', 'ng.resource.mongolab']);
 
         app.config(
             function($routeProvider) {
@@ -41,12 +40,13 @@ msos.onload_functions.push(
                         }
                     ).when(
                         '/new',
-                        { templateUrl: msos.resource_url('apps', 'mongolab/partials/form.html'),
-                        controller: 'TodoFormCtrl',
-                        resolve: {
-                            project: function (Project) { return new Project(); }
-                        }
-                    }
+                        {
+							templateUrl: msos.resource_url('apps', 'mongolab/partials/form.html'),
+							controller: 'TodoFormCtrl',
+							resolve: {
+								project: function (Project) { return new Project(); }
+							}
+						}
                 ).otherwise(
                     { redirectTo: '/list' }
                 );
@@ -55,7 +55,7 @@ msos.onload_functions.push(
             'MONGOLAB_CONFIG',
             {
                 API_KEY: '0df2lQygbiC1ov7dyVEENGHKCvRkSXd2',
-                DB_NAME:'angularjs'
+                DB_NAME: 'angularjs'
             }
         );
 
@@ -69,4 +69,8 @@ msos.onload_functions.push(
 	}
 );
 
-msos.onload_func_done.push(function () { angular.bootstrap(document, ['apps.mongolab.start']); });
+msos.onload_func_done.push(
+	function () {
+		angular.bootstrap('body', ['apps.mongolab.start']);
+	}
+);

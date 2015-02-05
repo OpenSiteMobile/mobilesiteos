@@ -1,18 +1,17 @@
 
 msos.provide('apps.route.start');
-msos.require('ng.util.route');
 
 msos.onload_func_done.push(
 	function () {
 
-		var temp_sd = 'apps.route.start -> ';
+		var temp_sd = 'apps.route.start';
 
-		msos.console.debug(temp_sd + 'start.');
+		msos.console.debug(temp_sd + ' -> start.');
 
-		apps.route.start = angular.module('apps.route.start', ['ng.util.route']);
+		apps.route.start = angular.module('apps.route.start', ['ngRoute']);
 
 		// configure our routes
-		apps.route.start.config(function($routeProvider) {
+		apps.route.start.config(function ($routeProvider) {
 			$routeProvider
 				// route for the home page
 				.when('/', {
@@ -40,8 +39,8 @@ msos.onload_func_done.push(
 		// create the controller and inject Angular's $scope
 		apps.route.start.controller(
 			'mainController',
-			function($scope) {
-				msos.console.debug(temp_sd + 'mainController called!');
+			function ($scope) {
+				msos.console.debug(temp_sd + ' - mainController -> called!');
 				// create a message to display in our view
 				$scope.message = 'Everyone come and see how good I look!';
 			}
@@ -49,21 +48,21 @@ msos.onload_func_done.push(
 
 		apps.route.start.controller(
 			'aboutController',
-			function($scope) {
-				msos.console.debug(temp_sd + 'aboutController called!');
+			function ($scope) {
+				msos.console.debug(temp_sd + ' - aboutController -> called!');
 				$scope.message = 'Look! I am an about page.';
 			}
 		);
 
 		apps.route.start.controller(
 			'contactController',
-			function($scope) {
-				msos.console.debug(temp_sd + 'contactController called!');
+			function ($scope) {
+				msos.console.debug(temp_sd + ' - contactController -> called!');
 				$scope.message = 'Contact us! JK. This is just a demo.';
 			}
 		);
 
-		angular.bootstrap(document, ['apps.route.start']);
+		angular.bootstrap('body', ['apps.route.start']);
 
 		msos.console.debug(temp_sd + 'done!');
 	}

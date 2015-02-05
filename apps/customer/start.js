@@ -10,7 +10,6 @@
 
 
 msos.provide('apps.customer.start');
-msos.require('ng.util.route');
 msos.require('apps.customer.controllers');
 msos.require('apps.customer.directives');
 msos.require('apps.customer.services');
@@ -23,7 +22,7 @@ msos.onload_functions.push(
 
 		msos.console.debug(temp_sd + 'start.');
 
-        apps.customer.start = angular.module('apps.customer.start', ['ng.util.route']);
+        apps.customer.start = angular.module('apps.customer.start', ['ngRoute']);
 
         apps.customer.start.config(
             function ($routeProvider) {
@@ -58,4 +57,8 @@ msos.onload_functions.push(
 	}
 );
 
-msos.onload_func_done.push(function () { angular.bootstrap(document, ['apps.customer.start']); });
+msos.onload_func_done.push(
+	function () {
+		angular.bootstrap('body', ['apps.customer.start']);
+	}
+);

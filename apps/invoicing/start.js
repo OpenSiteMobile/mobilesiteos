@@ -144,7 +144,7 @@ msos.onload_func_done.push(
         );
 
         // Then bootstrap...
-		angular.bootstrap(document, ['apps.invoicing.start']);
+		angular.bootstrap('body', ['apps.invoicing.start']);
 
 		msos.console.debug(temp_sd + 'done!');
 	}

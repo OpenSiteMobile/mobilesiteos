@@ -1,6 +1,5 @@
 
 msos.provide('apps.ngdemos.start');
-msos.require('ng.util.route');
 
 apps.ngdemos.start.css = new msos.loader();
 
@@ -15,7 +14,7 @@ msos.onload_functions.push(
 
 		msos.console.debug(temp_sd + ' -> start.');
 
-		apps.ngdemos.start = angular.module('apps.ngdemos.start', ['ng.util.route']);
+		apps.ngdemos.start = angular.module('apps.ngdemos.start', ['ngRoute']);
 
 		// The basic technique below was derived from the example at:
 		// http://www.bennadel.com/blog/2554-loading-angularjs-components-with-requirejs-after-application-bootstrap.htm
@@ -115,6 +114,7 @@ msos.onload_functions.push(
 						function () {
 							msos.console.debug(temp_sd + ' - get_script -> loaded: ' + pge.script);
 
+							// possibly should be -> $rootScope.$evalAsync(function () { ... });
 							$rootScope.$apply(
 								function () {
 									deferred.resolve();
@@ -126,6 +126,7 @@ msos.onload_functions.push(
 						function (jqxhr, settings, e) {
 							msos.console.debug(temp_sd + ' - get_script -> error: ', e);
 
+							// possibly should be -> $rootScope.$evalAsync(function () { ... });
 							$rootScope.$apply(
 								function () {
 									deferred.reject(e);
@@ -151,123 +152,129 @@ msos.onload_functions.push(
                     {
                         title: 'Data Binding Basics',
                         url: res_url('apps', 'ngdemos/pages/1_basics.html'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Initialize Data',
                         url: res_url('apps', 'ngdemos/pages/2_init.html'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Looping with ng-repeat',
                         url: res_url('apps', 'ngdemos/pages/3_looping.html'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Adding a Simple Controller',
                         url: res_url('apps', 'ngdemos/pages/4_controller.html'),
 						script: res_url('apps', 'ngdemos/scripts/4_controller.js'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Filtering and Sorting Data',
                         url: res_url('apps', 'ngdemos/pages/5_filtering.html'),
 						script: res_url('apps', 'ngdemos/scripts/5_filtering.js'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Simple Application w/Filtering',
                         url: res_url('apps', 'ngdemos/pages/6_simple.html'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Using ng-init and ng-repeat w/Objects',
                         url: res_url('apps', 'ngdemos/pages/7_objects.html'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'Using Multiple Controllers',
                         url: res_url('apps', 'ngdemos/pages/8_multiple.html'),
 						script: res_url('apps', 'ngdemos/scripts/8_multiple.js'),
-						icon: 'glyphicon-chevron-right'
+						icon: 'fa-chevron-right'
+                    },
+                    {
+                        title: 'Using Select Element',
+                        url: res_url('apps', 'ngdemos/pages/9_select.html'),
+						script: res_url('apps', 'ngdemos/scripts/9_select.js'),
+						icon: 'fa-chevron-right'
+                    },
+                    {
+                        title: 'Using Dropdown Menu',
+                        url: res_url('apps', 'ngdemos/pages/10_dropdown.html'),
+						script: res_url('apps', 'ngdemos/scripts/10_dropdown.js'),
+						icon: 'fa-chevron-right'
                     },
                     {
                         title: 'MSOS-AngularJS, Ultra Simple',
                         url: '',
                         href: 'simple.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
                     {
                         title: 'MSOS-AngularJS, Simple Routing',
                         url: '',
                         href: 'route.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
+                    },
+                    {
+                        title: 'MSOS-AngularJS, Simple Script Injection',
+                        url: '',
+                        href: 'script.html',
+						icon: 'fa-external-link'
+                    },
+                    {
+                        title: 'MSOS-AngularJS, Switchable Grid',
+                        url: '',
+                        href: 'switchable_grid.html',
+						icon: 'fa-external-link'
                     },
 					{
                         title: 'MSOS-AngularJS w/Std. Bootstrap-UI',
                         url: '',
                         href: 'bootstrap.html',
-						icon: 'glyphicon-new-window'
-                    },
-					{
-                        title: 'MSOS-AngularJS w/Std. Bootstrap-UI using Modules',
-                        url: '',
-                        href: 'bootstrap1.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
 					{
                         title: 'MSOS-AngularJS, w/Lazy Loading Modular Bootstrap-UI',
                         url: '',
                         href: 'bootstrap2.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
 					{
                         title: 'Localstorage Module',
                         url: '',
                         href: 'localstorage.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
 					{
                         title: 'MobileSiteOS Culture Loading',
                         url: '',
                         href: 'culture.html',
-						icon: 'glyphicon-new-window'
-                    },
-					{
-                        title: 'Carousel Module',
-                        url: '',
-                        href: 'carousel.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
                     {
                         title: 'Customer Invoicing App',
                         url: '',
                         href: 'invoicing.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
                     {
                         title: 'Customer Management App',
                         url: '',
                         href: 'customer.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
 					{
                         title: 'Advanced Customer Mgt. App',
                         url: '',
                         href: 'customer2.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     },
                     {
                         title: 'MongoLab Resource App',
                         url: '',
                         href: 'mongolab.html',
-						icon: 'glyphicon-new-window'
-                    },
-					{
-                        title: 'AngularJS Date/Time Picker',
-                        url: '',
-                        href: 'datepicker.html',
-						icon: 'glyphicon-new-window'
+						icon: 'fa-external-link'
                     }
                 ];
 
@@ -287,4 +294,8 @@ msos.onload_functions.push(
 	}
 );
 
-msos.onload_func_done.push(function () { angular.bootstrap(document, ['apps.ngdemos.start']); });
+msos.onload_func_done.push(
+	function () {
+		angular.bootstrap('body', ['apps.ngdemos.start']);
+	}
+);

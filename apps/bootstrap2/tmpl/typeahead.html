@@ -1,6 +1,6 @@
 <section id="typeahead">
     <div class="page-header">
-        <a href="#top" class="btn btn-primary" style="float:right;"><i class="glyphicon glyphicon-chevron-up"></i></a>
+        <a href="#top" class="btn btn-primary" style="float:right;"><i class="fa fa-chevron-up"></i></a>
         <h1>Typeahead
             <small>(
                 <a target="_blank" href="https://github.com/angular-ui/bootstrap/tree/master/src/typeahead">ui.bootstrap.typeahead</a>)</small>
@@ -23,7 +23,7 @@
                 <input type="text" ng-model="asyncSelected"
                 placeholder="Locations loaded via $http" typeahead="address for address in getLocation($viewValue)"
                 typeahead-loading="loadingLocations" class="form-control">
-                <i ng-show="loadingLocations" class="glyphicon glyphicon-refresh"></i>
+                <i ng-show="loadingLocations" class="fa fa-refresh"></i>
                 <h4>Custom templates for results</h4>
                 <pre>Model: {{customSelected | json}}</pre>
                 <input type="text" ng-model="customSelected"
@@ -64,45 +64,45 @@
                 <li>
                     <p>
                         <code>ng-model</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>: Assignable angular expression to data-bind to</p>
+                        <i class="fa fa-eye"></i>: Assignable angular expression to data-bind to</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>: Comprehension Angular expression (see
+                        <i class="fa fa-eye"></i>: Comprehension Angular expression (see
                         <a href="http://docs.angularjs.org/api/ng.directive:select">select directive</a>)</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-append-to-body</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: false)</em>: Should the typeahead popup be appended to $body
                         instead of the parent element?</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-editable</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: true)</em>: Should it restrict model values to the ones selected
                         from the popup only ?</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-input-formatter</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: undefined)</em>: Format the ng-model result after selection</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-loading</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: angular.noop)</em>: Binding to a variable that indicates if
                         matches are being retrieved asynchronously</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-min-length</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: 1)</em>: Minimal no of characters that needs to be entered
                         before typeahead kicks-in</p>
                 </li>
@@ -114,12 +114,12 @@
                 <li>
                     <p>
                         <code>typeahead-template-url</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>: Set custom item template</p>
+                        <i class="fa fa-eye"></i>: Set custom item template</p>
                 </li>
                 <li>
                     <p>
                         <code>typeahead-wait-ms</code>
-                        <i class="glyphicon glyphicon-eye-open"></i>
+                        <i class="fa fa-eye"></i>
                         <em>(Defaults: 0)</em>: Minimal wait time after last character typed before
                         typeahead kicks-in</p>
                 </li>

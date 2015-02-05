@@ -1,19 +1,18 @@
 <section id="dropdown">
     <div class="page-header">
-        <a href="#top" class="btn btn-primary" style="float:right;"><i class="glyphicon glyphicon-chevron-up"></i></a>
+        <a href="#top" class="btn btn-primary" style="float:right;"><i class="fa fa-chevron-up"></i></a>
         <h1>Dropdown
-            <small>(
-                <a target="_blank" href="https://github.com/angular-ui/bootstrap/tree/master/src/dropdown">ui.bootstrap.dropdown</a>)</small>
+            <small>(<a target="_blank" href="https://github.com/angular-ui/bootstrap/tree/master/src/dropdown">ui.bootstrap.dropdown</a>)</small>
         </h1>
     </div>
     <div class="row">
         <div class="col-md-6 show-grid">
             <div ng-controller="apps.bootstrap2.controllers.dropdown.ctrl">
                 <!-- Simple dropdown -->
-                <span class="dropdown" on-toggle="toggled(open)">
-                    <a href class="dropdown-toggle">
-        Click me for a dropdown, yo!
-      </a>
+                <span class="dropdown" dropdown on-toggle="toggled(open)">
+                    <a href class="dropdown-toggle" dropdown-toggle>
+                    Click me for a dropdown, yo!
+                  </a>
                     <ul class="dropdown-menu">
                         <li ng-repeat="choice in items">
                             <a href>{{choice}}</a>
@@ -22,7 +21,8 @@
                 </span>
                 <!-- Single button -->
                 <div class="btn-group" dropdown is-open="status.isopen">
-                    <button type="button" class="btn btn-primary dropdown-toggle" ng-disabled="disabled">Button dropdown
+                    <button type="button" class="btn btn-primary dropdown-toggle" dropdown-toggle
+                    ng-disabled="disabled">Button dropdown
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
@@ -44,7 +44,8 @@
                 <!-- Split button -->
                 <div class="btn-group" dropdown>
                     <button type="button" class="btn btn-danger">Action</button>
-                    <button type="button" class="btn btn-danger dropdown-toggle">
+                    <button type="button" class="btn btn-danger dropdown-toggle"
+                    dropdown-toggle>
                         <span class="caret"></span>
                         <span class="sr-only">Split button!</span>
                     </button>

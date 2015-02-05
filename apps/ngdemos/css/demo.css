@@ -43,7 +43,7 @@ div#top_bar a {
   text-decoration: none;
 }
 
-div#top_bar .glyphicon {
+div#top_bar .fa {
   float: left;
   font-size: 400%;
   padding-left: 20px;

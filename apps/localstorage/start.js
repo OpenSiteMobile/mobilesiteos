@@ -45,7 +45,7 @@ msos.onload_func_done.push(
                 ]
             );
 
-		angular.bootstrap(document, ['apps.localstorage.start']);
+		angular.bootstrap('body', ['apps.localstorage.start']);
 
 		msos.console.debug(temp_ls + 'done!');
 	}

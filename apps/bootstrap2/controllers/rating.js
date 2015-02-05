@@ -24,18 +24,18 @@ angular.module(
             };
 
             $scope.ratingStates = [{
-                stateOn: 'glyphicon-ok-sign',
-                stateOff: 'glyphicon-ok-circle'
+                stateOn: 'fa-check-circle',
+                stateOff: 'fa-check-circle-o'
             }, {
-                stateOn: 'glyphicon-star',
-                stateOff: 'glyphicon-star-empty'
+                stateOn: 'fa-star',
+                stateOff: 'fa-star-o'
             }, {
-                stateOn: 'glyphicon-heart',
-                stateOff: 'glyphicon-ban-circle'
+                stateOn: 'fa-heart',
+                stateOff: 'fa-ban'
             }, {
-                stateOn: 'glyphicon-heart'
+                stateOn: 'fa-heart'
             }, {
-                stateOff: 'glyphicon-off'
+                stateOff: 'fa-power-off'
             }];
         }
     ]

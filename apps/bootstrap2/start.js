@@ -1,10 +1,9 @@
 
 msos.provide('apps.bootstrap2.start');
-msos.require('ng.mobile.touch');
 msos.require("ng.bootstrap.ui.modal");
-msos.require('ng.util.route');
 msos.require("ng.util.postloader");
 msos.require("ng.util.smoothscroll");
+
 
 apps.bootstrap2.start.css = new msos.loader();
 
@@ -30,11 +29,8 @@ msos.onload_functions.push(
         apps.bootstrap2.start = angular.module(
 			'apps.bootstrap2.start',
 			[
-				'ng.mobile.touch',
-				'ng.util.route',
-				'ng.bootstrap.ui.transition',	// ref. MSOS Angular-UI-Bootstrap, /ng/bootstrap/core.xx.js
-				'ng.bootstrap.ui.collapse',		// ditto
-				'ng.bootstrap.ui.dropdown',		// ditto
+				'ngRoute',
+				'ng.bootstrap.ui',
 				'ng.bootstrap.ui.modal',
 				'ng.util.postloader'
 			]
@@ -81,7 +77,7 @@ msos.onload_functions.push(
 								defer.resolve();
 								$rootScope.$apply();
 
-								ng.util.smoothscroll.fn(specific_name, 500);
+								ng.util.smoothscroll.fn(specific_name, 1000);
 							}
 						);
 
@@ -240,6 +236,6 @@ msos.onload_func_done.push(
 	function () {
 		"use strict";
 
-		angular.bootstrap(document, ['apps.bootstrap2.start']);
+		angular.bootstrap('body', ['apps.bootstrap2.start']);
 	}
 );
