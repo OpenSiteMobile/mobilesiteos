@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					base.js
-//			Copyright©2012-2013 - OpenSiteMobile
+//			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -600,6 +600,7 @@ msos.config = {
 
     }
 
+	_global.parse_string = parseString;
     _global.purl = purl;
 
 }(msos));
@@ -861,7 +862,7 @@ msos.run_function_array = function (name) {
 	// Clear all functions
 	msos[name] = [];
 
-	msos.console.debug(temp_fa + 'done: ' + name);
+	msos.console.debug(temp_fa + ' done: ' + name);
 };
 
 
