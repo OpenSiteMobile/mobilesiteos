@@ -40,7 +40,7 @@ if (msos.config.debug_css) {
 	
 	msos.deferred_css = [
 		msos.resource_url('css', 'normalize.css'),
-		msos.resource_url('css', 'fawe.css'),
+		msos.resource_url('css', 'font_awesome.uc.css'),
 		msos.resource_url('css', 'msos.css'),
 		msos.resource_url('css', 'msos_bs.css'),
 		msos.resource_url('css', 'msos_theme.css')
