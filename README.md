@@ -5,7 +5,7 @@ MobileSiteOS framework standard folder/files bundle
 
 This repository incorporates all of our standard installation folders/files, bundled up for easier consumption. The repositories called, containing these folders/files are as follows:
 
-1. osm_angular
+1. osm_ng
 2. osm_backbone
 3. osm_bootstrap
 4. osm_candy
@@ -35,7 +35,8 @@ Please note: The bare minimum repositories to utilized MobileSiteOS would be:
 4. osm_jquery
 5. osm_modernizr
 6. osm_msos
-7. osm_underscore
+7. osm_ng
+8. osm_underscore
 
 
 And our single page website program, loaded by the module "msos.page", requires these additional repositories:
