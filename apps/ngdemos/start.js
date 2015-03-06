@@ -241,6 +241,12 @@ msos.onload_functions.push(
 						icon: 'fa-external-link'
                     },
 					{
+                        title: 'MSOS-Mobile-AngularJS-UI, w/Lazy Loading Modules',
+                        url: '',
+                        href: '../angularjs_mobile/mobilesiteos.html',
+						icon: 'fa-external-link'
+                    },
+					{
                         title: 'Localstorage Module',
                         url: '',
                         href: 'localstorage.html',
