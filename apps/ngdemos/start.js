@@ -14,7 +14,7 @@ msos.onload_functions.push(
 
 		msos.console.debug(temp_sd + ' -> start.');
 
-		apps.ngdemos.start = angular.module('apps.ngdemos.start', ['ngRoute']);
+		apps.ngdemos.start = angular.module('apps.ngdemos.start', ['ngRoute', 'ng.bootstrap.ui']);
 
 		// The basic technique below was derived from the example at:
 		// http://www.bennadel.com/blog/2554-loading-angularjs-components-with-requirejs-after-application-bootstrap.htm
@@ -220,6 +220,18 @@ msos.onload_functions.push(
                         title: 'MSOS-AngularJS, Simple Script Injection',
                         url: '',
                         href: 'script.html',
+						icon: 'fa-external-link'
+                    },
+                    {
+                        title: 'MSOS-AngularJS, w/Std. Bootstrap-UI Dropdown',
+                        url: '',
+                        href: 'dropdown.html',
+						icon: 'fa-external-link'
+                    },
+                    {
+                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Dropdown',
+                        url: '',
+                        href: 'dropdown2.html',
 						icon: 'fa-external-link'
                     },
                     {
