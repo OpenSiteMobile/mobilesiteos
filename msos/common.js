@@ -479,9 +479,17 @@ msos.common.filter_parents = function (p) {
 msos.common.valid_jq_node = function ($node, type) {
     "use strict";
 
-	if (msos.common.in_dom_jq_node($node) && $node[0].tagName.toLowerCase() === type) { return true }
+	var temp_vn = 'msos.common.valid_jq_node -> input is not a ';
 
-	msos.console.error('msos.common.valid_jq_node -> invalid node for type: ' + type);
+	if (msos.common.in_dom_jq_node($node)) {
+		if ($node[0].tagName.toLowerCase() === type) { return true; }
+		else {
+			msos.console.error(temp_vn + 'valid jQuery node: ', $node);
+		}
+	} else {
+		msos.console.error(temp_vn + 'node of type: ' + type);
+	}
+
     return false;
 };
 

@@ -136,6 +136,7 @@ msos.config = {
 	debug_css: false,
 	debug_output: false,
 	debug_script: false,
+	debug_disable: false,
     mobile: false,
 	verbose: false,
 	visualevent: false,
@@ -312,6 +313,7 @@ msos.config = {
     scrolltop: (window.pageXOffset !== undefined || document.documentElement.scrollTop !== undefined ? true : false),
 
 	size: 'phone',
+	size_folder: 'css',
 	size_array: [],
     size_wide: {		// Note: these keys are the names used to call sizing CSS
 		'desktop': 1080,
@@ -357,6 +359,114 @@ msos.config = {
     }
 };
 
+
+// Copyright (C) 2012 Ryan Van Etten
+
+(function (root, name, make) {
+    "use strict";
+    root[name] = make();
+}(msos, 'verge', function () {
+    "use strict";
+
+    var xports = {},
+        win = window !== undefined && window,
+        doc = document !== undefined && document,
+        docElem = doc && doc.documentElement,
+        matchMedia = win.matchMedia || win.msMatchMedia,
+        mq = matchMedia ? function (q) {
+            return !!matchMedia.call(win, q).matches;
+        } : function () {
+            return false;
+        };
+
+    xports.viewportW = function () {
+        var a = docElem.clientWidth,
+            b = win.innerWidth;
+        return a < b ? b : a;
+    };
+
+    xports.viewportH = function () {
+        var a = docElem.clientHeight,
+            b = win.innerHeight;
+        return a < b ? b : a;
+    };
+
+    xports.mq = mq;
+
+    xports.matchMedia = matchMedia ? function () {
+        // matchMedia must be bound to window
+        return matchMedia.apply(win, arguments);
+    } : function () {
+        // Gracefully degrade to plain object
+        return {};
+    };
+
+    xports.viewport = function () {
+        return {
+            'width': xports.viewportW(),
+            'height': xports.viewportH()
+        };
+    };
+
+    xports.scrollX = function () {
+        return win.pageXOffset || docElem.scrollLeft;
+    };
+
+    xports.scrollY = function () {
+        return win.pageYOffset || docElem.scrollTop;
+    };
+
+    function calibrate(coords, cushion) {
+        var o = {};
+
+        cushion = +cushion || 0;
+
+        o.right =  coords.right  + cushion;
+        o.left =   coords.left   - cushion;
+        o.bottom = coords.bottom + cushion;
+        o.top =    coords.top    - cushion;
+
+        o.width = o.right - o.left;
+        o.height = o.bottom - o.top;
+
+        return o;
+    }
+
+    xports.rectangle = function (el, cushion) {
+        el = el && !el.nodeType ? el[0] : el;
+        if (!el || 1 !== el.nodeType) { return false; }
+        return calibrate(el.getBoundingClientRect(), cushion);
+    };
+
+    xports.aspect = function (o) {
+        o = o === undefined ? xports.viewport() : 1 === o.nodeType ? xports.rectangle(o) : o;
+
+        var h = o.height,
+            w = o.width;
+
+        h = typeof h === 'function' ? h.call(o) : h;
+        w = typeof w === 'function' ? w.call(o) : w;
+
+        return w / h;
+    };
+
+    xports.inX = function (el, cushion) {
+        var r = xports.rectangle(el, cushion);
+        return !!r && r.right >= 0 && r.left <= xports.viewportW();
+    };
+
+    xports.inY = function (el, cushion) {
+        var r = xports.rectangle(el, cushion);
+        return !!r && r.bottom >= 0 && r.top <= xports.viewportH();
+    };
+
+    xports.inViewport = function (el, cushion) {
+        var r = xports.rectangle(el, cushion);
+        return !!r && r.bottom >= 0 && r.right >= 0 && r.top <= xports.viewportH() && r.left <= xports.viewportW();
+    };
+
+    return xports;
+}));
 
 /*
  * Purl (A JavaScript URL parser) v2.3.1
@@ -619,9 +729,11 @@ msos.parse_query = function () {
 		result = url.param();
 
     for (key in result) {
+		// only allow std word characters
+		result[key] = result[key].replace(/[^0-9a-zA-Z_]/g, '_');
         if (result[key] === 'true')		{ result[key] = true; }
         if (result[key] === 'false')	{ result[key] = false; }
-    }
+	}
 
     // Update msos.config if new info passed in by query string
     for (cfg in msos.config) {
@@ -1055,32 +1167,11 @@ msos.set_locale_cookie = function () {
 msos.get_viewport = function (for_win) {
     "use strict";
 
-    var d = for_win.document,
-		dd = d.documentElement,
-		b = d.body || d.getElementsByTagName("body")[0],
-		port = { width: 0, height: 0 },
-		temp_txt = "msos.get_viewport -> ";
-
-    if	(for_win.innerWidth !== undefined) {
-		port.width  = for_win.innerWidth;
-		port.height = for_win.innerHeight;
-		temp_txt += 'innerWidth/Height spec';
-    } else if	(dd && dd.clientWidth) {
-		port.width  = dd.clientWidth;
-		port.height = dd.clientHeight;
-		temp_txt += 'documentElement.clientWidth/Height spec';
-    } else if	(b && b.clientWidth) {
-		port.width  = b.clientWidth;
-		port.height = b.clientHeight;
-		temp_txt += 'body.clientWidth/Height spec';
-    } else {
-		if (window !== for_win)	{ temp_txt += 'failed for (popup window), this'; }
-		else					{ temp_txt += 'failed for this'; }
-      }
+    var port = msos.verge.viewport();
 
     if (window === for_win) { msos.config.view_port = port; }
 
-    msos.console.debug(temp_txt + ' browser.');
+    msos.console.debug('msos.get_viewport -> viewport:', port);
     return port;
 };
 
@@ -1736,8 +1827,8 @@ msos.calc_display_size = function () {
     scrn_px = view_width || scrn_width;
 
     for (size in msos.config.size_wide) {
-		// Allow larger size at 97% of available viewport width
-		adj_width = msos.config.size_wide[size] - (msos.config.size_wide[size] * 0.03);
+		// Get the size that fits (size_wide + 1%)
+		adj_width = msos.config.size_wide[size] + (msos.config.size_wide[size] * 0.01);
 		if (scrn_px > adj_width) {
 			if (view) { if (msos.config.size_wide[view] < msos.config.size_wide[size])	{ view = size; } }
 			else																		{ view = size; }
@@ -1748,7 +1839,7 @@ msos.calc_display_size = function () {
     return view;
 };
 
-msos.get_display_size = function () {
+msos.get_display_size = function (resize) {
     "use strict";
 
     var temp_dis = 'msos.get_display_size -> ',
@@ -1757,7 +1848,7 @@ msos.get_display_size = function () {
 		cookie_array = [],
 		display_size = '';
 
-    msos.console.debug(temp_dis + 'start.');
+    msos.console.debug(temp_dis + 'start, resize: ' + (resize ? 'true' : 'false'));
 
     if (cookie_value) {
 		cookie_array = cookie_value.split(':');
@@ -1774,13 +1865,13 @@ msos.get_display_size = function () {
     cookie_array[2] = browser_layout;
 
     // This layout not set yet, so set to undef and get_size will kick in
-    if (display_size === 'unknown') { display_size = ''; }
+    if (display_size === 'unknown' || resize) { display_size = ''; }
 
     msos.config.size = msos.config.query.size || display_size || msos.calc_display_size() || msos.config.size;
 
     if (msos.config.query.size) {
 		// Warn that onorientationchange or onresize display change may have been overridden by an input value
-		msos.console.info(temp_dis + 'size set by input!');
+		msos.console.info(temp_dis + 'NOTE: size set by input!');
     }
 
     if (browser_layout === 'portrait')	{ cookie_array[0] = msos.config.size; }
