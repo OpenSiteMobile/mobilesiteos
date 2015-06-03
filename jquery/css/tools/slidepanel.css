@@ -1,24 +1,5 @@
 @charset "utf-8";
 
-a.trigger {
-	position: absolute;
-}
-a.trigger.left {
-	left: 0;
-}
-a.trigger.right {
-	right: 0;
-}
-a.trigger.active {
-	z-index: 201;
-}
-a.trigger.active i {
-	color: red;
-    background-color: white;
-    -webkit-border-radius: 0.6em;
-    -moz-border-radius: 0.6em;
-    border-radius: 0.6em;
-}
 .panel {
 	position: absolute;
 	display: none;
