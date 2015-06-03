@@ -708,105 +708,26 @@
 		run: function (elem) {
 			var result = null;
 
-			try {
-				result = this.handler(elem);
-			} catch (e) {
-				if (e.sourceURL) {
-					msos.console.error(stph_hdl + "run -> error w/url: " + this.handler + " " + e.sourceURL + ":" + e.line + " - " + e.name + ": " + e.message);
-				} else if (e.fileName) {
-					msos.console.error(stph_hdl + "run -> error w/file: " + this.handler + " " + e.fileName + ":" + e.lineNumber + " - " + e.name + ": " + e.message);
-				} else if (e.stack) {
-					msos.console.error(stph_hdl + "run -> error w/stack: " + e.message + "\n" + e.stack);
-				} else {
-					msos.console.error(stph_hdl + "run -> error plain: " + e);
-				}
+			if (msos.config.verbose) {
+				msos.console.debug(stph_hdl + "run -> start, for:", elem);
 			}
-
-			return result;
-		},
-
-		toString: function () {
-			return "{ Handler: " + this.handler + "(" + this.name + "," + this.id + "," + this.ns + ") }";
-		}
-	};
-
-	Strophe.Handler = function (handler, ns, name, type, id, from, options) {
-		this.handler = handler;
-		this.ns = ns;
-		this.name = name;
-		this.type = type;
-		this.id = id;
-		this.options = options || { matchBare: false };
-
-		// default matchBare to false if undefined
-		if (!this.options.matchBare) {
-			this.options.matchBare = false;
-		}
-
-		if (this.options.matchBare) {
-			this.from = from ? Strophe.getBareJidFromJid(from) : null;
-		} else {
-			this.from = from;
-		}
-
-		this.user = true;
-	};
-
-	Strophe.Handler.prototype = {
-
-		isMatch: function (elem) {
-			var nsMatch,
-				from = null,
-				that = this;
-
-			if (this.options.matchBare) {
-				from = Strophe.getBareJidFromJid(elem.getAttribute('from'));
-			} else {
-				from = elem.getAttribute('from');
-			}
-
-			nsMatch = false;
-
-			if (!this.ns) {
-				nsMatch = true;
-			} else {
-				Strophe.forEachChild(
-					elem,
-					function (elem) {
-						if (elem.getAttribute("xmlns") === that.ns) {
-							nsMatch = true;
-						}
-					}
-				);
-				nsMatch = nsMatch || elem.getAttribute("xmlns") === this.ns;
-			}
-
-			if (nsMatch &&
-				(!this.name	|| elem.tagName.toLowerCase() === this.name.toLowerCase()) &&
-				(!this.type	|| elem.getAttribute("type") === this.type) &&
-				(!this.id	|| elem.getAttribute("id") === this.id) &&
-				(!this.from	|| from === this.from)) {
-					return true;
-			}
-
-			return false;
-		},
-
-		run: function (elem) {
-			var result = null;
 
 			try {
 				result = this.handler(elem);
 			} catch (e) {
-				if (e.sourceURL) {
-					msos.console.error(stph_hdl + "run -> error w/url: " + this.handler + " " + e.sourceURL + ":" + e.line + " - " + e.name + ": " + e.message);
-				} else if (e.fileName) {
-					msos.console.error(stph_hdl + "run -> error w/file: " + this.handler + " " + e.fileName + ":" + e.lineNumber + " - " + e.name + ": " + e.message);
-				} else if (e.stack) {
-					msos.console.error(stph_hdl + "run -> error w/stack: " + e.message + "\n" + e.stack);
+				if			(e.sourceURL) {
+					msos.console.error(stph_hdl + "run -> error w/url: " + e.sourceURL + ":" + e.line + " - " + e.name + ": " + e.message + "\n", this.handler);
+				} else if	(e.fileName) {
+					msos.console.error(stph_hdl + "run -> error w/file: " + e.fileName + ":" + e.lineNumber + " - " + e.name + ": " + e.message + "\n", this.handler);
+				} else if	(e.stack) {
+					msos.console.error(stph_hdl + "run -> error w/stack: " + e.stack + "\n", this.handler);
 				} else {
-					msos.console.error(stph_hdl + "run -> error plain: " + e);
+					msos.console.error(stph_hdl + "run -> error plain: " + e.message + "\n", this.handler);
 				}
+			}
+
+			if (msos.config.verbose) {
+				msos.console.debug(stph_hdl + "run -> done!");
 			}
 
 			return result;
