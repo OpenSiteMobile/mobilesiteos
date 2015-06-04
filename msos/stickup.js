@@ -14,7 +14,7 @@
 
 msos.provide("msos.stickup");
 
-msos.stickup.version = new msos.set_version(14, 2, 17);
+msos.stickup.version = new msos.set_version(15, 4, 15);
 
 msos.stickup.v_postion = jQuery(this).scrollTop();
 msos.stickup.on_change = [];
@@ -92,13 +92,13 @@ msos.stickup.create = function (sticky_elm) {
 			win_height =	parseInt(jQuery(window).innerHeight(), 10),
 			body_height =	parseInt(jQuery('body').height(), 10);
 
-		if (msos.config.verbose) {
+		if (msos.config.debug === 'stickup') {
 			msos.console.debug(temp_st + ' - on_scroll -> start, for: ' + elm_id);
 		}
 
 		// Stop the "page jump" caused by removing sticky element via "position: fixed" at scroll bottom
 		if ((win_height + scroll_top) >= body_height) {
-			if (msos.config.verbose) {
+			if (msos.config.debug === 'stickup') {
 				msos.console.debug(temp_st + ' - on_scroll -> hit bottom: ' + scroll_top + ', win height: ' + win_height);
 			}
 			return;
@@ -154,7 +154,7 @@ msos.stickup.create = function (sticky_elm) {
 			}
 		}
 
-		if (msos.config.verbose) {
+		if (msos.config.debug === 'stickup') {
 			msos.console.debug(temp_st + ' - on_scroll -> done, for: ' + elm_id + ', width: ' + elm_width);
 		}
 	};

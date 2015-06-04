@@ -70,7 +70,7 @@ msos.google.ad.run = function () {
                     jQuery('#slogan').fadeOut(
     
                     function () {
-                        jQuery('#marquee').fadeOut(
+                        jQuery('#branding').fadeOut(
     
                         function () {
                             jQuery('#google_ad').css('opacity', 1.0);

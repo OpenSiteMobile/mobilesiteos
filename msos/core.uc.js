@@ -116,10 +116,10 @@ msos.run_onresize = function () {
 		port_width = msos.config.view_port.width,	// save original width
 		m = 0;
 
+	msos.console.debug(temp_onr + 'start.');
+
     // Get the viewport size (which resets msos.config.view_port)
     msos.get_viewport(window);
-
-	msos.console.debug(temp_onr + 'start.');
 
 	// Run all window onresize functions now
 	for (m = 0; m < msos.onresize_functions.length; m += 1) {
@@ -146,33 +146,16 @@ msos.run_onorientationchange = function () {
 		return;
 	}
 
-	// Hide the page contents
-	jQuery('#body').fadeOut('fast');
-
-	// if the new orientation is 'portrait' (ie: from 'landscape')
-	if (window.orientation === 0 || window.orientation === 180) {
-		// Immediately make the body height at least the full 'landscape' width (to prevent white-out)
-		jQuery(msos.body).css('min-height', port_width + 'px');
-	}
-
 	// Reset 'view_orientation' variables
 	msos.browser_orientation();
 
-	// Set display accordingly
-	msos.get_display_size();
+	// Get the viewport size (which resets msos.config.view_port)
+    msos.get_viewport(window);
 
 	// Run all window onorientationchange functions now
 	for (m = 0; m < msos.onorientationchange_functions.length; m += 1) {
 		msos.onorientationchange_functions[m]();
 	}
-
-	// Let things settle
-	setTimeout(
-		function () {
-			jQuery('#body').fadeIn('slow');
-		},
-		250
-	);
 
 	msos.console.debug(temp_ono + 'done, orig. w: ' + port_width + ', new w: ' + msos.config.view_port.width + ', for: ' + m + ' functions.');
 };
@@ -229,9 +212,9 @@ msos.require = function (module_name, add_onsuccess_func) {
 
     did_module_load = function () {
 		if (msos.registered_modules[module_id]) {
-			msos.console.debug(req_text + 'success: '	+ module_name);
+			msos.console.debug(req_text + 'success: ' + module_name);
 		} else {
-			msos.console.error(req_text + 'failed: '	+ module_name);
+			msos.console.error(req_text + 'failed: '  + module_name);
 		  }
     };
 
@@ -952,14 +935,12 @@ msos.set_window_onchange = function () {
 	msos.console.debug(temp_sw + 'start.');
 
 	// Bind onresize function
-	if (msos.onresize_functions.length > 0) {
-		jQuery(window).on('resize', _.throttle(msos.run_onresize, 200));
-	}
+	jQuery(window).on('resize', _.debounce(msos.run_onresize, 250));
 
 	// Bind onorientationchange function (always run on change)
 	if (msos.config.orientation
 	 && msos.config.orientation_change) {
-		jQuery(window).on('orientationchange', _.debounce(msos.run_onorientationchange, 300, true));
+		jQuery(window).on('orientationchange', _.debounce(msos.run_onorientationchange, 100));
 	}
 
 	msos.console.debug(temp_sw + 'done!');

@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				    size.js
-//			Copyright©2012-2014 - OpenSiteMobile
+//			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -21,8 +21,30 @@ msos.provide("msos.size");
 msos.require("msos.common");
 msos.require("msos.i18n.common");   // required in msos.common too, but here to ref. dependency
 
-msos.size.version = new msos.set_version(14, 6, 23);
+msos.size.version = new msos.set_version(15, 4, 18);
 
+msos.size.evaluate = function (force_sizing) {
+	"use strict";
+
+	var cc = msos.config.cookie;
+
+	// Set the display size
+	msos.get_display_size(force_sizing);
+
+	// Reset site user cookie for new size
+	msos.cookie(
+		cc.site_pref.name,
+		cc.site_pref.value,
+		cc.site_pref.params
+	);
+
+	if (msos.config.run_ads) {
+		// Reload page (so Google AdSense sizes correctly)
+		window.location.reload(false);
+	} else {
+		msos.size.set_display();
+	}
+};
 
 msos.size.set_display = function () {
 	"use strict";
@@ -33,20 +55,29 @@ msos.size.set_display = function () {
 			var j = 0,
 				odc = msos.ondisplay_size_change;
 
+			jQuery('#body').show();
+
 			for (j = 0; j < odc.length; j += 1) { odc[j](); }
 		};
 
 	msos.console.debug(temp_rd + 'start.');
+
+	jQuery('#body').hide();
 
 	loader_obj.toggle_css = msos.config.size_array.slice(0);
 
 	// Largest -> smallest display
 	loader_obj.toggle_css.reverse();
 
-	loader_obj.add_resource_onload.push(function () { setTimeout(run_on_display_change, 150); });
+	// Load the stylesheet for this size (or make active for already available one's)
+	loader_obj.add_resource_onload.push(
+		function () {
+			setTimeout(run_on_display_change, 150);
+		}
+	);
 
 	// Load sizing stylesheet
-    loader_obj.load(msos.config.size, msos.resource_url('css', 'size/' + msos.config.size + '.css'));
+    loader_obj.load(msos.config.size, msos.resource_url(msos.config.size_folder, 'size/' + msos.config.size + '.css'));
 
 	msos.console.debug(temp_rd + 'done: ' + msos.config.size);
 };
@@ -73,38 +104,32 @@ msos.size.selection = function ($container) {
 
             var cc = msos.config.cookie;
 
+			// Set size via query parameter (ref. msos.get_display_size)
             msos.config.query.size = jQuery.trim(this.value);
 
-            // Get the new display size
-            msos.get_display_size();
-
-            // Reset site user cookie for new size
-            msos.cookie(
-                cc.site_pref.name,
-                cc.site_pref.value,
-                cc.site_pref.params
-            );
-
-            if (msos.config.run_ads) {
-                // Reload page (so Google AdSense sizes correctly)
-                window.location.reload(false);
-            } else {
-                // OR make sure body is hidden, then run display change
-                jQuery('#body').fadeOut(
-                    'fast',
-                    function () {
-                        // Set display size (w/ proper css)
-                        msos.size.set_display();
-                        jQuery('#body').fadeIn('slow');
-                    }
-                );
-            }
+            msos.size.evaluate();
         }
     );
+};
+
+msos.size.set_onorientation = function () {
+	"use strict";
+
+	msos.size.evaluate();
+};
+
+msos.size.set_onresize = function () {
+	"use strict";
+
+	// 'true' forces recalculation
+	msos.size.evaluate(true);
 };
 
 // Run immediately
 msos.size.set_display();
 
 // Run on orientation change
-msos.onorientationchange_functions.push(msos.size.set_display);
+msos.onorientationchange_functions.push(msos.size.set_onorientation);
+
+// Run on window resize
+msos.onresize_functions.push(msos.size.set_onresize);

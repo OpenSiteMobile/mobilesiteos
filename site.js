@@ -165,19 +165,19 @@ if (msos.config.visualevent) {
 
 }(jQuery));
 
-// Adjust marquee display using above
+// Adjust branding display using above
 msos.ondisplay_size_change.push(
 	function () {
 		"use strict";
 
-		var marquee = jQuery('#marquee');
+		var branding = jQuery('#branding');
 
-		marquee.hide();
+		branding.hide();
 
-		// Adjust marquee for display size. (.8 is a compression factor for #marquee)
-		marquee.fitText(0.8, { maxFontSize: marquee.height() + 'px' });
+		// Adjust branding for display size. (.8 is a compression factor for #branding)
+		branding.fitText(0.8, { maxFontSize: branding.height() + 'px' });
 
-		marquee.fadeIn('slow');
+		branding.fadeIn('slow');
 	}
 );
 
@@ -335,7 +335,7 @@ msos.site.auto_init = function () {
     // Based on page elements and configuration -> run functions or add modules
     if (cfg.run_ads
 	 && bdwidth > 150
-	 && jQuery('#rotate_marquee').length === 1)	{ msos.require("msos.google.ad"); }
+	 && jQuery('#branding').length === 1)	{ msos.require("msos.google.ad"); }
     if (cfg.run_social
 	 && bdwidth > 150
      && jQuery('#social_ties').length)			{ msos.site.addthis_share(); }

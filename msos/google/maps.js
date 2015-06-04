@@ -24,13 +24,14 @@ if (!Modernizr.geolocation) {
     msos.require("msos.html5.geolocation");     // Hopefully never used now...
 }
 
-msos.google.maps.version = new msos.set_version(13, 11, 6);
+msos.google.maps.version = new msos.set_version(15, 4, 21);
 
 msos.google.maps.places = msos.google.maps.places || false;
 msos.google.maps.url_google_api = 'http://maps.google.com/maps/api/js?sensor=' + (Modernizr.geolocation? 'true' : 'false') + '&callback=google_maps_api_ready' + (msos.google.maps.places ? '&libraries=places' : '');
 msos.google.maps.loaded = false;
 msos.google.maps.ran = false;
 msos.google.maps.run_onload = [];
+msos.google.maps.run_onfail = [];
 msos.google.maps.hostname_regx = new RegExp('^https?://.+?/');
 
 
@@ -191,6 +192,7 @@ msos.google.maps.run = function () {
 
     var temp_gmr = 'msos.google.maps.run -> ',
         run = msos.google.maps.run_onload,
+        fail = msos.google.maps.run_onfail,
         i;
 
     // Might have to wait for widget loading
@@ -198,24 +200,31 @@ msos.google.maps.run = function () {
         msos.console.warn(temp_gmr + 'not ready, count: ' + msos.google.maps.run_index);
         msos.google.maps.run_index += 1;
 
-        // Check for up to 10 sec.
-        if (msos.google.maps.run_index < 11) {
+        // Check for up to 15 sec.
+        if (msos.google.maps.run_index < 16) {
             setTimeout(msos.google.maps.run, 1000);
+        } else {
+            for (i = 0; i < fail.length; i += 1) { fail[i](); }
         }
         return;
     }
 
-    // If msos.marker.label was loaded, generate "MarkerWithLabel"
-    if (msos.marker
-     && msos.marker.label) {
-        msos.marker.label.initialize();
-    }
-
     msos.console.debug(temp_gmr + 'start.');
 
-    for (i = 0; i < run.length; i += 1) { run[i](); }
+    if (!jQuery.fn.gmap3) {
+        msos.console.error(temp_gmr + 'missing jQuery GMap3 script, (load via config.js)!');
+    } else {
 
-    msos.google.maps.ran = true;
+        // If msos.marker.label was loaded, generate "MarkerWithLabel"
+        if (msos.marker
+         && msos.marker.label) {
+            msos.marker.label.initialize();
+        }
+    
+        for (i = 0; i < run.length; i += 1) { run[i](); }
+    
+        msos.google.maps.ran = true;
+    }
 
     msos.console.debug(temp_gmr + 'done!');
 };
@@ -228,6 +237,10 @@ msos.google.maps.initiate = function () {
 
     msos.console.debug(temp_mi + 'start.');
 
+    if (msos.config.debug_disable === 'mapping') {
+        msos.console.warn(temp_mi + 'done: skipped mapping while debugging.');
+        return;
+    }
     // Load Google Checkout API with our loader for better debugging
     map_loader.load(
         'google_maps_api',
