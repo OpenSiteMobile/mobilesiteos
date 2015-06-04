@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				  page/routes.js
-//			Copyright©2015 - OpenSiteMobile
+//			Copyright©2013 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -127,13 +127,9 @@ msos.page.routes.Router = Backbone.Router.extend({
 				// (run early, so elements in content will be available for sizing, etc.)
 				msos.onload_func_pre.push(
 					function () {
-						jQuery('#body').fadeIn('slow');
-						if (pw.loading) {	// Slow page loading...
-							jQuery('#content').fadeIn(1000, pw.loading.fade_out);
-						} else {			// Fast page loading...
-							clearTimeout(loading_sto);
-							jQuery('#content').fadeIn(1000);
-						}
+						jQuery('#body, #content').fadeIn('slow');
+						if (pw.loading) { pw.loading.fade_out(); }		// Slow page loading...
+						else			{ clearTimeout(loading_sto); }	// Fast page loading...
 					}
 				);
 
