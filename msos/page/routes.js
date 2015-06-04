@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				  page/routes.js
-//			Copyright©2013 - OpenSiteMobile
+//			Copyright©2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -111,7 +111,7 @@ msos.page.routes.Router = Backbone.Router.extend({
 				// Start Loading indicator after waiting for slow connections
 				loading_sto = setTimeout(
 					function () { pw.loading = msos.notify.loading(jQuery('title').text(), comm.loading); },
-					750
+					1500
 				);
 
 				// If using "mobile console", hide it now.
