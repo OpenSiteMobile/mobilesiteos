@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				  page/routes.js
-//			Copyright©2013 - OpenSiteMobile
+//			Copyright©2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -20,7 +20,7 @@
 msos.provide("msos.page.routes");
 msos.require("msos.page");	// Already called, but here for ref.
 
-msos.page.routes.version = new msos.set_version(14, 4, 4);
+msos.page.routes.version = new msos.set_version(15, 6, 5);
 
 
 msos.page.routes.Router = Backbone.Router.extend({
@@ -57,7 +57,8 @@ msos.page.routes.Router = Backbone.Router.extend({
 			comm = pw.i18n.common,
 			name_array = [],
 			base_array = [],
-			name_lngth = 0;
+			name_lngth = 0,
+			loading_sto;
 
 		msos.console.debug(this.br_name + 'page -> start, page: ' + name_page_js);
 
@@ -107,8 +108,11 @@ msos.page.routes.Router = Backbone.Router.extend({
 
 			} else {
 
-				// Start Loading indicator
-				pw.loading = msos.notify.loading(jQuery('title').text(), comm.loading);
+				// Start Loading indicator after waiting for slow connections
+				loading_sto = setTimeout(
+					function () { pw.loading = msos.notify.loading(jQuery('title').text(), comm.loading); },
+					750
+				);
 
 				// If using "mobile console", hide it now.
 				if (msos.pyromane) { msos.pyromane.hide(); }
@@ -123,8 +127,13 @@ msos.page.routes.Router = Backbone.Router.extend({
 				// (run early, so elements in content will be available for sizing, etc.)
 				msos.onload_func_pre.push(
 					function () {
-						jQuery('#body').fadeIn('slow', pw.loading.fade_out);
-						jQuery('#content').fadeIn(1500);
+						jQuery('#body').fadeIn('slow');
+						if (pw.loading) {	// Slow page loading...
+							jQuery('#content').fadeIn(1000, pw.loading.fade_out);
+						} else {			// Fast page loading...
+							clearTimeout(loading_sto);
+							jQuery('#content').fadeIn(1000);
+						}
 					}
 				);
 
