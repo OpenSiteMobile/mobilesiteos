@@ -19,12 +19,6 @@ html, body, table, div, article, section, fieldset {
 	text-align: center;
 	text-decoration: none;
 }
-html {
-	overflow-y: scroll;
-}
-body {
-	margin-bottom: 0.5em;	/* Helps insure msos.stickup works smoothly */
-}
 th,
 td {
 	padding: 0.5em;
@@ -215,9 +209,7 @@ output {
 	border-radius: 0.5em;
 	margin-left: auto;
 	margin-right: auto;
-	padding: 2px;
 }
-#body,
 #pyromane {
 	margin-top: 0.2em;
 }
@@ -227,32 +219,20 @@ output {
 	margin: 0.4em;
 	padding: 0.3em;
 }
-#header > ul > li,
-#footer > ul.breadcrumb > li {
-	display: none;
-}
 #pyromane {
 	border: 1px solid #9f9f9f;
 	overflow-x: hidden;
 	display: none;
 }
-#rotate_marquee {
-	position: relative;
-}
-#marquee {
-	position: absolute;
-	font-weight: bold;
-}
-#slogan {
-	position: absolute;
-	vertical-align: middle;
-}
-#content {
-	overflow-x: hidden;
-}
 #pop_smaller,
 #pop_larger {
 	position: relative;
+}
+#branding {
+	font-weight: bold;
+}
+#content {
+	overflow-x: hidden;
 }
 #pop_smaller {
 	cursor: s-resize;
@@ -536,9 +516,6 @@ input[type=text].number {
 }
 #google_analytic {
 	position: absolute;
-}
-#map_canvas {
-	display: none;
 }
 #googlecart-widget-control {
 	margin-top: 8px;
