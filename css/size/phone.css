@@ -87,10 +87,10 @@ section {
 #body, #pyromane, #debug {
   width: 320px;
 }
-#rotate_marquee {
+#marquee {
   height: 52px;
 }
-#marquee {
+#branding {
   width: 316px;
   font-size: x-large;
   top: 0;
