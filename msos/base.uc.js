@@ -799,8 +799,11 @@ msos.console = (function () {
 				var cfg = msos.config,
 					filter = cfg.query.debug_filter || '',
 					i = 0;
-			
-				if (method === 'debug' && !cfg.debug) { return; }
+
+				// Always show errors and warnings
+				if (!(method === 'error' || method === 'warn') && !cfg.debug) {
+					return;
+				}
 
 				var args = aps.apply(arguments),
 					name = args[0] ? args[0].replace(/\W/g, '_') : 'missing_args',
