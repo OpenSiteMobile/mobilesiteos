@@ -1,7 +1,6 @@
-
 msos.provide("ng.bootstrap.ui.timepicker");
 
-ng.bootstrap.ui.timepicker.version = new msos.set_version(14, 12, 14);
+ng.bootstrap.ui.timepicker.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard ui.bootstrap.accordion plugin, except for templateUrl location and naming (MSOS style)
@@ -15,20 +14,24 @@ angular.module('ng.bootstrap.ui.timepicker', [])
     showMeridian: true,
     meridians: null,
     readonlyInput: false,
-    mousewheel: true
+    mousewheel: true,
+    arrowkeys: true
 })
 
-.controller('TimepickerController', ['$scope', '$attrs', '$parse', '$log', '$locale', 'timepickerConfig', function ($scope, $attrs, $parse, $log, $locale, timepickerConfig) {
+.controller('TimepickerController', ['$scope', '$attrs', '$parse', '$log', '$locale', 'timepickerConfig', function($scope, $attrs, $parse, $log, $locale, timepickerConfig) {
     var selected = new Date(),
         ngModelCtrl = {
             $setViewValue: angular.noop
-        },
-        // nullModelCtrl
+        }, // nullModelCtrl
         meridians = angular.isDefined($attrs.meridians) ? $scope.$parent.$eval($attrs.meridians) : timepickerConfig.meridians || $locale.DATETIME_FORMATS.AMPMS;
 
-    this.init = function (ngModelCtrl_, inputs) {
+    this.init = function(ngModelCtrl_, inputs) {
         ngModelCtrl = ngModelCtrl_;
         ngModelCtrl.$render = this.render;
+
+        ngModelCtrl.$formatters.unshift(function(modelValue) {
+            return modelValue ? new Date(modelValue) : null;
+        });
 
         var hoursInputEl = inputs.eq(0),
             minutesInputEl = inputs.eq(1);
@@ -38,20 +41,25 @@ angular.module('ng.bootstrap.ui.timepicker', [])
             this.setupMousewheelEvents(hoursInputEl, minutesInputEl);
         }
 
+        var arrowkeys = angular.isDefined($attrs.arrowkeys) ? $scope.$parent.$eval($attrs.arrowkeys) : timepickerConfig.arrowkeys;
+        if (arrowkeys) {
+            this.setupArrowkeyEvents(hoursInputEl, minutesInputEl);
+        }
+
         $scope.readonlyInput = angular.isDefined($attrs.readonlyInput) ? $scope.$parent.$eval($attrs.readonlyInput) : timepickerConfig.readonlyInput;
         this.setupInputEvents(hoursInputEl, minutesInputEl);
     };
 
     var hourStep = timepickerConfig.hourStep;
     if ($attrs.hourStep) {
-        $scope.$parent.$watch($parse($attrs.hourStep), function (value) {
+        $scope.$parent.$watch($parse($attrs.hourStep), function(value) {
             hourStep = parseInt(value, 10);
         });
     }
 
     var minuteStep = timepickerConfig.minuteStep;
     if ($attrs.minuteStep) {
-        $scope.$parent.$watch($parse($attrs.minuteStep), function (value) {
+        $scope.$parent.$watch($parse($attrs.minuteStep), function(value) {
             minuteStep = parseInt(value, 10);
         });
     }
@@ -59,8 +67,8 @@ angular.module('ng.bootstrap.ui.timepicker', [])
     // 12H / 24H mode
     $scope.showMeridian = timepickerConfig.showMeridian;
     if ($attrs.showMeridian) {
-        $scope.$parent.$watch($parse($attrs.showMeridian), function (value) {
-            $scope.showMeridian = !! value;
+        $scope.$parent.$watch($parse($attrs.showMeridian), function(value) {
+            $scope.showMeridian = !!value;
 
             if (ngModelCtrl.$error.time) {
                 // Evaluate from template
@@ -101,51 +109,78 @@ angular.module('ng.bootstrap.ui.timepicker', [])
     }
 
     function pad(value) {
-        return (angular.isDefined(value) && value.toString().length < 2) ? '0' + value : value;
+        return (angular.isDefined(value) && value.toString().length < 2) ? '0' + value : value.toString();
     }
 
     // Respond on mousewheel spin
-    this.setupMousewheelEvents = function (hoursInputEl, minutesInputEl) {
-        var isScrollingUp = function (e) {
-                if (e.originalEvent) {
-                    e = e.originalEvent;
-                }
-                //pick correct delta variable depending on event
-                var delta = (e.wheelDelta) ? e.wheelDelta : -e.deltaY;
-                return (e.detail || delta > 0);
-            };
+    this.setupMousewheelEvents = function(hoursInputEl, minutesInputEl) {
+        var isScrollingUp = function(e) {
+            if (e.originalEvent) {
+                e = e.originalEvent;
+            }
+            //pick correct delta variable depending on event
+            var delta = (e.wheelDelta) ? e.wheelDelta : -e.deltaY;
+            return (e.detail || delta > 0);
+        };
 
-        hoursInputEl.bind('mousewheel wheel', function (e) {
+        hoursInputEl.bind('mousewheel wheel', function(e) {
             $scope.$apply((isScrollingUp(e)) ? $scope.incrementHours() : $scope.decrementHours());
             e.preventDefault();
         });
 
-        minutesInputEl.bind('mousewheel wheel', function (e) {
+        minutesInputEl.bind('mousewheel wheel', function(e) {
             $scope.$apply((isScrollingUp(e)) ? $scope.incrementMinutes() : $scope.decrementMinutes());
             e.preventDefault();
         });
 
     };
 
-    this.setupInputEvents = function (hoursInputEl, minutesInputEl) {
+    // Respond on up/down arrowkeys
+    this.setupArrowkeyEvents = function(hoursInputEl, minutesInputEl) {
+        hoursInputEl.bind('keydown', function(e) {
+            if (e.which === 38) { // up
+                e.preventDefault();
+                $scope.incrementHours();
+                $scope.$apply();
+            } else if (e.which === 40) { // down
+                e.preventDefault();
+                $scope.decrementHours();
+                $scope.$apply();
+            }
+        });
+
+        minutesInputEl.bind('keydown', function(e) {
+            if (e.which === 38) { // up
+                e.preventDefault();
+                $scope.incrementMinutes();
+                $scope.$apply();
+            } else if (e.which === 40) { // down
+                e.preventDefault();
+                $scope.decrementMinutes();
+                $scope.$apply();
+            }
+        });
+    };
+
+    this.setupInputEvents = function(hoursInputEl, minutesInputEl) {
         if ($scope.readonlyInput) {
             $scope.updateHours = angular.noop;
             $scope.updateMinutes = angular.noop;
             return;
         }
 
-        var invalidate = function (invalidHours, invalidMinutes) {
-                ngModelCtrl.$setViewValue(null);
-                ngModelCtrl.$setValidity('time', false);
-                if (angular.isDefined(invalidHours)) {
-                    $scope.invalidHours = invalidHours;
-                }
-                if (angular.isDefined(invalidMinutes)) {
-                    $scope.invalidMinutes = invalidMinutes;
-                }
-            };
+        var invalidate = function(invalidHours, invalidMinutes) {
+            ngModelCtrl.$setViewValue(null);
+            ngModelCtrl.$setValidity('time', false);
+            if (angular.isDefined(invalidHours)) {
+                $scope.invalidHours = invalidHours;
+            }
+            if (angular.isDefined(invalidMinutes)) {
+                $scope.invalidMinutes = invalidMinutes;
+            }
+        };
 
-        $scope.updateHours = function () {
+        $scope.updateHours = function() {
             var hours = getHoursFromTemplate();
 
             if (angular.isDefined(hours)) {
@@ -156,15 +191,15 @@ angular.module('ng.bootstrap.ui.timepicker', [])
             }
         };
 
-        hoursInputEl.bind('blur', function (e) {
+        hoursInputEl.bind('blur', function(e) {
             if (!$scope.invalidHours && $scope.hours < 10) {
-                $scope.$apply(function () {
+                $scope.$apply(function() {
                     $scope.hours = pad($scope.hours);
                 });
             }
         });
 
-        $scope.updateMinutes = function () {
+        $scope.updateMinutes = function() {
             var minutes = getMinutesFromTemplate();
 
             if (angular.isDefined(minutes)) {
@@ -175,9 +210,9 @@ angular.module('ng.bootstrap.ui.timepicker', [])
             }
         };
 
-        minutesInputEl.bind('blur', function (e) {
+        minutesInputEl.bind('blur', function(e) {
             if (!$scope.invalidMinutes && $scope.minutes < 10) {
-                $scope.$apply(function () {
+                $scope.$apply(function() {
                     $scope.minutes = pad($scope.minutes);
                 });
             }
@@ -185,8 +220,8 @@ angular.module('ng.bootstrap.ui.timepicker', [])
 
     };
 
-    this.render = function () {
-        var date = ngModelCtrl.$modelValue ? new Date(ngModelCtrl.$modelValue) : null;
+    this.render = function() {
+        var date = ngModelCtrl.$viewValue;
 
         if (isNaN(date)) {
             ngModelCtrl.$setValidity('time', false);
@@ -222,7 +257,9 @@ angular.module('ng.bootstrap.ui.timepicker', [])
         }
 
         $scope.hours = keyboardChange === 'h' ? hours : pad(hours);
-        $scope.minutes = keyboardChange === 'm' ? minutes : pad(minutes);
+        if (keyboardChange !== 'm') {
+            $scope.minutes = pad(minutes);
+        }
         $scope.meridian = selected.getHours() < 12 ? meridians[0] : meridians[1];
     }
 
@@ -232,24 +269,24 @@ angular.module('ng.bootstrap.ui.timepicker', [])
         refresh();
     }
 
-    $scope.incrementHours = function () {
+    $scope.incrementHours = function() {
         addMinutes(hourStep * 60);
     };
-    $scope.decrementHours = function () {
+    $scope.decrementHours = function() {
         addMinutes(-hourStep * 60);
     };
-    $scope.incrementMinutes = function () {
+    $scope.incrementMinutes = function() {
         addMinutes(minuteStep);
     };
-    $scope.decrementMinutes = function () {
+    $scope.decrementMinutes = function() {
         addMinutes(-minuteStep);
     };
-    $scope.toggleMeridian = function () {
+    $scope.toggleMeridian = function() {
         addMinutes(12 * 60 * ((selected.getHours() < 12) ? 1 : -1));
     };
 }])
 
-.directive('timepicker', function () {
+.directive('timepicker', function() {
     return {
         restrict: 'EA',
         require: ['timepicker', '?^ngModel'],
@@ -257,7 +294,7 @@ angular.module('ng.bootstrap.ui.timepicker', [])
         replace: true,
         scope: {},
         templateUrl: msos.resource_url('ng', 'bootstrap/ui/tmpl/timepicker.html'),
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var timepickerCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
 

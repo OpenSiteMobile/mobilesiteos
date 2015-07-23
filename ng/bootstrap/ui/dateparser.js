@@ -1,69 +1,70 @@
-
 msos.provide("ng.bootstrap.ui.dateparser");
 
-ng.bootstrap.ui.dateparser.version = new msos.set_version(14, 12, 15);
+ng.bootstrap.ui.dateparser.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard plugin, except for naming (MSOS style)
 // ui.bootstrap.dateparser -> ng.bootstrap.ui.dateparser
 angular.module('ng.bootstrap.ui.dateparser', [])
 
-.service('dateParser', ['$locale', 'orderByFilter', function ($locale, orderByFilter) {
+.service('dateParser', ['$locale', 'orderByFilter', function($locale, orderByFilter) {
+    // Pulled from https://github.com/mbostock/d3/blob/master/src/format/requote.js
+    var SPECIAL_CHARACTERS_REGEXP = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 
     this.parsers = {};
 
     var formatCodeToRegex = {
         'yyyy': {
             regex: '\\d{4}',
-            apply: function (value) {
+            apply: function(value) {
                 this.year = +value;
             }
         },
         'yy': {
             regex: '\\d{2}',
-            apply: function (value) {
+            apply: function(value) {
                 this.year = +value + 2000;
             }
         },
         'y': {
             regex: '\\d{1,4}',
-            apply: function (value) {
+            apply: function(value) {
                 this.year = +value;
             }
         },
         'MMMM': {
             regex: $locale.DATETIME_FORMATS.MONTH.join('|'),
-            apply: function (value) {
+            apply: function(value) {
                 this.month = $locale.DATETIME_FORMATS.MONTH.indexOf(value);
             }
         },
         'MMM': {
             regex: $locale.DATETIME_FORMATS.SHORTMONTH.join('|'),
-            apply: function (value) {
+            apply: function(value) {
                 this.month = $locale.DATETIME_FORMATS.SHORTMONTH.indexOf(value);
             }
         },
         'MM': {
             regex: '0[1-9]|1[0-2]',
-            apply: function (value) {
+            apply: function(value) {
                 this.month = value - 1;
             }
         },
         'M': {
             regex: '[1-9]|1[0-2]',
-            apply: function (value) {
+            apply: function(value) {
                 this.month = value - 1;
             }
         },
         'dd': {
             regex: '[0-2][0-9]{1}|3[0-1]{1}',
-            apply: function (value) {
+            apply: function(value) {
                 this.date = +value;
             }
         },
         'd': {
             regex: '[1-2]?[0-9]{1}|3[0-1]{1}',
-            apply: function (value) {
+            apply: function(value) {
                 this.date = +value;
             }
         },
@@ -72,6 +73,48 @@ angular.module('ng.bootstrap.ui.dateparser', [])
         },
         'EEE': {
             regex: $locale.DATETIME_FORMATS.SHORTDAY.join('|')
+        },
+        'HH': {
+            regex: '(?:0|1)[0-9]|2[0-3]',
+            apply: function(value) {
+                this.hours = +value;
+            }
+        },
+        'H': {
+            regex: '1?[0-9]|2[0-3]',
+            apply: function(value) {
+                this.hours = +value;
+            }
+        },
+        'mm': {
+            regex: '[0-5][0-9]',
+            apply: function(value) {
+                this.minutes = +value;
+            }
+        },
+        'm': {
+            regex: '[0-9]|[1-5][0-9]',
+            apply: function(value) {
+                this.minutes = +value;
+            }
+        },
+        'sss': {
+            regex: '[0-9][0-9][0-9]',
+            apply: function(value) {
+                this.milliseconds = +value;
+            }
+        },
+        'ss': {
+            regex: '[0-5][0-9]',
+            apply: function(value) {
+                this.seconds = +value;
+            }
+        },
+        's': {
+            regex: '[0-9]|[1-5][0-9]',
+            apply: function(value) {
+                this.seconds = +value;
+            }
         }
     };
 
@@ -79,7 +122,7 @@ angular.module('ng.bootstrap.ui.dateparser', [])
         var map = [],
             regex = format.split('');
 
-        angular.forEach(formatCodeToRegex, function (data, code) {
+        angular.forEach(formatCodeToRegex, function(data, code) {
             var index = format.indexOf(code);
 
             if (index > -1) {
@@ -106,12 +149,13 @@ angular.module('ng.bootstrap.ui.dateparser', [])
         };
     }
 
-    this.parse = function (input, format) {
+    this.parse = function(input, format, baseDate) {
         if (!angular.isString(input) || !format) {
             return input;
         }
 
         format = $locale.DATETIME_FORMATS[format] || format;
+        format = format.replace(SPECIAL_CHARACTERS_REGEXP, '\\$&');
 
         if (!this.parsers[format]) {
             this.parsers[format] = createParser(format);
@@ -123,13 +167,28 @@ angular.module('ng.bootstrap.ui.dateparser', [])
             results = input.match(regex);
 
         if (results && results.length) {
-            var fields = {
-                year: 1900,
-                month: 0,
-                date: 1,
-                hours: 0
-            },
-                dt;
+            var fields, dt;
+            if (baseDate) {
+                fields = {
+                    year: baseDate.getFullYear(),
+                    month: baseDate.getMonth(),
+                    date: baseDate.getDate(),
+                    hours: baseDate.getHours(),
+                    minutes: baseDate.getMinutes(),
+                    seconds: baseDate.getSeconds(),
+                    milliseconds: baseDate.getMilliseconds()
+                };
+            } else {
+                fields = {
+                    year: 1900,
+                    month: 0,
+                    date: 1,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    milliseconds: 0
+                };
+            }
 
             for (var i = 1, n = results.length; i < n; i++) {
                 var mapper = map[i - 1];
@@ -139,7 +198,8 @@ angular.module('ng.bootstrap.ui.dateparser', [])
             }
 
             if (isValid(fields.year, fields.month, fields.date)) {
-                dt = new Date(fields.year, fields.month, fields.date, fields.hours);
+                dt = new Date(fields.year, fields.month, fields.date, fields.hours, fields.minutes, fields.seconds,
+                    fields.milliseconds || 0);
             }
 
             return dt;
@@ -149,6 +209,10 @@ angular.module('ng.bootstrap.ui.dateparser', [])
     // Check if date is valid for specific month (and year for February).
     // Month: 0 = Jan, 1 = Feb, etc
     function isValid(year, month, date) {
+        if (date < 1) {
+            return false;
+        }
+
         if (month === 1 && date > 28) {
             return date === 29 && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
         }
