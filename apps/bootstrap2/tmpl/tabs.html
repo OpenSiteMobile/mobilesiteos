@@ -1,5 +1,5 @@
 <section id="tabs">
-    <div class="page-header">
+    <div data-ng-ignore class="page-header">
         <a href="#top" class="btn btn-primary" style="float:right;"><i class="fa fa-chevron-up"></i></a>
         <h1>Tabs
             <small>(
@@ -18,82 +18,80 @@
                     <button class="btn btn-default btn-sm" ng-click="tabs[1].disabled = ! tabs[1].disabled">Enable / Disable third tab</button>
                 </p>
                 <hr />
+
                 <tabset>
                     <tab heading="Static title">Static content</tab>
-                    <tab ng-repeat="tab in tabs" heading="{{tab.title}}" active="tab.active" disabled="tab.disabled">{{tab.content}}</tab>
+                    <tab ng-repeat="tab in tabs" heading="{{tab.title}}" active="tab.active" disable="tab.disabled">
+                        {{tab.content}}
+                    </tab>
                     <tab select="alertMe()">
                         <tab-heading>
-                            <i class="fa fa-bell-o"></i>Alert!</tab-heading>I've got an HTML heading, and a select callback.
-                        Pretty cool!</tab>
+                            <i class="fa fa-bell"></i> Alert!
+                        </tab-heading>
+                        I've got an HTML heading, and a select callback. Pretty cool!
+                    </tab>
                 </tabset>
+
                 <hr />
+
                 <tabset vertical="true" type="pills">
                     <tab heading="Vertical 1">Vertical content 1</tab>
                     <tab heading="Vertical 2">Vertical content 2</tab>
                 </tabset>
+
                 <hr />
+
                 <tabset justified="true">
                     <tab heading="Justified">Justified content</tab>
                     <tab heading="SJ">Short Labeled Justified content</tab>
                     <tab heading="Long Justified">Long Labeled Justified content</tab>
                 </tabset>
             </div>
+
         </div>
-        <div class="col-md-6">
+        <div data-ng-ignore class="col-md-6">
             <p>AngularJS version of the tabs directive.</p>
+
             <h3>Settings</h3>
-            <h4>
-                <code>&lt;tabset&gt;</code>
-            </h4>
+
+            <h4><code>&lt;tabset&gt;</code></h4>
+
             <ul>
                 <li>
-                    <p>
-                        <code>vertical</code>
-                        <em>(Defaults: false)</em>: Whether tabs appear vertically stacked.</p>
+                    <p><code>vertical</code>
+                        <em>(Defaults: false)</em> : Whether tabs appear vertically stacked.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>justified</code>
-                        <em>(Defaults: false)</em>: Whether tabs fill the container and have a consistent
-                        width.</p>
+                    <p><code>justified</code>
+                        <em>(Defaults: false)</em> : Whether tabs fill the container and have a consistent width.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>type</code>
-                        <em>(Defaults: 'tabs')</em>: Navigation type. Possible values are 'tabs' and
-                        'pills'.</p>
+                    <p><code>type</code>
+                        <em>(Defaults: 'tabs')</em> : Navigation type. Possible values are 'tabs' and 'pills'.</p>
                 </li>
             </ul>
-            <h4>
-                <code>&lt;tab&gt;</code>
-            </h4>
+
+            <h4><code>&lt;tab&gt;</code></h4>
+
             <ul>
                 <li>
-                    <p>
-                        <code>heading</code>or
-                        <code>&lt;tab-heading&gt;</code>: Heading text or HTML markup.</p>
+                    <p><code>heading</code> or <code>&lt;tab-heading&gt;</code> : Heading text or HTML markup.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>active</code>
-                        <i class="fa fa-eye"></i>
-                        <em>(Defaults: false)</em>: Whether tab is currently selected.</p>
+                    <p><code>active</code> <i class="fa fa-eye"></i>
+                        <em>(Defaults: false)</em> : Whether tab is currently selected.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>disabled</code>
-                        <i class="fa fa-eye"></i>
-                        <em>(Defaults: false)</em>: Whether tab is clickable and can be activated.</p>
+                    <p><code>disable</code> <i class="fa fa-eye"></i>
+                        <em>(Defaults: false)</em> : Whether tab is clickable and can be activated. Note that this was previously the <code>disabled</code> attribute, which is now deprecated.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>select()</code>
-                        <em>(Defaults: null)</em>: An optional expression called when tab is activated.</p>
+                    <p><code>select()</code>
+                        <em>(Defaults: null)</em> : An optional expression called when tab is activated.</p>
                 </li>
                 <li>
-                    <p>
-                        <code>deselect()</code>
-                        <em>(Defaults: null)</em>: An optional expression called when tab is deactivated.</p>
+                    <p><code>deselect()</code>
+                        <em>(Defaults: null)</em> : An optional expression called when tab is deactivated.</p>
                 </li>
             </ul>
         </div>

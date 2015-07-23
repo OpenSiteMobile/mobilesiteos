@@ -10,13 +10,11 @@ angular.module(
 ).controller(
     'apps.bootstrap2.controllers.tooltip.ctrl',
     [
-        '$scope',
-        function ($scope) {
-            "use strict";
-
+        '$scope', '$sce',
+        function ($scope, $sce) {
             $scope.dynamicTooltip = 'Hello, World!';
             $scope.dynamicTooltipText = 'dynamic';
-            $scope.htmlTooltip = 'I\'ve been made <b>bold</b>!';
+            $scope.htmlTooltip = $sce.trustAsHtml('I\'ve been made <b>bold</b>!');
         }
     ]
 );
