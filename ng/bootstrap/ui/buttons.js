@@ -1,7 +1,6 @@
-
 msos.provide("ng.bootstrap.ui.buttons");
 
-ng.bootstrap.ui.buttons.version = new msos.set_version(14, 12, 14);
+ng.bootstrap.ui.buttons.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard plugin, except for naming (MSOS style)
@@ -13,30 +12,30 @@ angular.module('ng.bootstrap.ui.buttons', [])
     toggleEvent: 'click'
 })
 
-.controller('ButtonsController', ['buttonConfig', function (buttonConfig) {
+.controller('ButtonsController', ['buttonConfig', function(buttonConfig) {
     this.activeClass = buttonConfig.activeClass || 'active';
     this.toggleEvent = buttonConfig.toggleEvent || 'click';
 }])
 
-.directive('btnRadio', function () {
+.directive('btnRadio', function() {
     return {
         require: ['btnRadio', 'ngModel'],
         controller: 'ButtonsController',
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var buttonsCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
 
             //model -> UI
-            ngModelCtrl.$render = function () {
+            ngModelCtrl.$render = function() {
                 element.toggleClass(buttonsCtrl.activeClass, angular.equals(ngModelCtrl.$modelValue, scope.$eval(attrs.btnRadio)));
             };
 
             //ui->model
-            element.bind(buttonsCtrl.toggleEvent, function () {
+            element.bind(buttonsCtrl.toggleEvent, function() {
                 var isActive = element.hasClass(buttonsCtrl.activeClass);
 
                 if (!isActive || angular.isDefined(attrs.uncheckable)) {
-                    scope.$apply(function () {
+                    scope.$apply(function() {
                         ngModelCtrl.$setViewValue(isActive ? null : scope.$eval(attrs.btnRadio));
                         ngModelCtrl.$render();
                     });
@@ -46,11 +45,11 @@ angular.module('ng.bootstrap.ui.buttons', [])
     };
 })
 
-.directive('btnCheckbox', function () {
+.directive('btnCheckbox', function() {
     return {
         require: ['btnCheckbox', 'ngModel'],
         controller: 'ButtonsController',
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var buttonsCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
 
@@ -68,13 +67,13 @@ angular.module('ng.bootstrap.ui.buttons', [])
             }
 
             //model -> UI
-            ngModelCtrl.$render = function () {
+            ngModelCtrl.$render = function() {
                 element.toggleClass(buttonsCtrl.activeClass, angular.equals(ngModelCtrl.$modelValue, getTrueValue()));
             };
 
             //ui->model
-            element.bind(buttonsCtrl.toggleEvent, function () {
-                scope.$apply(function () {
+            element.bind(buttonsCtrl.toggleEvent, function() {
+                scope.$apply(function() {
                     ngModelCtrl.$setViewValue(element.hasClass(buttonsCtrl.activeClass) ? getFalseValue() : getTrueValue());
                     ngModelCtrl.$render();
                 });

@@ -1,7 +1,7 @@
 
 msos.provide("ng.bootstrap.ui.rating");
 
-ng.bootstrap.ui.rating.version = new msos.set_version(14, 12, 15);
+ng.bootstrap.ui.rating.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard ui.bootstrap.accordion plugin, except for templateUrl location and naming (MSOS style)
@@ -15,23 +15,31 @@ angular.module('ng.bootstrap.ui.rating', [])
     stateOff: null
 })
 
-.controller('RatingController', ['$scope', '$attrs', 'ratingConfig', function ($scope, $attrs, ratingConfig) {
+.controller('RatingController', ['$scope', '$attrs', 'ratingConfig', function($scope, $attrs, ratingConfig) {
     var ngModelCtrl = {
         $setViewValue: angular.noop
     };
 
-    this.init = function (ngModelCtrl_) {
+    this.init = function(ngModelCtrl_) {
         ngModelCtrl = ngModelCtrl_;
         ngModelCtrl.$render = this.render;
+
+        ngModelCtrl.$formatters.push(function(value) {
+            if (angular.isNumber(value) && value << 0 !== value) {
+                value = Math.round(value);
+            }
+            return value;
+        });
 
         this.stateOn = angular.isDefined($attrs.stateOn) ? $scope.$parent.$eval($attrs.stateOn) : ratingConfig.stateOn;
         this.stateOff = angular.isDefined($attrs.stateOff) ? $scope.$parent.$eval($attrs.stateOff) : ratingConfig.stateOff;
 
-        var ratingStates = angular.isDefined($attrs.ratingStates) ? $scope.$parent.$eval($attrs.ratingStates) : new Array(angular.isDefined($attrs.max) ? $scope.$parent.$eval($attrs.max) : ratingConfig.max);
+        var ratingStates = angular.isDefined($attrs.ratingStates) ? $scope.$parent.$eval($attrs.ratingStates) :
+            new Array(angular.isDefined($attrs.max) ? $scope.$parent.$eval($attrs.max) : ratingConfig.max);
         $scope.range = this.buildTemplateObjects(ratingStates);
     };
 
-    this.buildTemplateObjects = function (states) {
+    this.buildTemplateObjects = function(states) {
         for (var i = 0, n = states.length; i < n; i++) {
             states[i] = angular.extend({
                 index: i
@@ -43,14 +51,14 @@ angular.module('ng.bootstrap.ui.rating', [])
         return states;
     };
 
-    $scope.rate = function (value) {
+    $scope.rate = function(value) {
         if (!$scope.readonly && value >= 0 && value <= $scope.range.length) {
             ngModelCtrl.$setViewValue(value);
             ngModelCtrl.$render();
         }
     };
 
-    $scope.enter = function (value) {
+    $scope.enter = function(value) {
         if (!$scope.readonly) {
             $scope.value = value;
         }
@@ -59,12 +67,12 @@ angular.module('ng.bootstrap.ui.rating', [])
         });
     };
 
-    $scope.reset = function () {
+    $scope.reset = function() {
         $scope.value = ngModelCtrl.$viewValue;
         $scope.onLeave();
     };
 
-    $scope.onKeydown = function (evt) {
+    $scope.onKeydown = function(evt) {
         if (/(37|38|39|40)/.test(evt.which)) {
             evt.preventDefault();
             evt.stopPropagation();
@@ -72,12 +80,12 @@ angular.module('ng.bootstrap.ui.rating', [])
         }
     };
 
-    this.render = function () {
+    this.render = function() {
         $scope.value = ngModelCtrl.$viewValue;
     };
 }])
 
-.directive('rating', function () {
+.directive('rating', function() {
     return {
         restrict: 'EA',
         require: ['rating', 'ngModel'],
@@ -89,13 +97,10 @@ angular.module('ng.bootstrap.ui.rating', [])
         controller: 'RatingController',
         templateUrl: msos.resource_url('ng', 'bootstrap/ui/tmpl/rating.html'),
         replace: true,
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var ratingCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
-
-            if (ngModelCtrl) {
-                ratingCtrl.init(ngModelCtrl);
-            }
+            ratingCtrl.init(ngModelCtrl);
         }
     };
 });

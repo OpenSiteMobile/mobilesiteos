@@ -1,7 +1,6 @@
-
 msos.provide("ng.bootstrap.ui.alert");
 
-ng.bootstrap.ui.alert.version = new msos.set_version(14, 12, 14);
+ng.bootstrap.ui.alert.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard plugin, except for templateUrl location and naming (MSOS style)
@@ -9,12 +8,12 @@ ng.bootstrap.ui.alert.version = new msos.set_version(14, 12, 14);
 // template/alert/alert.html -> msos.resource_url('ng', 'bootstrap/ui/tmpl/alert.html')
 angular.module('ng.bootstrap.ui.alert', [])
 
-.controller('AlertController', ['$scope', '$attrs', function ($scope, $attrs) {
+.controller('AlertController', ['$scope', '$attrs', function($scope, $attrs) {
     $scope.closeable = 'close' in $attrs;
     this.close = $scope.close;
 }])
 
-.directive('alert', function () {
+.directive('alert', function() {
     return {
         restrict: 'EA',
         controller: 'AlertController',
@@ -28,11 +27,11 @@ angular.module('ng.bootstrap.ui.alert', [])
     };
 })
 
-.directive('dismissOnTimeout', ['$timeout', function ($timeout) {
+.directive('dismissOnTimeout', ['$timeout', function($timeout) {
     return {
         require: 'alert',
-        link: function (scope, element, attrs, alertCtrl) {
-            $timeout(function () {
+        link: function(scope, element, attrs, alertCtrl) {
+            $timeout(function() {
                 alertCtrl.close();
             }, parseInt(attrs.dismissOnTimeout, 10));
         }

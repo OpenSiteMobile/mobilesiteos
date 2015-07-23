@@ -1,7 +1,6 @@
-
 msos.provide("ng.bootstrap.ui.pagination");
 
-ng.bootstrap.ui.pagination.version = new msos.set_version(14, 12, 15);
+ng.bootstrap.ui.pagination.version = new msos.set_version(15, 7, 7);
 
 
 // Below is the standard ui.bootstrap.accordion plugin, except for templateUrl location and naming (MSOS style)
@@ -10,70 +9,73 @@ ng.bootstrap.ui.pagination.version = new msos.set_version(14, 12, 15);
 // template/pagination/pager.html       -> msos.resource_url('ng', 'bootstrap/ui/tmpl/pager.html')
 angular.module('ng.bootstrap.ui.pagination', [])
 
-.controller('PaginationController', ['$scope', '$attrs', '$parse', function ($scope, $attrs, $parse) {
+.controller('PaginationController', ['$scope', '$attrs', '$parse', function($scope, $attrs, $parse) {
     var self = this,
         ngModelCtrl = {
             $setViewValue: angular.noop
-        },
-        // nullModelCtrl
+        }, // nullModelCtrl
         setNumPages = $attrs.numPages ? $parse($attrs.numPages).assign : angular.noop;
 
-    this.init = function (ngModelCtrl_, config) {
+    this.init = function(ngModelCtrl_, config) {
         ngModelCtrl = ngModelCtrl_;
         this.config = config;
 
-        ngModelCtrl.$render = function () {
+        ngModelCtrl.$render = function() {
             self.render();
         };
 
         if ($attrs.itemsPerPage) {
-            $scope.$parent.$watch($parse($attrs.itemsPerPage), function (value) {
+            $scope.$parent.$watch($parse($attrs.itemsPerPage), function(value) {
                 self.itemsPerPage = parseInt(value, 10);
                 $scope.totalPages = self.calculateTotalPages();
             });
         } else {
             this.itemsPerPage = config.itemsPerPage;
         }
+
+        $scope.$watch('totalItems', function() {
+            $scope.totalPages = self.calculateTotalPages();
+        });
+
+        $scope.$watch('totalPages', function(value) {
+            setNumPages($scope.$parent, value); // Readonly variable
+
+            if ($scope.page > value) {
+                $scope.selectPage(value);
+            } else {
+                ngModelCtrl.$render();
+            }
+        });
     };
 
-    this.calculateTotalPages = function () {
+    this.calculateTotalPages = function() {
         var totalPages = this.itemsPerPage < 1 ? 1 : Math.ceil($scope.totalItems / this.itemsPerPage);
         return Math.max(totalPages || 0, 1);
     };
 
-    this.render = function () {
+    this.render = function() {
         $scope.page = parseInt(ngModelCtrl.$viewValue, 10) || 1;
     };
 
-    $scope.selectPage = function (page) {
+    $scope.selectPage = function(page, evt) {
         if ($scope.page !== page && page > 0 && page <= $scope.totalPages) {
+            if (evt && evt.target) {
+                evt.target.blur();
+            }
             ngModelCtrl.$setViewValue(page);
             ngModelCtrl.$render();
         }
     };
 
-    $scope.getText = function (key) {
+    $scope.getText = function(key) {
         return $scope[key + 'Text'] || self.config[key + 'Text'];
     };
-    $scope.noPrevious = function () {
+    $scope.noPrevious = function() {
         return $scope.page === 1;
     };
-    $scope.noNext = function () {
+    $scope.noNext = function() {
         return $scope.page === $scope.totalPages;
     };
-
-    $scope.$watch('totalItems', function () {
-        $scope.totalPages = self.calculateTotalPages();
-    });
-
-    $scope.$watch('totalPages', function (value) {
-        setNumPages($scope.$parent, value); // Readonly variable
-        if ($scope.page > value) {
-            $scope.selectPage(value);
-        } else {
-            ngModelCtrl.$render();
-        }
-    });
 }])
 
 .constant('paginationConfig', {
@@ -87,7 +89,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
     rotate: true
 })
 
-.directive('pagination', ['$parse', 'paginationConfig', function ($parse, paginationConfig) {
+.directive('pagination', ['$parse', 'paginationConfig', function($parse, paginationConfig) {
     return {
         restrict: 'EA',
         scope: {
@@ -101,7 +103,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
         controller: 'PaginationController',
         templateUrl: msos.resource_url('ng', 'bootstrap/ui/tmpl/pagination.html'),
         replace: true,
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var paginationCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
 
@@ -118,7 +120,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
             paginationCtrl.init(ngModelCtrl, paginationConfig);
 
             if (attrs.maxSize) {
-                scope.$parent.$watch($parse(attrs.maxSize), function (value) {
+                scope.$parent.$watch($parse(attrs.maxSize), function(value) {
                     maxSize = parseInt(value, 10);
                     paginationCtrl.render();
                 });
@@ -185,7 +187,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
             }
 
             var originalRender = paginationCtrl.render;
-            paginationCtrl.render = function () {
+            paginationCtrl.render = function() {
                 originalRender();
                 if (scope.page > 0 && scope.page <= scope.totalPages) {
                     scope.pages = getPages(scope.page, scope.totalPages);
@@ -202,7 +204,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
     align: true
 })
 
-.directive('pager', ['pagerConfig', function (pagerConfig) {
+.directive('pager', ['pagerConfig', function(pagerConfig) {
     return {
         restrict: 'EA',
         scope: {
@@ -214,7 +216,7 @@ angular.module('ng.bootstrap.ui.pagination', [])
         controller: 'PaginationController',
         templateUrl: msos.resource_url('ng', 'bootstrap/ui/tmpl/pager.html'),
         replace: true,
-        link: function (scope, element, attrs, ctrls) {
+        link: function(scope, element, attrs, ctrls) {
             var paginationCtrl = ctrls[0],
                 ngModelCtrl = ctrls[1];
 
