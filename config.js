@@ -69,10 +69,9 @@ if (msos.config.debug_script) {
 
 	// Debug full scripts (line no's mean something)
     msos.deferred_scripts = [
-		msos.resource_url('modernizr', 'v300a3.uc.js'),		// no class selectors - see build.txt note in /htdocs/modernizr
+		msos.resource_url('modernizr', 'v283.uc.js'),		// no class selectors - see build.txt note in /htdocs/modernizr
 		msos.resource_url('jquery', 'v214.uc.js'),
 		msos.resource_url('jquery', 'ui/v1114.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
-		msos.resource_url('underscore', 'v183.uc.js'),
 		msos.resource_url('hammer', 'v203.uc.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v120.uc.js'),
 		msos.resource_url('.','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
@@ -83,10 +82,9 @@ if (msos.config.debug_script) {
 
 	// Standard site provided (including ext. bundles) scripts
         msos.deferred_scripts = [
-		msos.resource_url('modernizr', 'v300a3.min.js'),	// no class selectors - see build.txt note in /htdocs/modernizr
+		msos.resource_url('modernizr', 'v283.min.js'),	// no class selectors - see build.txt note in /htdocs/modernizr
 		msos.resource_url('jquery', 'v214.min.js'),
 		msos.resource_url('jquery', 'ui/v1114.min.js'),		// All UI Core + Draggable Interaction + Effects Core
-		msos.resource_url('underscore', 'v183.min.js'),
 		msos.resource_url('hammer', 'v203.min.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v120.min.js'),
 		msos.resource_url('.','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
