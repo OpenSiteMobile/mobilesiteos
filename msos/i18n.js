@@ -21,7 +21,6 @@
 */
 
 msos.provide("msos.i18n");
-msos.require("msos.common");
 msos.require("msos.i18n.common");   // common.json files define commonly used msos language specific strings
 msos.require("msos.i18n.culture");  // culture.json files define available culture options for a language
 
@@ -35,11 +34,10 @@ msos.i18n.locale_select_elm = null;
 msos.i18n.locale_select_func = function () {
 	"use strict";
 
-	var cfg = msos.config,
-		com = msos.common;
+	var cfg = msos.config;
 
-	if (com.in_dom_jq_node(msos.i18n.locale_select_elm)) {
-		com.gen_select_menu(
+	if (msos.in_dom_jq_node(msos.i18n.locale_select_elm)) {
+		msos.gen_select_menu(
 			msos.i18n.locale_select_elm,
 			cfg.i18n.select_trans_msos,
 			cfg.locale
@@ -621,7 +619,7 @@ msos.i18n.set_select = function (locale_elm) {
     // if our 'locale' select is in the page, add event handler
     if (locale_elm
      && locale_elm.length
-     && msos.common.valid_jq_node(locale_elm, 'select')) {
+     && msos.valid_jq_node(locale_elm, 'select')) {
 
         // Stop (as much as possible) multiple calls from 'onchange' event
         locale_elm.change(debounce_locale_select);

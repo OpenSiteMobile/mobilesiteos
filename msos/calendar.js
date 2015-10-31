@@ -60,7 +60,7 @@ msos.calendar.create_tool = function () {
     this.tool_load_url = '';
     this.tool_loaded_url = '';
     this.tool_popup = new msos.popdiv.create_tool(
-        calendar_name, // Tracking cookie name
+        calendar_name, // Tracking storage name
         '_cal', // Extension used for 'css/size/' file specification
         msos.resource_url('css', 'size'),
         msos.byid("calendar_container"),

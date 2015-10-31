@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				html5/date.js
-//			Copyright©2011-2013 - OpenSiteMobile
+//			Copyright©2011-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -21,8 +21,9 @@ msos.provide("msos.html5.date");
 msos.require("msos.common");
 msos.require("msos.calendar");
 msos.require("msos.intl");
+msos.require("msos.html5.tracking");
 
-msos.html5.date.version = new msos.set_version(14, 3, 13);
+msos.html5.date.version = new msos.set_version(15, 9, 24);
 
 
 (function ($) {
@@ -135,7 +136,7 @@ msos.html5.date.version = new msos.set_version(14, 3, 13);
 		}
 	};
 
-	// Add MSOS DOM tracking
-	msos.dom_tracking('html5_date');
-
 }(jQuery));
+
+// Add MSOS DOM tracking
+msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_date'); });

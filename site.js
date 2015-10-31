@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					site.js
-//			Copyright©2012-2014 - OpenSiteMobile
+//			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -324,28 +324,44 @@ msos.site.auto_init = function () {
 
 	var temp_ai = 'msos.site.auto_init -> ',
 		cfg = msos.config,
-		bw_val = msos.config.cookie.site_bdwd.value || '',
+		req = msos.require,
+		bw_val = msos.config.storage.site_bdwd.value || '',
 		bdwidth = bw_val ? parseInt(bw_val, 10) : 0;
 
 	msos.console.debug(temp_ai + 'start.');
 
 	// Run MobileSiteOS sizing (alt. would be: use media queries instead)
-	if (cfg.run_size)							{ msos.require("msos.size"); }
+	if (cfg.run_size)		{ req("msos.size"); }
+
+	// Add event debugging functions
+    if (cfg.visualevent)	{ req("msos.visualevent"); }
+
+    // If a mobile (touch) operating system
+    if (cfg.mobile)			{ req("msos.mobile"); }
+
+    // Add auto window.onerror alerting
+    if (cfg.run_onerror)	{ req("msos.onerror"); }
+
+	// Add debugging output (popup)
+	if (cfg.debug_output)	{ req("msos.debug"); }
+
+	// Add MSOS console output
+	if (cfg.console)		{ req("msos.pyromane"); }
 
     // Based on page elements and configuration -> run functions or add modules
     if (cfg.run_ads
 	 && bdwidth > 150
-	 && jQuery('#branding').length === 1)	{ msos.require("msos.google.ad"); }
+	 && jQuery('#branding').length === 1)		{ req("msos.google.ad"); }
     if (cfg.run_social
 	 && bdwidth > 150
      && jQuery('#social_ties').length)			{ msos.site.addthis_share(); }
 
 	// Or based on configuration settings
 	if (cfg.run_analytics && bdwidth > 150)		{ msos.site.google_analytics(); }
-	if (cfg.run_translate && bdwidth > 150)		{ msos.require("msos.google.translate"); }
+	if (cfg.run_translate && bdwidth > 150)		{ req("msos.google.translate"); }
 
 	// Bootstrap transitions: Always use this if "true"
-	if (Modernizr.csstransitions)				{ msos.require("bootstrap.transition"); }
+	if (Modernizr.csstransitions)				{ req("bootstrap.transition"); }
 
 	msos.console.debug(temp_ai + 'done!');
 };

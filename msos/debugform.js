@@ -20,9 +20,8 @@
 */
 
 msos.provide("msos.debugform");
-msos.require("msos.common");
 
-msos.debugform.version = new msos.set_version(14, 1, 12);
+msos.debugform.version = new msos.set_version(15, 0, 7);
 
 msos.debugform.init_data = null;
 
@@ -177,18 +176,18 @@ msos.debugform.add = function ($debug_elm) {
 	if (msos.registered_files.css.ui_msos_core_css) {
 		// Add this one for debugging MSOS versions (standard original UI-Lightness jQuery-UI theme without texture images)
 		msos.config.jquery_ui_avail.ui_standard = "UI-Std. w/o Texture";
-		msos.common.gen_select_menu(jQuery('#select_theme'), msos.config.jquery_ui_avail, msos.config.jquery_ui_theme);
+		msos.gen_select_menu(jQuery('#select_theme'), msos.config.jquery_ui_avail, msos.config.jquery_ui_theme);
 	}
 
     // Generate available language menu
     if (msos.i18n) {
-        msos.common.gen_select_menu(jQuery('#select_language'), msos.config.i18n.select_trans_msos, msos.config.locale);
+        msos.gen_select_menu(jQuery('#select_language'), msos.config.i18n.select_trans_msos, msos.config.locale);
     }
 
     // Generate available culture preferences
     if (msos.intl) {
-        msos.common.gen_select_menu(jQuery('#select_culture'),  msos.config.intl.select_culture,  msos.config.culture);
-        msos.common.gen_select_menu(jQuery('#select_calendar'), msos.config.intl.select_calendar, msos.config.calendar);
+        msos.gen_select_menu(jQuery('#select_culture'),  msos.config.intl.select_culture,  msos.config.culture);
+        msos.gen_select_menu(jQuery('#select_calendar'), msos.config.intl.select_calendar, msos.config.calendar);
     }
 
 	$debug_form = jQuery('#debug_form');

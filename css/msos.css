@@ -181,15 +181,6 @@ textarea[readonly] {
 	border-color: #DDD;
 	cursor: not-allowed;
 }
-abbr[title],
-abbr[data-original-title] {
-  cursor: help;
-  border-bottom: 1px dotted #999;
-}
-abbr.initialism {
-  font-size: 90%;
-  text-transform: uppercase;
-}
 figure {
   margin: 0;
 }

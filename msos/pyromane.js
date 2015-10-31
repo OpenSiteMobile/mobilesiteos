@@ -18,11 +18,10 @@
 */
 
 msos.provide("msos.pyromane");
-msos.require("msos.common");
 msos.require("msos.stickup");
 
 
-msos.pyromane.version = new msos.set_version(14, 2, 17);
+msos.pyromane.version = new msos.set_version(15, 10, 7);
 
 
 msos.pyromane.output_obj_store = {};
@@ -155,7 +154,7 @@ msos.pyromane.define_type = function (obj, out) {
 msos.pyromane.output_text = function (obj, out) {
     "use strict";
 
-    var scrubbed = msos.common.escape_html(msos.pyromane.obj_to_string(obj)) || '';
+    var scrubbed = msos.escape_html(msos.pyromane.obj_to_string(obj)) || '';
 
     if (scrubbed) {
         out.push(scrubbed);
@@ -166,7 +165,7 @@ msos.pyromane.output_gen = function (obj, out, class_name) {
     "use strict";
 
     var type = msos.pyromane.obj_type(obj),
-        scrubbed = msos.common.escape_html(msos.pyromane.obj_to_string(obj)) || '';
+        scrubbed = msos.escape_html(msos.pyromane.obj_to_string(obj)) || '';
 
     if (scrubbed) {
         out.push('<span class="' + class_name + '">[ ' + type + ':', scrubbed, ']</span>');
@@ -319,7 +318,7 @@ msos.pyromane.debug_dump = function () {
                             msos.notify.info('There are ' + recursive + ' recursive objects in this objects output!', 'Please note:');
                         }
                     }
-                    obj_dump = msos.common.escape_html(obj_dump);
+                    obj_dump = msos.escape_html(obj_dump);
                     msos.debug.write(obj_dump);
                 });
                 jQuery('#' + obj_id).css('cursor', 'pointer');

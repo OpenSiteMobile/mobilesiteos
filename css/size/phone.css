@@ -218,7 +218,7 @@ section {
 #header button.btn,
 #footer a.btn,
 #footer button.btn{
-  font-size: small;
+  font-size: x-small;
 }
 .carousel-caption {
   position: static;

@@ -19,7 +19,6 @@
 
 msos.provide("msos.intl");
 msos.require("msos.i18n.culture");
-msos.require("msos.common");
 
 msos.intl.version = new msos.set_version(13, 11, 5);
 
@@ -375,8 +374,8 @@ msos.intl.set_calendar = function () {
 		msos.config.calendar = 'standard';
 	}
 
-	// Set the cookie to our current i18n, culture settings
-	msos.set_locale_cookie();
+	// Set the stored value to our current i18n, culture settings
+	msos.set_locale_storage();
 
 	msos.config.intl.select_calendar = calendar_select;
 
@@ -414,11 +413,10 @@ msos.intl.on_culture_change = function () {
 msos.intl.culture_select_func = function () {
 	"use strict";
 
-	var cfg = msos.config,
-		com = msos.common;
+	var cfg = msos.config;
 
-	if (com.in_dom_jq_node(msos.intl.culture_select_elm)) {
-		com.gen_select_menu(
+	if (msos.in_dom_jq_node(msos.intl.culture_select_elm)) {
+		msos.gen_select_menu(
 			msos.intl.culture_select_elm,
 			cfg.intl.select_culture,
 			cfg.culture
@@ -452,11 +450,10 @@ msos.intl.on_calendar_change = function () {
 msos.intl.calendar_select_func = function (force) {
 	"use strict";
 
-	var cfg = msos.config,
-		com = msos.common;
+	var cfg = msos.config;
 
-	if (com.in_dom_jq_node(msos.intl.calendar_select_elm)) {
-		com.gen_select_menu(
+	if (msos.in_dom_jq_node(msos.intl.calendar_select_elm)) {
+		msos.gen_select_menu(
 			msos.intl.calendar_select_elm,
 			cfg.intl.select_calendar,
 			cfg.calendar
@@ -496,11 +493,10 @@ msos.intl.on_keyboard_change = function () {
 msos.intl.keyboard_select_func = function () {
 	"use strict";
 
-	var cfg = msos.config,
-		com = msos.common;
+	var cfg = msos.config;
 
-	if (com.in_dom_jq_node(msos.intl.keyboard_select_elm)) {
-		com.gen_select_menu(
+	if (msos.in_dom_jq_node(msos.intl.keyboard_select_elm)) {
+		msos.gen_select_menu(
 			msos.intl.keyboard_select_elm,
 			cfg.i18n.select_kbrds_msos,
 			cfg.keyboard
@@ -523,7 +519,7 @@ msos.intl.set_selects = function (culture_elm, calendar_elm, kb_layout_elm) {
 
 	if (culture_elm
 	 && culture_elm.length
-	 && msos.common.valid_jq_node(culture_elm, 'select')) {
+	 && msos.valid_jq_node(culture_elm, 'select')) {
 
 		// Bind our onchange event
 		culture_elm.change(debounce_culture_select);
@@ -541,7 +537,7 @@ msos.intl.set_selects = function (culture_elm, calendar_elm, kb_layout_elm) {
 
 	if (calendar_elm
 	 && calendar_elm.length
-	 && msos.common.valid_jq_node(calendar_elm, 'select')) {
+	 && msos.valid_jq_node(calendar_elm, 'select')) {
 
 		// Bind our onchange event
         calendar_elm.change(debounce_calendar_select);
@@ -559,7 +555,7 @@ msos.intl.set_selects = function (culture_elm, calendar_elm, kb_layout_elm) {
 
 	if (kb_layout_elm
 	 && kb_layout_elm.length
-	 && msos.common.valid_jq_node(kb_layout_elm, 'select')) {
+	 && msos.valid_jq_node(kb_layout_elm, 'select')) {
 
 		// Bind our onchange event
 		kb_layout_elm.change(debounce_keyboard_select);
@@ -730,19 +726,19 @@ msos.intl.expandNumber = function (number, precision, formatInfo) {
 	right = split.length > 1 ? split[1] : "";
 
 	if			(exponent > 0) {
-		right = msos.common.zero_pad(right, exponent, false);
+		right = msos.zero_pad(right, exponent, false);
 		numberString += right.slice(0, exponent);
 		right = right.substr(exponent);
 	} else if	(exponent < 0) {
 		exponent = -exponent;
-		numberString = msos.common.zero_pad(numberString, exponent + 1);
+		numberString = msos.zero_pad(numberString, exponent + 1);
 		right = numberString.slice(-exponent, numberString.length) + right;
 		numberString = numberString.slice(0, -exponent);
 	}
 
 	if (precision > 0) {
 		right = formatInfo["."] +
-			((right.length > precision) ? right.slice(0, precision) : msos.common.zero_pad(right, precision));
+			((right.length > precision) ? right.slice(0, precision) : msos.zero_pad(right, precision));
 	} else {
 		right = '';
 	  }
@@ -1062,7 +1058,7 @@ msos.intl.formatNumber = function (value, format) {
 			pattern = "n";
 			number = msos.intl.truncate(number);
 			if (precision !== -1) {
-				number = msos.common.zero_pad(number, precision, true);
+				number = msos.zero_pad(number, precision, true);
 			}
 			if (value < 0) { number = "-" + String(number); }
 		break;

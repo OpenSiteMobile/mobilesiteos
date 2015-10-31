@@ -307,7 +307,7 @@ msos.countrystate.populate_country = function () {
 
     msos.console.debug(temp_cnt + 'start: ' + default_country);
 
-    msos.common.gen_select_menu(
+    msos.gen_select_menu(
 		msos.countrystate.country_elm,
 		msos.countrystate.country,
 		default_country
@@ -447,7 +447,7 @@ msos.countrystate.load_states = function (country) {
         setTimeout(
 
         function () {
-            msos.common.gen_select_menu(msos.countrystate.state_elm, state_obj);
+            msos.gen_select_menu(msos.countrystate.state_elm, state_obj);
             if (msos.config.verbose) {
                 msos.console.debug(temp_lod + ' -> state object, type is ' + debug, state_obj);
             }

@@ -18,7 +18,6 @@
 */
 
 msos.provide("msos.keyboard");
-msos.require("msos.common");
 msos.require("msos.diacritic");
 msos.require("msos.i18n.keyboard");
 msos.require("msos.iframe");
@@ -58,7 +57,7 @@ msos.keyboard.create_tool = function () {
     this.tool_loaded_url = '';
     this.tool_dialog = {};
     this.tool_popup = new msos.popdiv.create_tool(
-        keyboard_name, // Tracking cookie name
+        keyboard_name, // Tracking store name
         '_kbd', // Extension used for 'css/size/' file specification
         msos.resource_url('css', 'size'),
         msos.byid("keyboard_container"),

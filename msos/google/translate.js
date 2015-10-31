@@ -161,7 +161,7 @@ msos.google.translate.select = function () {
 					msos.config.culture = trans_sel.val();	// two character code as "best initial guess"
 				}
 			);
-			msos.console.debug(temp_ts + 'bound i18n cookie');
+			msos.console.debug(temp_ts + 'bound i18n stored value');
 		}
 
 		trans_sel.data('i18n_bound', true);

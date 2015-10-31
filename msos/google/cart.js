@@ -67,7 +67,7 @@ msos.google.cart.checkout_index = 0;
 msos.google.cart.save = function () {
     "use strict";
 
-    var cookie_obj = msos.config.cookie.site_cart,
+    var store_obj = msos.config.storage.site_cart,
         get_items = googlecart.getItems(),
         items_array = [],
         k = 0,
@@ -97,13 +97,12 @@ msos.google.cart.save = function () {
     };
 
     if (items_array.length > 0) {
-        cookie_obj.value = JSON.stringify(cart_object);
-        msos.cookie(
-            cookie_obj.name,
-            cookie_obj.value,
-            cookie_obj.params
+        store_obj.value = JSON.stringify(cart_object);
+        msos.basil.set(
+            store_obj.name,
+            store_obj.value
         );
-        cookie_obj.set = true;
+        store_obj.set = true;
     } else {
         msos.console.debug('msos.google.cart.save -> no items');
     }

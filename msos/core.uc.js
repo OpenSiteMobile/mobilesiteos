@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					core.js
-//			Copyright©2010-2013 - OpenSiteMobile
+//			Copyright©2010-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -18,7 +18,7 @@
     _: false
 */
 
-msos.version = new msos.set_version(14, 5, 17);
+msos.version = new msos.set_version(15, 9, 25);
 
 msos.console.info('msos/core -> start, ' + msos.version);
 msos.console.time('core');
@@ -28,61 +28,45 @@ msos.console.time('core');
 // MSOS Functions using jQuery, underscore.js
 // *******************************************
 
-msos.clear_storage = function () {
-	"use strict";
+msos.escape_html = function (str) {
+    "use strict";
 
-	var temp_cs = 'msos.clear_storage -> ';
+    if (str) {
+        return jQuery('<div></div>').text(str).html();
+    }
 
-	msos.console.debug(temp_cs + 'start.');
-
-	// Clear all key/values
-	if (Modernizr.sessionstorage)	{ sessionStorage.clear(); }
-
-	// Clear all key/values
-	if (Modernizr.localstorage)		{ localStorage.clear(); }
-
-	msos.console.debug(temp_cs + 'done!');
+    return '';
 };
 
-// Cleared early before something starts using storage
-if (msos.config.clear_storage) { msos.clear_storage(); }
+msos.valid_jq_node = function ($node, type) {
+    "use strict";
 
+	var temp_vn = 'msos.valid_jq_node -> input is not a ';
 
-msos.bandwidth_env = function () {
-	"use strict";
-
-	var temp_be = 'msos.bandwidth_env -> ',
-		bdwd_name	= msos.config.storage.sessionstorage.site_bdwd.name,
-		bdwd_cookie = msos.config.cookie.site_bdwd.value || 'na',
-		bdwd_session = '',
-		sess_txt = '';
-
-	msos.console.debug(temp_be + 'start, sessionStorage: ' + (Modernizr.sessionstorage ? 'enabled' : 'disabled') + ', cookies: ' + (navigator.cookieEnabled ? 'enabled' : 'disabled'));
-
-	if (Modernizr.sessionstorage && navigator.cookieEnabled) {
-
-		bdwd_session = sessionStorage.getItem(bdwd_name) || 'na';
-
-		// No cookie and no session data, new day and new session
-		if (bdwd_cookie === 'na' && bdwd_session === 'na') {
-			sess_txt += ', new user!';
-		// A cookie exists, but a session doesn't...so a same day return.
-		// Turn caching off until sessionStorage for bandwidth exists (force updating)
-		} else if (bdwd_session === 'na') {
-			msos.config.cache = false;
-			sess_txt += ', return user!';
-		// Normal continuing user session 
-		} else {
-			sess_txt += ', continuing user!';
+	if (msos.in_dom_jq_node($node)) {
+		if ($node[0].tagName.toLowerCase() === type) { return true; }
+		else {
+			msos.console.error(temp_vn + 'valid jQuery node: ', $node);
 		}
+	} else {
+		msos.console.error(temp_vn + 'node of type: ' + type);
 	}
 
-	msos.console.debug(temp_be + 'done, ajax caching set: ' + (msos.config.cache ? 'true' : 'false') + sess_txt);
+    return false;
 };
 
-// Run immediately...
-msos.bandwidth_env();
+msos.in_dom_jq_node = function ($node) {
+	"use strict";
 
+	if ($node
+	 && $node.length
+	 && $node[0].parentNode) {
+		return true
+	}
+
+	$node = null;	// clean it up
+	return false;
+};
 
 msos.byid = function (id, in_doc) {
     "use strict";
@@ -107,6 +91,17 @@ msos.byid = function (id, in_doc) {
 
 	msos.console.warn(temp_byi + 'na: ' + id);
 	return null;
+};
+
+msos.zero_pad = function (input, count, left) {
+    "use strict";
+
+    var str = input.toString();
+
+    while (str.length < count) {
+        str = (left ? ("0" + str) : (str + "0"));
+    }
+    return str;
 };
 
 msos.run_onresize = function () {
@@ -158,6 +153,77 @@ msos.run_onorientationchange = function () {
 	}
 
 	msos.console.debug(temp_ono + 'done, orig. w: ' + port_width + ', new w: ' + msos.config.view_port.width + ', for: ' + m + ' functions.');
+};
+
+msos.gen_select_menu = function (select_elm, options_object, selected) {
+    "use strict";
+
+    var temp_gen = 'msos.gen_select_menu',
+        to_check = [],
+        checked = [];
+
+	if (msos.config.verbose) {
+		msos.console.debug(temp_gen + ' -> start: ', options_object);
+	} else {
+		msos.console.debug(temp_gen + ' -> start, id: ' + (select_elm.attr('id') || 'na'));
+	}
+
+    if (!msos.valid_jq_node(select_elm, 'select')) { return; }
+
+    // Clear past options
+    select_elm.empty();
+
+    // Don't allow non-word characters, ever
+    selected = selected ? selected.replace(/\W/g, '_') : '';
+
+    // Generate options or optgroup/options
+    function add_opts(sel_elm, options_obj) {
+        var key = '',
+            value = '',
+            optgroup, inner_obj;
+
+        for (key in options_obj) {
+
+			inner_obj = options_obj[key];
+			if (typeof inner_obj === 'object') {
+				key.replace('_', ' ');
+				optgroup = jQuery('<optgroup label="' + key + '">');
+				add_opts(optgroup, inner_obj);
+				sel_elm.append(optgroup);
+			}
+			else if (typeof inner_obj === 'string') {
+				value = jQuery.trim(options_obj[key]);
+				if (key === selected) {
+					sel_elm.append(new Option(value, key, false, true));
+				}
+				else {
+					sel_elm.append(new Option(value, key));
+				}
+				to_check.push(key);
+			}
+			else {
+				msos.console.error(temp_gen + ' -> oops: ' + key);
+			}
+
+        }
+    }
+
+    if (_.size(options_object) > 0) {
+        // Start our select build function
+        add_opts(select_elm, options_object);
+    } else {
+        msos.console.error(temp_gen + ' -> done, no options passed in!');
+        return;
+    }
+
+    // Check for duplicate keys (which is very bad)
+    checked = _.uniq(to_check);
+
+    if (to_check.length !== checked.length) {
+        msos.console.error(temp_gen + ' -> duplicate key!');
+    }
+
+    msos.console.debug(temp_gen + ' -> done!');
 };
 
 
@@ -480,36 +546,56 @@ msos.notify = {
 		cont.css('position', 'fixed');
 	},
 
-	idx: 0,
 	queue: [],
+	current: null,
+
+	clear_current: function () {
+		var self = msos.notify;
+
+		// Errors and warnings are a special case, (we always show them to completion)
+		if (self.current !== null
+		 && self.current.type !== 'warning'
+		 && self.current.type !== 'error') {
+
+			msos.console.debug('msos.notify.clear_current -> called, on type: ' + self.current.type);
+
+			self.current.fade_out();
+		}
+	},
+
+	clear: function () {
+		var self = msos.notify,
+			n = 0;
+
+		msos.console.debug('msos.notify.clear -> called, for queue: ' + self.queue.length);
+
+		self.clear_current();
+
+		for (n = 0; n < self.queue.length; n += 1) {
+			if (self.queue[n].type !== 'warning'
+			 && self.queue[n].type !== 'error') {
+				clearTimeout(self.queue[n].auto_delay);
+			}
+		}
+	},
 
 	run: function () {
 		"use strict";
 
 		var temp_rn = 'msos.notify.run -> ',
-			self = msos.notify,
-			next = self.queue[self.idx];
+			self = msos.notify;
 
-		if (_.isObject(next)) {
+			self.current = self.queue.shift() || null;
 
-			msos.console.debug(temp_rn + 'prepend, idx: ' + self.idx + ', type: ' + next.type);
+		if (_.isObject(self.current)) {
+
+			msos.console.debug(temp_rn + 'prepend, type: ' + self.current.type);
 
 			// Prepend the notify element to our container
-			self.container.prepend(next.note_el);
+			self.container.prepend(self.current.note_el);
 
 			// Add the specified display delay
-			next.auto_delay = setTimeout(next.fade_out, next.delay);
-
-			// Increment to next in queue, if any
-			self.idx += 1;
-
-		} else {
-
-			msos.console.debug(temp_rn + 'clear, idx: ' + self.idx);
-
-			// Or start over with a new queue
-			self.idx = 0;
-			self.queue = [];
+			self.current.auto_delay = setTimeout(self.current.fade_out, self.current.delay);
 		}
 	},
 
@@ -518,7 +604,6 @@ msos.notify = {
 
 		var temp_ntf = 'msos.notify.base -> ',
 			self = msos.notify,
-			curr = String(self.idx),
 			base_obj = {
 				type: type,
 				delay: delay || 4000,		// default (minimum) is 4 sec.
@@ -531,7 +616,7 @@ msos.notify = {
 				 msg_el: jQuery("<div class='notify_msg'></div>")
 			};
 
-		msos.console.debug(temp_ntf + 'start, idx: ' + self.idx + ', type: ' + type);
+		msos.console.debug(temp_ntf + 'start, type: ' + type);
 
 		// Append close button
 		base_obj.disp_el.append(base_obj.butt_el);
@@ -556,15 +641,15 @@ msos.notify = {
 
 		base_obj.fade_out = function () {
 			if (base_obj.auto_delay === 0) {
-				self.idx += 1;	// Skip (since it was called to fade before it displayed)
+				self.queue.pop();	// Skip (since it was called to fade before it displayed)
 			} else {
 				clearTimeout(base_obj.auto_delay);
 				base_obj.note_el.fadeOut(
 					'slow',
 					function () {
-						msos.console.debug(temp_ntf + 'fade_out, idx: ' + curr + ', type: ' + type);
+						msos.console.debug(temp_ntf + 'fade_out, type: ' + type);
 						base_obj.note_el.remove();
-						msos.notify.run();
+						self.run();
 					}
 				);
 			}
@@ -575,12 +660,10 @@ msos.notify = {
 			base_obj.fade_out
 		);
 
-		if (self.queue.length === 0) {
-			self.queue.push(base_obj);
-			self.run();
-		} else {
-			self.queue.push(base_obj);
-		}
+		self.queue.push(base_obj);
+
+		// Manually fire the first one
+		if (self.current === null) { self.run(); }
 
 		msos.console.debug(temp_ntf + 'done!');
 		return base_obj;
@@ -772,10 +855,10 @@ msos.set_bandwidth = function () {
     var temp_sb = 'msos.set_bandwidth -> ',
 		clear = '',
 		cfg = msos.config,
-		sessstr = cfg.storage.sessionstorage.site_bdwd,
-		cookie_value = cfg.cookie.site_bdwd.value || 'na',
+		ajax_obj = cfg.storage.site_ajax,
+		bdwd_obj = cfg.storage.site_bdwd,
 		ajx_ldg = msos.ajax_loading_kbps,	// loading speeds from ajax file calls
-		ajx_ses = {},
+		ajx_ses = msos.basil.get(ajax_obj.name) || {},
 		kbps = '',
 		kbps_new = false,
 		cnt = 0,
@@ -787,12 +870,8 @@ msos.set_bandwidth = function () {
 	// a reasonable "best guess" estimate. It is important to note that it
 	// assumes reasonable server "caching" is employed. Ref. /htdocs/.htaccess
 
-	if (cfg.clear_cookies) { clear  = ', cleared cookies'; }
-	if (cfg.clear_storage) { clear += ', cleared storage'; }
-	if (cfg.clear_cookies
-	 && cfg.clear_storage) {
-		// May still need to clear your browser's cache too! Clear cache and run same url again.
-		msos.console.warn(temp_sb + 'simulated new user: browser cache cleared?');
+	if (cfg.clear_storage) {
+		clear += ', cleared storage (as new user)';
 	}
 
 	if (cfg.verbose) {
@@ -803,70 +882,39 @@ msos.set_bandwidth = function () {
 		msos.console.debug(temp_sb + 'start' + clear);
 	}
 
-	// If sessionStorage, we can revise estimates as files upload the first time
-	if (Modernizr.sessionstorage && navigator.cookieEnabled) {
+	// Determine new values...(for just loaded files, as others should come from cache)
+	for (kbps in ajx_ldg) {
+		ajx_ses[kbps] = ajx_ldg[kbps];
+		kbps_new = true;
+	}
 
-		msos.console.debug(temp_sb + 'using sessionStorage!');
+	if (kbps_new) {
 
-		// Get any previous values for kbps
-		ajx_ses = sessionStorage.getItem(sessstr.name) ? JSON.parse(sessionStorage.getItem(sessstr.name)) : {};
+		msos.console.debug(temp_sb + 'new value(s) added!');
 
-		if (cfg.verbose) {
-			msos.console.debug(temp_sb + 'sessionStorage bandwidth: ', ajx_ses);
+		for (kbps in ajx_ses) {
+			sum += parseInt(ajx_ses[kbps], 10);
+			cnt += 1;
 		}
 
-		// Determine new values...(for just loaded files, as others should come from cache)
-		for (kbps in ajx_ldg) {
-			ajx_ses[kbps] = ajx_ldg[kbps];
-			kbps_new = true;
-		}
+		avg = sum / cnt;
 
-		if (kbps_new) {
-
-			msos.console.debug(temp_sb + 'new value(s) added!');
-
-			for (kbps in ajx_ses) {
-				sum += parseInt(ajx_ses[kbps], 10);
-				cnt += 1;
-			}
-
-			avg = sum / cnt;
-
-			// Now save all the values...
-			sessstr.value = JSON.stringify(ajx_ses);
-			sessionStorage.setItem(sessstr.name, sessstr.value);
-			sessstr.set = true;
-
-		} else {
-
-			msos.console.debug(temp_sb + 'no new values, use cookie!');
-
-			// No uploaded files?  Just use previous cookie value or an ultra-low default (for no user cookies)
-			avg = cookie_value !== 'na' ? cookie_value : 10.0;
-		}
-
-	// Otherwise, we can only update bandwidth estimates for new cookie value
-	} else if (cookie_value === 'na' && navigator.cookieEnabled) {
-
-		msos.console.debug(temp_sb + 'use current loading data!');
-
-		for (i = 0; i < ajx_ldg.length; i += 1) {
-			sum += parseInt(ajx_ldg[i], 10);
-		}
-
-		// No div by 0, or use ultra-low default for no info
-		avg = ajx_ldg.length ? (sum / ajx_ldg.length) : 10.0;
+		ajax_obj.value = ajx_ses;
+		msos.basil.set(ajax_obj.name, ajax_obj.value);
+		ajax_obj.set = true;
 
 	} else {
 
-		msos.console.debug(temp_sb + 'use previous cookie or default!');
+		msos.console.debug(temp_sb + 'no new values');
 
-		avg = cookie_value !== 'na' ? cookie_value : 10.0;	// ultra-low default (for no user cookies)
+		// No uploaded files?  Just use previous stored value or an ultra-low default
+		avg = bdwd_obj.value || 10.0;
 	}
 
-	// Reset site user cookie info (Kbps)
-    cfg.cookie.site_bdwd.value = parseInt(avg, 10);
-	cfg.cookie.site_bdwd.set = true;
+	// Reset site user stored info (Kbps)
+    bdwd_obj.value = parseInt(avg, 10);
+	msos.basil.set(bdwd_obj.name, bdwd_obj.value);
+	bdwd_obj.set = true;
 
 	msos.console.debug(temp_sb + 'done, bandwidth: ' + parseInt(avg, 10));
 };
@@ -884,17 +932,17 @@ msos.connection = function() {
         };
 
 	if (msos.config.verbose) {
-		msos.console.debug(temp_con + 'start, nav. input: ', con_nav);
+		msos.console.debug(temp_con + 'start, input: ', con_nav);
 	}
 
-	if (!msos.config.cookie.site_bdwd.set) {
+	if (!msos.config.storage.site_bdwd.set) {
 		msos.console.warn(temp_con + 'calc\'d bandwidth not available yet!');
 	}
 
 	if (con_nav.bandwidth && !msos.var_is_empty(con_nav.bandwidth)) {
 		con_bwidth = con_nav.bandwidth;
 	} else {
-		con_bwidth = msos.config.cookie.site_bdwd.value || 10;	// default min. is 10kbps
+		con_bwidth = msos.config.storage.site_bdwd.value || 10;	// default min. is 10kbps
 	}
 
 	if (con_nav.type === 1)									{ con_type = 'fast'; }
@@ -949,9 +997,7 @@ msos.set_window_onchange = function () {
 msos.run_intial = function () {
 	"use strict";
 
-	var run_in = 'msos.run_intial -> ',
-		cfg = msos.config,
-		req = msos.require;
+	var run_in = 'msos.run_intial -> ';
 
 	msos.console.debug(run_in + 'start.');
 
@@ -962,21 +1008,6 @@ msos.run_intial = function () {
 	msos.docl = document.compatMode === "BackCompat" ? window.document.body : window.document.documentElement;
 
 	msos.browser_direction();
-
-	// Add event debugging functions
-    if (cfg.visualevent)	{ req("msos.visualevent"); }
-
-    // If a mobile (touch) operating system
-    if (cfg.mobile)			{ req("msos.mobile"); }
-
-    // Add auto window.onerror alerting
-    if (cfg.run_onerror)	{ req("msos.onerror"); }
-
-	// Add debugging output (popup)
-	if (cfg.debug_output)	{ req("msos.debug"); }
-
-	// Add MSOS console output
-	if (cfg.console)		{ req("msos.pyromane"); }
 
 	msos.console.debug(run_in + 'done!');
 };
@@ -991,7 +1022,7 @@ msos.run_final = function () {
 	// Run any "post" msos.run_onload functions
 	msos.run_function_array('onload_func_post');
 
-	msos.set_locale_cookie();
+	msos.set_locale_storage();
 
 	// Output some timing info when requested
 	if (msos.debug) { msos.debug.timing(); }
@@ -1018,7 +1049,7 @@ msos.run_onload = function () {
 		delay = 100,
 		to_secs = delay / 1000,
 		report_stop,
-		cc = cfg.cookie;
+		cc = cfg.storage;
 
 	/*
 		JavaScript is all about timing. This funtion allows precise timing of software
@@ -1056,30 +1087,28 @@ msos.run_onload = function () {
 		return;
 	}
 
-	// All 'require' and 'i18n' files are loaded, so set cookie and get bandwidth
+	// All 'require' and 'i18n' files are loaded, so set stored values and get bandwidth
 	if (msos.require_queue === 0 && msos.i18n_queue === 0 && !cc.site_bdwd.set) {
 
-		// Calculate bandwidth
-		// Note: also sets new cookie
+		// Calc. bandwidth
+		// Note: also sets new values
 		msos.set_bandwidth();
 		msos.connection();
 
 		// Set onresize, onorientationchange
 		msos.set_window_onchange();
 
-		// Set/Reset site user cookie
-		msos.cookie(
+		// Set/Reset site user preferences
+		msos.basil.set(
 			cc.site_pref.name,
-			cc.site_pref.value,
-			cc.site_pref.params
+			cc.site_pref.value
 		);
 		cc.site_pref.set = true;
 
-		// Set/Reset site user cookie
-		msos.cookie(
+		// Set/Reset site user bandwidth tracking
+		msos.basil.set(
 			cc.site_bdwd.name,
-			cc.site_bdwd.value,
-			cc.site_bdwd.params
+			cc.site_bdwd.value
 		);
 
 		setTimeout(msos.run_onload, delay);

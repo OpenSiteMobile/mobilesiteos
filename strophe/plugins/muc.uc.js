@@ -12,7 +12,7 @@ Strophe.addConnectionPlugin(
     'muc',
     {
         _connection: null,
-        _p_name: 'Strophe.Plugin.muc - ',
+        _p_name: 'strophe.plugins.muc - ',
 
         init: function (conn) {
             "use strict";
@@ -32,9 +32,11 @@ Strophe.addConnectionPlugin(
 
             msos.console.debug(this._p_name + 'join -> start.');
 
-            var room_nick = this.test_append_nick(room, nick),
+            var room_nick = this._append_nick(room, nick),
                 msg,
-                password_elem;
+                password_elem,
+                join_msg_hand,
+                join_pres_hand;
 
             msg = $pres(
                     {
@@ -53,7 +55,7 @@ Strophe.addConnectionPlugin(
             }
 
             if (msg_handler_cb) {
-                this._connection.addHandler(
+                join_msg_hand = this._connection.addStropheHandler(
                     function (stanza) {
                         var from = stanza.getAttribute('from'),
                             roomname = from.split("/");
@@ -64,16 +66,14 @@ Strophe.addConnectionPlugin(
                         if (roomname[0] === room) { return msg_handler_cb(stanza); }
                         return true;
                     },
-                    null,
-                    "message",
-                    null,
-                    null,
-                    null
+                    Strophe.NS.CLIENT,
+                    "message"
                 );
+                join_msg_hand.describe = 'MUC join: ' + room_nick;
             }
 
             if (pres_handler_cb) {
-                this._connection.addHandler(
+                join_pres_hand = this._connection.addStropheHandler(
                     function (stanza) {
                         var xquery = stanza.getElementsByTagName("x"),
                             i = 0,
@@ -92,12 +92,10 @@ Strophe.addConnectionPlugin(
                         }
                         return true;
                     },
-                    null,
-                    "presence",
-                    null,
-                    null,
-                    null
+                    Strophe.NS.CLIENT,
+                    "presence"
                 );
+                join_pres_hand.describe = 'MUC join: ' + room_nick;
             }
 
             this._connection.send(msg);
@@ -110,7 +108,7 @@ Strophe.addConnectionPlugin(
 
             msos.console.debug(this._p_name + 'leave -> start.');
 
-            var room_nick = this.test_append_nick(room, nick),
+            var room_nick = this._append_nick(room, nick),
                 presenceid = this._connection.getUniqueId(),
                 presence = $pres(
                     {
@@ -119,20 +117,20 @@ Strophe.addConnectionPlugin(
                         from: this._connection.jid,
                         to: room_nick
                     }
-                ).c("x", { xmlns: Strophe.NS.MUC });
+                ).c("x", { xmlns: Strophe.NS.MUC }),
+                leave_pres_hand;
 
-            this._connection.addHandler(
+            leave_pres_hand = this._connection.addStropheHandler(
                 handler_cb,
-                null,
+                Strophe.NS.CLIENT,
                 "presence",
-                null,
-                presenceid,
-                null
+                false,
+                presenceid
             );
 
             this._connection.send(presence);
 
-            msos.console.debug(this._p_name + 'leave -> done!');
+            msos.console.debug(this._p_name + 'leave -> done, room jid: ' + room_nick);
             return presenceid;
         },
 
@@ -141,7 +139,7 @@ Strophe.addConnectionPlugin(
 
             msos.console.debug(this._p_name + 'message -> start.');
 
-            var room_nick = this.test_append_nick(room, nick),
+            var room_nick = this._append_nick(room, nick),
                 msgid = this._connection.getUniqueId(),
                 msg;
 
@@ -179,8 +177,7 @@ Strophe.addConnectionPlugin(
 
             return this._connection.sendIQ(
                 stanza,
-                function () {},
-                function () {}
+                'get: query MUC owner'
             );
         },
 
@@ -202,8 +199,7 @@ Strophe.addConnectionPlugin(
 
             return this._connection.sendIQ(
                 stanza,
-                function () {},
-                function () {}
+                'set: query MUC owner, x cancel'
             );
         },
 
@@ -231,8 +227,7 @@ Strophe.addConnectionPlugin(
 
             return this._connection.sendIQ(
                 stanza,
-                function () {},
-                function () {}
+                'set: query MUC owner, x submit (array up)'
             );
         },
 
@@ -251,8 +246,7 @@ Strophe.addConnectionPlugin(
 
             return this._connection.sendIQ(
                 roomiq.tree(),
-                function () {},
-                function () {}
+                'set: query MUC owner, x submit'
             );
         },
 
@@ -303,8 +297,7 @@ Strophe.addConnectionPlugin(
 
             return this._connection.sendIQ(
                 roomiq.tree(),
-                function () {},
-                function () {}
+                'set: query MUC owner'
             );
         },
 
@@ -313,7 +306,7 @@ Strophe.addConnectionPlugin(
 
             msos.console.debug(this._p_name + 'changeNick -> called.');
 
-            var room_nick = this.test_append_nick(room, user),
+            var room_nick = this._append_nick(room, user),
                 presence = $pres(
                     {
                         from: this._connection.jid,
@@ -338,22 +331,23 @@ Strophe.addConnectionPlugin(
 
             this._connection.sendIQ(
                 iq,
-                handle_cb,
-                function () {}
+                'get: query disco items (MUC)',
+                handle_cb
             );
         },
 
-        test_append_nick: function (room, nick) {
+        _append_nick: function (room, nick) {
             "use strict";
 
-            var room_nick = room;
-
-            msos.console.debug(this._p_name + 'test_append_nick -> called.');
+            var room_plus_nick = room;
 
             if (nick) {
-                room_nick += "/" + Strophe.escapeNode(nick);
+                room_plus_nick += "/" + Strophe.escapeNode(nick);
             }
-            return room_nick;
+
+            msos.console.debug(this._p_name + '_append_nick -> called, room jid: ' + room_plus_nick);
+
+            return room_plus_nick;
         }
     }
 );
