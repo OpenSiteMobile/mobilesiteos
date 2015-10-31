@@ -78,14 +78,16 @@ msos.onload_functions.push(
 							url: pge.url,
 							cache: $templateCache
 						}
-					).success(
-						function (html) {
-							scpe.html = html;
-							$('textarea').text(html);	// Had to go with this due to IE
-						}
-					).error(
-						function (html, status) {
-							scpe.html = 'Unable to load code: ' + status;
+					).then(
+						function (response) {
+							// response.data, response.status, response.headers, config
+							var html_in = response.data;
+
+							scpe.html = html_in;
+							$('textarea').text(html_in);	// Had to go with this due to IE
+						},
+						function (response) {
+							scpe.html = 'Unable to load code: ' + response.status;
 						}
 					);
 				}
@@ -126,7 +128,6 @@ msos.onload_functions.push(
 						function (jqxhr, settings, e) {
 							msos.console.debug(temp_sd + ' - get_script -> error: ', e);
 
-							// possibly should be -> $rootScope.$evalAsync(function () { ... });
 							$rootScope.$apply(
 								function () {
 									deferred.reject(e);
