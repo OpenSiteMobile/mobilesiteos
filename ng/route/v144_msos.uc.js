@@ -226,7 +226,7 @@ msos.console.time('route');
                     }
                 }
 
-                w_msos.console.debug(temp_rt + temp_pr + ' done!');
+                w_msos.console.debug(temp_rt + temp_pr + 'done!');
             }
 
             function commitRoute() {

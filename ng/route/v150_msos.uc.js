@@ -4,7 +4,7 @@
  * License: MIT
  *
  * Originally derived from v1.3.0,
- *       with updates from v1.3.3, thru v1.4.4,
+ *       with updates from v1.3.3, thru v1.5.0,
  */
 
 /*global
@@ -14,7 +14,7 @@
     _: false
 */
 
-msos.console.info('ng/route/v144_msos -> start.');
+msos.console.info('ng/route/v150_msos -> start.');
 msos.console.time('route');
 
 (function (w_angular, w_msos) {
@@ -367,7 +367,10 @@ msos.console.time('route');
     ngRouteModule = w_angular.module('ngRoute', ['ng']).provider('$route', $RouteProvider);
     ngRouteModule.provider('$routeParams', $RouteParamsProvider);
 
+
     function ngViewFactory($route, $anchorScroll, $animate) {
+        var temp_vf = 'ng/route - ngViewFactory - link';
+
         return {
             restrict: 'ECA',
             terminal: true,
@@ -379,6 +382,8 @@ msos.console.time('route');
                     previousLeaveAnimation,
                     autoScrollExp = attr.autoscroll,
                     onloadExp = attr.onload || '';
+
+                msos.console.debug(temp_vf + ' -> start.');
 
                 function cleanupLastView() {
                     if (previousLeaveAnimation) {
@@ -394,7 +399,9 @@ msos.console.time('route');
                     if (currentElement) {
                         previousLeaveAnimation = $animate.leave(currentElement);
                         previousLeaveAnimation.then(
-                            function () { previousLeaveAnimation = null; }
+                            function () {
+                                previousLeaveAnimation = null;
+                            }
                         );
                         currentElement = null;
                     }
@@ -407,20 +414,27 @@ msos.console.time('route');
                         current,
                         clone;
 
+                    msos.console.debug(temp_vf + ' - update -> start.');
+
                     if (w_angular.isDefined(template)) {
+
                         newScope = scope.$new();
                         current = $route.current;
 
                         clone = $transclude(
                             newScope,
                             function (clone) {
-                                $animate.enter(clone, null, currentElement || $element).then(
-                                    function onNgViewEnter() {
-                                        if (w_angular.isDefined(autoScrollExp) && (!autoScrollExp || scope.$eval(autoScrollExp))) {
-                                            $anchorScroll();
+                                $animate.enter(
+                                    clone,
+                                    null,
+                                    currentElement || $element).then(
+                                        function onNgViewEnter() {
+                                            if (w_angular.isDefined(autoScrollExp)
+                                             && (!autoScrollExp || scope.$eval(autoScrollExp))) {
+                                                $anchorScroll();
+                                            }
                                         }
-                                    }
-                                );
+                                    );
 
                                 cleanupLastView();
                             }
@@ -434,76 +448,43 @@ msos.console.time('route');
                     } else {
                         cleanupLastView();
                     }
+
+                    msos.console.debug(temp_vf + ' - update ->  done!');
                 }
 
                 scope.$on('$routeChangeSuccess', update);
                 update();
+
+                msos.console.debug(temp_vf + ' -> done.');
             }
         };
     }
 
     ngViewFactory.$inject = ['$route', '$anchorScroll', '$animate'];
 
-    function ngViewFillContentFactory($compile, $controller, $route) {
-        return {
-            restrict: 'ECA',
-            priority: -400,
-            link: function (scope, $element) {
-                var temp_nv = 'ng - route - ngViewFillContentFactory -> ',
-                    current = $route.current,
-                    locals = current.locals,
-                    link,
-                    controller;
-        
-                msos.console.debug(temp_nv + 'start.');
-
-                $element.html(locals.$template);
-
-                link = $compile($element.contents());
-/*
-                if (current.controller) {
-
-                    msos.console.debug(temp_nv + 'has current controller: ' + current.controller);
-
-                    locals.$scope = scope;
-
-                    controller = $controller(current.controller, locals);
-
-                    if (current.controllerAs) {
-                        scope[current.controllerAs] = controller;
-                    }
-
-                    $element.data('$ngControllerController', controller);
-                    $element.children().data('$ngControllerController', controller);
-                }
-*/
-                link(scope);
-
-                msos.console.debug(temp_nv + 'done!');
-            }
-        };
-    }
-
-    ngViewFillContentFactory.$inject = ['$compile', '$controller', '$route'];
 
     function ngViewControllerFactory($compile, $controller, $route) {
         return {
             restrict: 'ECA',
-            priority: -600,
+            priority: -400,
             link: function (scope, $element) {
-                var temp_nc = 'ng - route - ngViewControllerFactory -> ',
+                var temp_nc = 'ng/route - ngViewControllerFactory -> ',
                     current = $route.current,
                     locals = current.locals,
+                    link,
                     controller;
 
                 msos.console.debug(temp_nc + 'start.');
+
+                $element.html(locals.$template);
+
+                link = $compile($element.contents());
 
                 if (current.controller) {
 
                     msos.console.debug(temp_nc + 'has current controller: ' + current.controller);
 
                     locals.$scope = scope;
-
                     controller = $controller(current.controller, locals);
 
                     if (current.controllerAs) {
@@ -513,6 +494,8 @@ msos.console.time('route');
                     $element.data('$ngControllerController', controller);
                     $element.children().data('$ngControllerController', controller);
                 }
+
+                link(scope);
 
                 msos.console.debug(temp_nc + 'done!');
             }
@@ -523,11 +506,10 @@ msos.console.time('route');
 
 
     ngRouteModule.directive('ngView', ngViewFactory);
-    ngRouteModule.directive('ngView', ngViewFillContentFactory);
     ngRouteModule.directive('ngView', ngViewControllerFactory);
 
 }(window.angular, window.msos));
 
 
-msos.console.info('ng/route/v144_msos -> done!');
+msos.console.info('ng/route/v150_msos -> done!');
 msos.console.timeEnd('route');
