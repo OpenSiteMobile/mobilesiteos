@@ -19,9 +19,8 @@
 */
 
 msos.provide("msos.html5.sql");
-msos.require("msos.common");
 
-msos.html5.sql.version = new msos.set_version(13, 6, 14);
+msos.html5.sql.version = new msos.set_version(15, 10, 7);
 
 msos.html5.sql.generate = function () {
     "use strict";

@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				html5/range.js
-//			Copyright©2012-2013 - OpenSiteMobile
+//			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -19,8 +19,9 @@
 
 msos.provide("msos.html5.range");
 msos.require("jquery.tools.range");
+msos.require("msos.html5.tracking");
 
-msos.html5.range.version = new msos.set_version(14, 3, 13);
+msos.html5.range.version = new msos.set_version(15, 9, 24);
 
 
 (function ($) {
@@ -36,7 +37,7 @@ msos.html5.range.version = new msos.set_version(14, 3, 13);
 
 	};
 
-	// Add MSOS DOM tracking
-	msos.dom_tracking('html5_range');
-
 }(jQuery));
+
+// Add MSOS DOM tracking
+msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_range'); });

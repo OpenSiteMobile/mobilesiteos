@@ -18,31 +18,34 @@
 */
 
 msos.provide("msos.size");
-msos.require("msos.common");
-msos.require("msos.i18n.common");   // required in msos.common too, but here to ref. dependency
+msos.require("msos.i18n.common");
 
-msos.size.version = new msos.set_version(15, 4, 18);
+msos.size.version = new msos.set_version(15, 10, 7);
 
 msos.size.evaluate = function (force_sizing) {
 	"use strict";
 
-	var cc = msos.config.cookie;
+	var cc = msos.config.storage,
+		prev_size = msos.config.size;
 
 	// Set the display size
 	msos.get_display_size(force_sizing);
 
-	// Reset site user cookie for new size
-	msos.cookie(
-		cc.site_pref.name,
-		cc.site_pref.value,
-		cc.site_pref.params
-	);
+	// Check for change
+	if (prev_size !== msos.config.size) {
 
-	if (msos.config.run_ads) {
-		// Reload page (so Google AdSense sizes correctly)
-		window.location.reload(false);
-	} else {
-		msos.size.set_display();
+		// Reset site user preferences for new size
+		msos.basil.set(
+			cc.site_pref.name,
+			cc.site_pref.value
+		);
+
+		if (msos.config.run_ads) {
+			// Reload page (so Google AdSense sizes correctly)
+			window.location.reload(false);
+		} else {
+			msos.size.set_display();
+		}
 	}
 };
 
@@ -89,7 +92,7 @@ msos.size.selection = function ($container) {
     var select_display_sizes = {},
         size = '';
 
-    if (!msos.common.valid_jq_node($container, 'select')) { return; }
+    if (!msos.valid_jq_node($container, 'select')) { return; }
 
     // Build display size select input object
     for (size in msos.config.size_wide) {
@@ -97,13 +100,10 @@ msos.size.selection = function ($container) {
     }
 
     // Generate display size menu
-    msos.common.gen_select_menu($container, select_display_sizes, msos.config.size);
+    msos.gen_select_menu($container, select_display_sizes, msos.config.size);
 
     $container.change(
         function () {
-
-            var cc = msos.config.cookie;
-
 			// Set size via query parameter (ref. msos.get_display_size)
             msos.config.query.size = jQuery.trim(this.value);
 

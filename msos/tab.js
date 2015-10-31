@@ -17,9 +17,8 @@
 */
 
 msos.provide("msos.tab");
-msos.require("msos.common");
 
-msos.tab.version = new msos.set_version(13, 6, 14);
+msos.tab.version = new msos.set_version(15, 10, 7);
 
 
 // Start by loading our tab specific stylesheet
@@ -38,7 +37,7 @@ msos.tab.tool = function (tabs_div) {
     this.act_tab_style = 'tab_active';
     this.pas_tab_style = 'tab_passive';
     this.com_tab_style = 'tab_common';
-    this.tab_cookie_name = tabs_div.id;
+    this.tab_store_name = tabs_div.id;
     this.tabs = [];
 
     this.add_tab = function (def_obj) {
@@ -69,12 +68,12 @@ msos.tab.tool = function (tabs_div) {
         msos.console.debug(tab_txt + ' - generate_tabs -> completed.');
     };
 
-    this.get_tab_by_cookie = function () {
-        var c_obj = msos.config.cookie.site_tabs,
-            c_name = c_obj.name + tab_obj.tab_cookie_name,
-            tab_index = msos.cookie(c_name);
+    this.get_tab_fr_store = function () {
+        var c_obj = msos.config.storage.site_tabs,
+            c_name = c_obj.name + tab_obj.tab_store_name,
+            tab_index = msos.basil.get(c_name);
 
-        msos.console.debug(tab_txt + ' - get_tab_by_cookie -> index: ' + tab_index + ' for cookie: ' + c_name);
+        msos.console.debug(tab_txt + ' - get_tab_fr_store -> index: ' + tab_index + ' for: ' + c_name);
         if (tab_index) {
             tab_obj.tab_set_active = tab_index;
         }
@@ -82,9 +81,8 @@ msos.tab.tool = function (tabs_div) {
 
     this.set_tab = function () {
         var st = ' - set_tab -> ',
-            c_obj = msos.config.cookie.site_tabs,
-            c_name = c_obj.name + tab_obj.tab_cookie_name,
-            c_params = c_obj.params,
+            c_obj = msos.config.storage.site_tabs,
+            c_name = c_obj.name + tab_obj.tab_store_name,
             set_act_tab = tab_obj.tab_set_active || 1,
             act_set = false,
             i = 0;
@@ -111,13 +109,12 @@ msos.tab.tool = function (tabs_div) {
                 tab_obj.tabs[i].container.style.display = 'block';
                 jQuery(tab_obj.tabs[i].container).addClass('tab_active');
                 tab_obj.tab_set_active = i + 1;
-                msos.cookie(
+                msos.basil.set(
                     c_name,
-                    (i + 1),
-                    c_params
+                    (i + 1)
                 );
                 act_set = true;
-                msos.console.debug(tab_txt + st + 'index: ' + (i + 1) + ' for cookie: ' + c_name);
+                msos.console.debug(tab_txt + st + 'index: ' + (i + 1) + ' for stored value: ' + c_name);
             }
             else {
                 tab_obj.tabs[i].className = tab_obj.pas_tab_style + " " + tab_obj.com_tab_style;

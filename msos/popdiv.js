@@ -74,10 +74,10 @@ msos.popdiv.create_tool = function (pop_name, pop_size_ext, pop_size_url, pop_co
         return false;
     };
 
-    this.pop_cookie = msos.config.cookie.site_popu.name + pop_name;
+    this.pop_store_name = msos.config.storage.site_popu.name + pop_name;
 
-    // Popup size - specified by 'fixed' (1st), if 'display changed' use it (2nd), popup cookie (3rd), fall back to config
-    this.pop_size = fixed_size || msos.config.query.size || msos.cookie(this.pop_cookie) || msos.config.size;
+    // Popup size - specified by 'fixed' (1st), if 'display changed' use it (2nd), popup stored value (3rd), fall back to config
+    this.pop_size = fixed_size || msos.config.query.size || msos.basil.get(this.pop_store_name) || msos.config.size;
     this.pop_size_arry = msos.config.size_array;
     this.pop_size_idx = _.indexOf(this.pop_size_arry, this.pop_size);
     this.pop_dynamic = new msos.loader();
@@ -221,9 +221,9 @@ msos.popdiv.create_tool = function (pop_name, pop_size_ext, pop_size_url, pop_co
 
         pop_size = pop_ary[pop_idx];
 
-        // Save our current size to a cookie (unless we used a fixed size)
+        // Save our current size (unless we used a fixed size)
         if (!fixed_size) {
-            msos.cookie(popup_obj.pop_cookie, pop_size, { expires: 1 });
+            msos.basil.set(popup_obj.pop_store_name, pop_size);
         }
 
         pop_size += pop_size_ext;

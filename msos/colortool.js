@@ -59,7 +59,7 @@ msos.colortool.create_tool = function (options_hash) {
     this.tool_load_url = '';
     this.tool_loaded_url = '';
     this.tool_popup = new msos.popdiv.create_tool(
-        ct_name, // Tracking cookie name
+        ct_name, // Tracking storage name
         '_clt', // Extension used for 'css/size/' file specification
         msos.resource_url('css', 'size'),
         msos.byid('colortool_container'),

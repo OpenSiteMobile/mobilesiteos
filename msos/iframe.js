@@ -17,7 +17,6 @@
 */
 
 msos.provide("msos.iframe");
-msos.require("msos.common");
 
 msos.iframe.version = new msos.set_version(14, 3, 17);
 
@@ -92,7 +91,7 @@ msos.iframe.set_event = function (tool_obj, iframe_array, add_event, add_functio
 
         reg_iframe = jQuery(iframe_array[i]);
 
-        if (msos.common.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.load(iframe_onload); }
+        if (msos.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.load(iframe_onload); }
     }
 
     msos.console.debug(temp_set + 'done!');

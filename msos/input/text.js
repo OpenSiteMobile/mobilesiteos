@@ -17,9 +17,8 @@
 */
 
 msos.provide("msos.input.text");
-msos.require("msos.common");
 
-msos.input.text.version = new msos.set_version(13, 11, 6);
+msos.input.text.version = new msos.set_version(15, 10, 7);
 
 
 // --------------------------

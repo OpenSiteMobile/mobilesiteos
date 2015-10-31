@@ -30,13 +30,13 @@ msos.sdmenu.generate = function (id) {
     this.speed = 3;
     this.markCurrent = true;
     this.oneSmOnly = false;
-	this.cookie_name = encodeURIComponent(id);
+	this.store_name = encodeURIComponent(id);
 
     this.init = function () {
-		var c_obj = msos.config.cookie.site_sdmn,
-            c_name = c_obj.name + self.cookie_name,
+		var c_obj = msos.config.storage.site_sdmn,
+            c_name = c_obj.name + self.store_name,
 			links,
-			cookie_val = msos.cookie(c_name) || '',
+			store_val = msos.basil.get(c_name) || '',
 			states = [],
 			$m_div = null,
 			i = 0;
@@ -51,8 +51,8 @@ msos.sdmenu.generate = function (id) {
             }
         }
         if (self.remember) {
-            if (cookie_val) {
-                states = cookie_val.split(":");
+            if (store_val) {
+                states = store_val.split(":");
                 for (i = 0; i < states.length; i += 1) {
 					self.submenus[i].className = (states[i] === '0' ? "collapsed" : "");
 				}
@@ -183,8 +183,8 @@ msos.sdmenu.generate = function (id) {
     };
 
     this.memorize = function () {
-		var c_obj = msos.config.cookie.site_sdmn,
-            c_name = c_obj.name + self.cookie_name,
+		var c_obj = msos.config.storage.site_sdmn,
+            c_name = c_obj.name + self.store_name,
 			states = [],
 			i = 0;
 
@@ -192,10 +192,9 @@ msos.sdmenu.generate = function (id) {
             for (i = 0; i < self.submenus.length; i += 1) {
 				states.push(self.submenus[i].className === "collapsed" ? 0 : 1);
 			}
-            msos.cookie(
+            msos.basil.set(
 				c_name,
-				states.join(":"),
-				c_obj.params
+				states.join(":")
 			);
         }
     };

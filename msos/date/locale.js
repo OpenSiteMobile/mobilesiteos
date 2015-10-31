@@ -15,10 +15,20 @@
 
 msos.provide("msos.date.locale");
 msos.require("msos.date");
-msos.require("msos.common");
 
-msos.date.locale.version = new msos.set_version(13, 11, 6);
+msos.date.locale.version = new msos.set_version(15, 10, 7);
 
+
+msos.date.locale.escape_regex = function (str, except) {
+    "use strict";
+
+    return str.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, function (ch) {
+        if (except && except.indexOf(ch) !== -1) {
+            return ch;
+        }
+        return "\\" + ch;
+    });
+};
 
 msos.date.locale.formatPattern = function (dateObject, bundle, options, pattern) {
     "use strict";
@@ -148,7 +158,7 @@ msos.date.locale.formatPattern = function (dateObject, bundle, options, pattern)
         case 'Z':
             offset = msos.date.locale._getZone(dateObject, false);
             tz = [
-            (offset <= 0 ? "+" : "-"), msos.common.zero_pad(Math.floor(Math.abs(offset) / 60), 2), msos.common.zero_pad(Math.abs(offset) % 60, 2)];
+            (offset <= 0 ? "+" : "-"), msos.zero_pad(Math.floor(Math.abs(offset) / 60), 2), msos.zero_pad(Math.abs(offset) % 60, 2)];
             if (l === 4) {
                 tz.splice(0, 0, "GMT");
                 tz.splice(3, 0, ":");
@@ -159,7 +169,7 @@ msos.date.locale.formatPattern = function (dateObject, bundle, options, pattern)
             msos.console.error(temp_pat + 'invalid pattern char: ' + pattern);
         }
         if (pad) {
-            s = msos.common.zero_pad(s, l);
+            s = msos.zero_pad(s, l);
         }
         return s;
     });
@@ -487,7 +497,7 @@ msos.date.locale.parse = function (cal_type, value, options) {
 msos.date.locale._buildDateTimeRE = function (tokens, bundle, options, pattern) {
     "use strict";
 
-    pattern = msos.common.escape_regex(pattern);
+    pattern = msos.date.locale.escape_regex(pattern);
     if (!options.strict) {
         pattern = pattern.replace(" a", " ?a");
     } // no space before am/pm

@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					common.js
-//			Copyright©2010-2013 - OpenSiteMobile
+//			Copyright©2010-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -19,7 +19,7 @@
 
 msos.provide("msos.common");
 
-msos.common.version = new msos.set_version(14, 3, 13);
+msos.common.version = new msos.set_version(15, 10, 7);
 
 
 msos.common.button_count = 0;
@@ -204,80 +204,6 @@ msos.common.map_atts = function (input_elem) {
 	return map;
 };
 
-// --------------------------
-// Generate a std select menu
-// --------------------------
-msos.common.gen_select_menu = function (select_elm, options_object, selected) {
-    "use strict";
-
-    var temp_gen = 'msos.common.gen_select_menu',
-        to_check = [],
-        checked = [];
-
-	if (msos.config.verbose) {
-		msos.console.debug(temp_gen + ' -> start: ', options_object);
-	} else {
-		msos.console.debug(temp_gen + ' -> start, id: ' + (select_elm.attr('id') || 'na'));
-	}
-
-    if (!msos.common.valid_jq_node(select_elm, 'select')) { return; }
-
-    // Clear past options
-    select_elm.empty();
-
-    // Don't allow non-word characters, ever
-    selected = selected ? selected.replace(/\W/g, '_') : '';
-
-    // Generate options or optgroup/options
-    function add_opts(sel_elm, options_obj) {
-        var key = '',
-            value = '',
-            optgroup, inner_obj;
-
-        for (key in options_obj) {
-
-			inner_obj = options_obj[key];
-			if (typeof inner_obj === 'object') {
-				key.replace('_', ' ');
-				optgroup = jQuery('<optgroup label="' + key + '">');
-				add_opts(optgroup, inner_obj);
-				sel_elm.append(optgroup);
-			}
-			else if (typeof inner_obj === 'string') {
-				value = jQuery.trim(options_obj[key]);
-				if (key === selected) {
-					sel_elm.append(new Option(value, key, false, true));
-				}
-				else {
-					sel_elm.append(new Option(value, key));
-				}
-				to_check.push(key);
-			}
-			else {
-				msos.console.error(temp_gen + ' -> oops: ' + key);
-			}
-
-        }
-    }
-
-    if (_.size(options_object) > 0) {
-        // Start our select build function
-        add_opts(select_elm, options_object);
-    } else {
-        msos.console.error(temp_gen + ' -> done, no options passed in!');
-        return;
-    }
-
-    // Check for duplicate keys (which is very bad)
-    checked = _.uniq(to_check);
-
-    if (to_check.length !== checked.length) {
-        msos.console.error(temp_gen + ' -> duplicate key!');
-    }
-
-    msos.console.debug(temp_gen + ' -> done!');
-};
-
 
 // --------------------------
 // Helper Functions
@@ -359,21 +285,11 @@ msos.common.xml_innerhtml = function (elm, html) {
     if (msos.config.verbose) {
         msos.console.debug('xml_innerhtml -> input: ' + html);
     }
-    html = msos.common.escape_html(html);
+    html = msos.escape_html(html);
     if (msos.config.verbose) {
         msos.console.debug('xml_innerhtml -> output: ' + html);
     }
     elm.innerHTML = html;
-};
-
-msos.common.escape_html = function (str) {
-    "use strict";
-
-    if (str) {
-        return jQuery('<div></div>').text(str).html();
-    }
-
-    return '';
 };
 
 msos.common.html_entity = function (str) {
@@ -393,22 +309,11 @@ msos.common.html_entity = function (str) {
     return result;
 };
 
-msos.common.escape_regex = function (str, except) {
-    "use strict";
-
-    return str.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, function (ch) {
-        if (except && except.indexOf(ch) !== -1) {
-            return ch;
-        }
-        return "\\" + ch;
-    });
-};
-
 msos.common.absolute_url = function (url) {
     "use strict";
     var el = document.createElement('div');
 
-    el.innerHTML = '<a href="' + msos.common.escape_html(url) + '">x</a>';
+    el.innerHTML = '<a href="' + msos.escape_html(url) + '">x</a>';
     return el.firstChild.href;
 };
 
@@ -417,17 +322,6 @@ msos.common.escape_string = function (str) {
 
     // Same code as 'dojo.string.escapeString' from dojo.string.extras, Dojo v0.4.2
     return ("\"" + str.replace(/(["\\])/g, "\\$1") + "\"").replace(/[\f]/g, "\\f").replace(/[\b]/g, "\\b").replace(/[\n]/g, "\\n").replace(/[\t]/g, "\\t").replace(/[\r]/g, "\\r");
-};
-
-msos.common.zero_pad = function (input, count, left) {
-    "use strict";
-
-    var str = input.toString();
-
-    while (str.length < count) {
-        str = (left ? ("0" + str) : (str + "0"));
-    }
-    return str;
 };
 
 msos.common.round = function (number, num_of_dec_places) {
@@ -474,34 +368,4 @@ msos.common.filter_parents = function (p) {
         return true;
     }
     return false;
-};
-
-msos.common.valid_jq_node = function ($node, type) {
-    "use strict";
-
-	var temp_vn = 'msos.common.valid_jq_node -> input is not a ';
-
-	if (msos.common.in_dom_jq_node($node)) {
-		if ($node[0].tagName.toLowerCase() === type) { return true; }
-		else {
-			msos.console.error(temp_vn + 'valid jQuery node: ', $node);
-		}
-	} else {
-		msos.console.error(temp_vn + 'node of type: ' + type);
-	}
-
-    return false;
-};
-
-msos.common.in_dom_jq_node = function ($node) {
-	"use strict";
-
-	if ($node
-	 && $node.length
-	 && $node[0].parentNode) {
-		return true
-	}
-
-	$node = null;	// clean it up
-	return false;
 };

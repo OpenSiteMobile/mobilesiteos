@@ -9,8 +9,9 @@
 //  * added length
 
 msos.provide("msos.html5.storage");
+msos.require("jquery.tools.cookie");
 
-msos.html5.storage.version = new msos.set_version(13, 6, 14);
+msos.html5.storage.version = new msos.set_version(15, 9, 24);
 
 
 if (!Modernizr.localstorage || !Modernizr.sessionstorage) (function () {
@@ -22,7 +23,7 @@ if (!Modernizr.localstorage || !Modernizr.sessionstorage) (function () {
                 if (type == 'session') {
                     window.name = data;
                 } else {
-                    msos.cookie('localStorage', data);
+                    jQuery.cookie('localStorage', data);
                 }
             }
 
@@ -30,12 +31,12 @@ if (!Modernizr.localstorage || !Modernizr.sessionstorage) (function () {
                 if (type == 'session') {
                     window.name = '';
                 } else {
-                    msos.cookie('localStorage', null);
+                    jQuery.cookie('localStorage', null);
                 }
             }
 
             function getData() {
-                var data = type == 'session' ? window.name : msos.cookie('localStorage');
+                var data = type == 'session' ? window.name : jQuery.cookie('localStorage');
                 return data ? JSON.parse(data) : {};
             }
 

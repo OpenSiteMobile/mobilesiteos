@@ -1,7 +1,7 @@
 
 msos.provide("msos.xml.prettify");
 
-msos.xml.prettify.version = new msos.set_version(13, 9, 27);
+msos.xml.prettify.version = new msos.set_version(15, 8, 14);
 
 (function (undefined) {
 
@@ -24,9 +24,10 @@ msos.xml.prettify.version = new msos.set_version(13, 9, 27);
         while (idx < xmlStr.length) {
             processing += xmlStr[idx];
 
-            if (token = getToken(opener, processing)) {
+            token = getToken(opener, processing);
+            if (token) {
                 // Check if it is a singular element, e.g. <link />
-                if (processing[processing.length - 2] != '/') {
+                if (processing[processing.length - 2] !== '/') {
                     addLine(output, token.preContent, indent);
                     addLine(output, token.match, indent);
 
@@ -38,10 +39,13 @@ msos.xml.prettify.version = new msos.set_version(13, 9, 27);
                     addLine(output, token.match, indent);
                     processing = "";
                 }
-            } else if (token = getToken(closer, processing)) {
+            }
+
+            token = getToken(closer, processing);
+            if (token) {
                 addLine(output, token.preContent, indent);
 
-                if (tags[tags.length] == token.tag) {
+                if (tags[tags.length] === token.tag) {
                     tags.pop();
                     indent -= 1;
                 }
@@ -63,10 +67,10 @@ msos.xml.prettify.version = new msos.set_version(13, 9, 27);
 
     function getToken(regex, str) {
         if (regex.test(str)) {
-            var matches = regex.exec(str);
-            var match = matches[0];
-            var offset = str.length - match.length;
-            var preContent = str.substring(0, offset);
+            var matches = regex.exec(str),
+                match = matches[0],
+                offset = str.length - match.length,
+                preContent = str.substring(0, offset);
 
             return {
                 match: match,
@@ -75,11 +79,14 @@ msos.xml.prettify.version = new msos.set_version(13, 9, 27);
                 preContent: preContent
             };
         }
+        return undefined;
     }
 
     function addLine(output, content, indent) {
         // Trim the content
-        if (content = content.replace(/^\s+|\s+$/, "")) {
+        content = content.replace(/^\s+|\s+$/, "");
+
+        if (content) {
             var tabs = ""
 
             while (indent--) {
@@ -90,7 +97,13 @@ msos.xml.prettify.version = new msos.set_version(13, 9, 27);
     }
 
     msos.xml.prettify.now = function (xmlStr) {
+
+        if (msos.var_is_empty(xmlStr) || typeof xmlStr !== 'string') {
+            msos.console.warn('msos.xml.prettify.now -> no input or input is not a string.');
+            return '';
+        }
+
         return parse(xmlStr).join('\n');
     }
 
-}())
+}());
