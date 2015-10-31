@@ -102,27 +102,26 @@ demo.translate.check_for_key = function () {
 
     var state = false,
         in_key_value = jQuery('#google_api_key').val()      || 'na',
-        cookie_value = msos.cookie('msos_trans_google_key') || 'na';
+        store_value = msos.basil.get('msos_trans_google_key') || 'na';
 
-    msos.console.debug('demo.translate.check_for_key -> input: ' + in_key_value + ', cookie: ' + cookie_value);
+    msos.console.debug('demo.translate.check_for_key -> input: ' + in_key_value + ', stored value: ' + store_value);
 
     if (in_key_value !== 'na') {
         // in value is good
-        if (in_key_value !== cookie_value) {
+        if (in_key_value !== store_value) {
             // Record input value
-            msos.cookie('msos_trans_google_key', in_key_value, { expires: 1 });
+            msos.basil.set('msos_trans_google_key', in_key_value);
         }
         google_api_key = in_key_value;
         state = true;
     } else {
         // in value was 'na'
-        if (cookie_value !== 'na') {
-            // but cookie was good
-            google_api_key = cookie_value;
-            jQuery('#google_api_key').val(cookie_value);
+        if (store_value !== 'na') {
+            google_api_key = store_value;
+            jQuery('#google_api_key').val(store_value);
             state = true;
         } else {
-            // cookie was missing too, but skip the first time thru in order to load cookie value to page
+            // stored value was missing too, but skip the first time thru in order to load stored value to page
             if (check_count > 0 && check_count < 3) {
                 msos.notify.warning('You need to input your Google Translate API key in order to use this page!', 'Please Note:');
                 jQuery('#google_api_key').focus();
@@ -222,8 +221,8 @@ msos.onload_functions.push(
                 }
             }
 
-            msos.common.gen_select_menu(jQuery('#src'), select_langs, msos.default_locale);
-            msos.common.gen_select_menu(jQuery('#dst'), select_langs, msos.default_translate);
+            msos.gen_select_menu(jQuery('#src'), select_langs, msos.default_locale);
+            msos.gen_select_menu(jQuery('#dst'), select_langs, msos.default_translate);
 
             msos.console.debug(temp_mtp + ' - generate_lang_selects -> start.');
         }

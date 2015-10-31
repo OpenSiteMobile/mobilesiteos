@@ -9,7 +9,7 @@ msos.provide("demo.siteos.globalization");
 msos.require("msos.dot");
 msos.require("msos.intl");
 msos.require("msos.tab");
-msos.require("msos.common");
+
 
 msos.config.google.no_translate.by_id.push('#dateformat', '#format', '#infonumber', '#infodate');
 
@@ -67,7 +67,7 @@ msos.onload_functions.push(
         tab_obj.act_tab_style = 'tab_active';
         tab_obj.pas_tab_style = 'tab_passive';
         tab_obj.com_tab_style = 'tab_common';
-        tab_obj.tab_cookie_name = 'culture_ex_tab';
+        tab_obj.tab_store_name = 'culture_ex_tab';
 
         date_tab = {
             caption :	'Date',
@@ -89,8 +89,8 @@ msos.onload_functions.push(
         tab_obj.add_tab(numb_tab);
         tab_obj.add_tab(info_tab);
 
-        // Get the tab index if saved to cookie
-        tab_obj.get_tab_by_cookie();
+        // Get the tab index if saved
+        tab_obj.get_tab_fr_store();
 
         // Generate our tabs
         tab_obj.generate_tabs();

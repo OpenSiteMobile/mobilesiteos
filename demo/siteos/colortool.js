@@ -8,7 +8,6 @@
 */
 
 msos.provide("demo.siteos.colortool");
-msos.require("msos.common");
 msos.require("msos.colortool");
 
 
