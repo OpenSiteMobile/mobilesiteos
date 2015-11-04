@@ -294,7 +294,11 @@ msos.site.addthis_share = function () {
 
 			atl.add_resource_onload.push(
 				function () {
-					setTimeout(addthis.init, 250);		// Give AddThis css a chance to load completely
+					if (addthis && addthis.init) {
+						setTimeout(addthis.init, 250);		// Give AddThis css a chance to load completely
+					} else {
+						msos.console.warn('msos.site.addthis_share -> failed to load!');
+					}
 				}
 			);
 
