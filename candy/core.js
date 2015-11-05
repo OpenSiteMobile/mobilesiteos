@@ -1108,7 +1108,7 @@ candy.core.init = function (options) {
 	msos.console.debug(temp_ci + 'namespaces added.');
 
 	if (msos.config.use_websockets
-	 && msos.config.websocket) {
+	 && Modernizr.websockets) {
 		use_service = ws_protocol + "//" + candy.core._opts.host + ":7070/ws/server?username=null&password=null&resource=" + candy.wrapper.name;
 	} else {
 		use_service = 'http-bind/';

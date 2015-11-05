@@ -18,10 +18,10 @@
 */
 
 msos.provide("msos.html5.number");
-msos.require("msos.numberctrl");
 msos.require("msos.html5.tracking");
+msos.require("msos.numberctrl");
 
-msos.html5.number.version = new msos.set_version(15, 9, 25);
+msos.html5.number.version = new msos.set_version(15, 11, 3);
 
 
 (function ($) {
@@ -36,6 +36,9 @@ msos.html5.number.version = new msos.set_version(15, 9, 25);
 			j = 0,
 			in_elm,
 			$in_elm;
+
+		// Add MSOS DOM tracking
+		if (!msos.dom.html5_number) { msos.html5.tracking.dom('html5_number'); }
 
 		if (msos.config.force_shim.inputs.number || !Modernizr.inputtypes.number) {
 
@@ -62,6 +65,3 @@ msos.html5.number.version = new msos.set_version(15, 9, 25);
 	};
 
 }(jQuery));
-
-// Add MSOS DOM tracking
-msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_number'); });
