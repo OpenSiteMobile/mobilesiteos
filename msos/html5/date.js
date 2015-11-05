@@ -18,12 +18,12 @@
 */
 
 msos.provide("msos.html5.date");
+msos.require("msos.html5.tracking");
 msos.require("msos.common");
 msos.require("msos.calendar");
 msos.require("msos.intl");
-msos.require("msos.html5.tracking");
 
-msos.html5.date.version = new msos.set_version(15, 9, 24);
+msos.html5.date.version = new msos.set_version(15, 11, 3);
 
 
 (function ($) {
@@ -70,6 +70,9 @@ msos.html5.date.version = new msos.set_version(15, 9, 24);
 			calendar_button = null,
 			val = '',
 			in_width = '';
+
+		// Add MSOS DOM tracking
+		if (!msos.dom.html5_date) { msos.html5.tracking.dom('html5_date'); }
 
 		if (msos.config.force_shim.inputs.date || !Modernizr.inputtypes.date) {
 
@@ -137,6 +140,3 @@ msos.html5.date.version = new msos.set_version(15, 9, 24);
 	};
 
 }(jQuery));
-
-// Add MSOS DOM tracking
-msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_date'); });

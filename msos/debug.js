@@ -19,7 +19,7 @@
 msos.provide("msos.debug");
 msos.require("msos.popdiv");
 
-msos.debug.version = new msos.set_version(14, 3, 10);
+msos.debug.version = new msos.set_version(15, 11, 3);
 
 
 // Start by loading our pop_debug.css stylesheet
@@ -232,3 +232,9 @@ msos.debug.get_tool = function () {
 
     return msos.registered_tools.msos_debug.base;
 };
+
+
+// Show timinig output, when debug=true
+if (msos.config.debug) {
+	msos.onload_func_post.push(msos.debug.timing);
+}

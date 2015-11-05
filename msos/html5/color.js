@@ -18,10 +18,10 @@
 */
 
 msos.provide("msos.html5.color");
-msos.require("msos.colortool");
 msos.require("msos.html5.tracking");
+msos.require("msos.colortool");
 
-msos.html5.color.version = new msos.set_version(15, 9, 25);
+msos.html5.color.version = new msos.set_version(15, 11, 3);
 
 
 (function ($) {
@@ -37,6 +37,9 @@ msos.html5.color.version = new msos.set_version(15, 9, 25);
 			in_elm,
 			$in_elm,
 			in_width = '';
+
+		// Add MSOS DOM tracking
+		if (!msos.dom.html5_color) { msos.html5.tracking.dom('html5_color'); }
 
 		if (msos.config.force_shim.inputs.color || !Modernizr.inputtypes.color) {
 
@@ -58,5 +61,3 @@ msos.html5.color.version = new msos.set_version(15, 9, 25);
 
 }(jQuery));
 
-// Add MSOS DOM tracking
-msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_color'); });

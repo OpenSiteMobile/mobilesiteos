@@ -18,10 +18,10 @@
 */
 
 msos.provide("msos.html5.range");
-msos.require("jquery.tools.range");
 msos.require("msos.html5.tracking");
+msos.require("jquery.tools.range");
 
-msos.html5.range.version = new msos.set_version(15, 9, 24);
+msos.html5.range.version = new msos.set_version(15, 11, 3);
 
 
 (function ($) {
@@ -31,6 +31,9 @@ msos.html5.range.version = new msos.set_version(15, 9, 24);
 
 	$.fn.html5_range = function () {
 
+		// Add MSOS DOM tracking
+		if (!msos.dom.html5_range) { msos.html5.tracking.dom('html5_range'); }
+
 		if (msos.config.force_shim.inputs.range || !Modernizr.inputtypes.range) {
 			$(this).rangeinput();
 		}
@@ -38,6 +41,3 @@ msos.html5.range.version = new msos.set_version(15, 9, 24);
 	};
 
 }(jQuery));
-
-// Add MSOS DOM tracking
-msos.onload_func_pre.push(function () { msos.html5.tracking.dom('html5_range'); });

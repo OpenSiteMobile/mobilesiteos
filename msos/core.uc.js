@@ -1024,9 +1024,6 @@ msos.run_final = function () {
 
 	msos.set_locale_storage();
 
-	// Output some timing info when requested
-	if (msos.debug) { msos.debug.timing(); }
-
 	msos.console.debug(temp_rf + ' -> done!');
 
 	// Last function, report debugging output

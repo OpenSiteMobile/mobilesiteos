@@ -18,8 +18,8 @@
 
 msos.provide("msos.html5.tracking");
 
-
 msos.html5.tracking.version = new msos.set_version(15, 9, 24);
+
 
 msos.html5.tracking.dom = function (method) {
 	"use strict";
