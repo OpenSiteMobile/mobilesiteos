@@ -26,9 +26,6 @@ msos.onload_functions.push(
                     tool_target: null,
                     tool_iframe: null
                 },
-                iframe_obj = {
-                    test_iframe: 'demo/simple_debug.html'
-                },
                 bks_but = msos.byid('bksp_button'),
                 del_but = msos.byid('dele_button'),
                 insert_html = function (evt) {
@@ -74,8 +71,11 @@ msos.onload_functions.push(
                     }
                 };
 
+            // Load the iframe with some html
+            jQuery('#test_iframe').attr("src", msos.resource_url('demo', 'siteos/tmpl/editiframe_test.html'));
+
             // Create our 'onmousedown/up' events for iframe element(s)
-            msos.iframe.set_event(editable_obj, iframe_obj);
+            msos.iframe.set_event(editable_obj, ['#test_iframe']);
 
             // Add our button functions
             jQuery('#input_button').click(insert_html);
