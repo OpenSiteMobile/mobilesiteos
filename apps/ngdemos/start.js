@@ -256,7 +256,7 @@ msos.onload_functions.push(
 					{
                         title: 'MSOS-Mobile-AngularJS-UI, w/Lazy Loading Modules',
                         url: '',
-                        href: '../angularjs_mobile/mobilesiteos.html',
+                        href: '../angularjs_mobile/index.html',
 						icon: 'fa-external-link'
                     },
 					{
