@@ -38,8 +38,8 @@ msos.calendar.config.create = function () {
     this.initial_date = null;
 
     // Enter upper most and/or lower most avail.
-    this.cal_top_date = new Date(2015, 0, 1);	// Set upper
-    this.cal_bot_date = new Date(2006, 0, 1);	// Set lower	(year, month index, day)
+    this.cal_top_date = new Date(2017, 0, 1);	// Set upper
+    this.cal_bot_date = new Date(2013, 0, 1);	// Set lower	(year, month index, day)
 
     // Alternate input formats as accepted by dojo.date.locale (what can be parsed before conversion)
     this.alt_input_date_formats = [
