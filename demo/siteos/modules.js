@@ -81,7 +81,6 @@ msos.require("jquery.tools.timeago");
 msos.require("jquery.tools.validate");
 msos.require("jquery.tools.validation");
 msos.require("jquery.tools.xml2json");
-msos.require("jquery.touch.hammer");
 msos.require("jquery.touch.scrollbar");
 msos.require("jquery.touch.sly");
 msos.require("jquery.touch.toe");
