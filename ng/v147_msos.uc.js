@@ -3555,7 +3555,7 @@ msos.console.time('ng');
                     }
                 } else {
                     if (vc) {
-                        msos.console.warn(temp_cp + temp_ad + ' done, directive na in hasDirectives: ' + name, tDirectives);
+                        msos_debug(temp_cp + temp_ad + ' done, name: ' + name + ' na in hasDirectives, tDirectives:', tDirectives);
                     }
                 }
 
@@ -6565,7 +6565,8 @@ msos.console.time('ng');
     function parseAppUrl(relativeUrl, locationObj) {
         var temp_pa = 'ng - parseAppUrl -> ',
             prefixed = (relativeUrl.charAt(0) !== '/'),
-            match;
+            match,
+            param;
 
         // Always make it something (ie: /)
         if (prefixed) {
@@ -6575,6 +6576,12 @@ msos.console.time('ng');
         msos_debug(temp_pa + 'start, relative url: ' + relativeUrl + ', prefixed: ' + prefixed);
 
         match = urlResolve(relativeUrl, 'parseAppUrl');
+
+        for (param in match.params) {
+            if (match.params[param] === "") {
+                match.params[param] = true;    // Default is "true" for key only parameter in url
+            }
+        }
 
         locationObj.$$path = decodeURIComponent(prefixed && match.pathname.charAt(0) === '/' ? match.pathname.substring(1) : match.pathname);
         locationObj.$$search = match.params;
@@ -6890,11 +6897,15 @@ msos.console.time('ng');
         ),
 
         search: function (srch, paramValue) {
-            var checked_srch;
+            var temp_sr = 'ng - locationPrototype - search -> ',
+                checked_srch;
+
+            msos_debug(temp_sr + 'start, srch: ' + srch + (paramValue ? ', paramValue: ' + paramValue : ''));
 
             switch (arguments.length) {
 
                 case 0:
+                    msos_debug(temp_sr + ' done, srch: ' + srch + ', case: 0', this.$$search);
                     return this.$$search;
 
                 case 1:
@@ -6923,13 +6934,16 @@ msos.console.time('ng');
                 default:
                     if (_.isUndefined(paramValue) || paramValue === null) {
                         delete this.$$search[srch];
+                        msos_debug(temp_sr + 'case: default, delete $$search key: ' + srch);
                     } else {
                         this.$$search[srch] = paramValue;
+                        msos_debug(temp_sr + 'case: default, set $$search key: ' + srch + ' to ' + paramValue);
                     }
             }
 
             this.$$compose();
 
+            msos_debug(temp_sr + ' done, srch: ' + srch + ', case: ' + arguments.length + ', $$search: ', this.$$search);
             return this;
         },
 
