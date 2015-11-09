@@ -49,14 +49,14 @@ if (msos.config.debug_css) {
 
 } else {
 
-		msos.deferred_css = [
+	msos.deferred_css = [
 		msos.resource_url('css', 'normalize.min.css'),
 		msos.resource_url('css', 'font_awesome.min.css'),
 		msos.resource_url('css', 'msos.css'),
 		msos.resource_url('css', 'msos_bs.css'),
 		msos.resource_url('css', 'msos_theme.css'),
 		msos.resource_url('demo', 'css/base.css')
-	];;
+	];
 
 }
 

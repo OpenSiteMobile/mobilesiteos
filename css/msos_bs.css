@@ -1084,24 +1084,21 @@ a.bg-danger:hover {
   color: #999;
 }
 
-  /* Bootstrap v2.3.2 inspired navbar */
+  /* Bootstrap v2.3.2 inspired navbar (these suck a little) */
 .msos_navbar ul.menus {
 	float: right;
-	line-height: 1.8em;
 }
 .msos_navbar .brand,
 .msos_navbar .breadcrumb {
 	float: left;
-	line-height: 1.8em;
 }
 .msos_navbar .breadcrumb > li {
 	float: left;
+	line-height: 2em;
 }
 .msos_navbar .menus > li {
 	float: right;
-}
-.msos_navbar .menus > li > a {
-	display: block;
+	line-height: 2em;
 }
 .msos_navbar .breadcrumb li a {
 	font-size: inherit;
