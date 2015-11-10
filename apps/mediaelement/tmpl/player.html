@@ -1,0 +1,31 @@
+
+
+	<section>
+		<h1>
+			<a class='btn btn-msos' href='http://opensitemobile.com' title='OpenSiteMobile website'>OSM</a>
+				<u>MediaElementPlayer.js</u>
+			<a class='btn btn-msos' href='https://github.com/OpenSiteMobile/osm_mep' title='ME Player GitHub repository'><i class="fa fa-github"></i></a>
+		</h1>
+
+		<h3>
+			Our&nbsp;<u>MobileSiteOS</u>&nbsp;Integrated Version of&nbsp;<u>MediaElementPlayer</u>&nbsp;for video file playback.
+		</h3>
+
+		<div class="pgrph well">
+			This page demo's the Basic&nbsp;<u>MediaElementPlayer</u>&nbsp;playing either .webm, .mp4 or .ogv video files. The correct
+			video is rendered according to the user user's browser, and displayed at the correct page size.
+		</div>
+	</section>
+
+	<video id="player1" width="640" height="360" poster="../mobilesiteos/media/echo-hereweare.jpg" controls="controls" preload="none">
+		<source src="../mobilesiteos/media/echo-hereweare.webm"	type='video/webm; codecs="vp8, vorbis"' />
+		<source src="../mobilesiteos/media/echo-hereweare.mp4"	type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"' />
+		<source src="../mobilesiteos/media/echo-hereweare.ogv"	type='video/ogg; codecs="theora, vorbis"' />
+		<track  src="../mobilesiteos/media/mediaelement.srt"	label="English subtitles" kind="subtitles" srclang="en" default />
+		<script src="./tmpl/postroll.html" type="text/postroll"></script>
+		<p>Our website does not support video playback for your current browser!</p>
+	</video>
+
+	<h3 id="player1-mode"></h3>
+
+	<input type="button" id="pause_play" value="Pause Play" style="margin-bottom: 1em;" />

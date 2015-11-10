@@ -1,0 +1,26 @@
+@charset "utf-8";
+
+
+html {
+	overflow-y: scroll;
+}
+body {
+	margin-top: 0.2em;
+	margin-bottom: 0.5em;	/* Helps insure msos.stickup works smoothly */
+}
+#body {
+	padding-bottom: 0.1em;
+}
+#marquee {
+	position: relative;
+	left: 2px;
+	top: 2px;
+}
+#branding,
+#slogan {
+	position: absolute;
+}
+#header > ul > li,
+#footer > ul.breadcrumb > li {
+	display: none;
+}
