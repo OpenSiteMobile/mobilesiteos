@@ -24,10 +24,10 @@ if (!Modernizr.geolocation) {
     msos.require("msos.html5.geolocation");     // Hopefully never used now...
 }
 
-msos.google.maps.version = new msos.set_version(15, 4, 21);
+msos.google.maps.version = new msos.set_version(15, 11, 10);
 
 msos.google.maps.places = msos.google.maps.places || false;
-msos.google.maps.url_google_api = 'http://maps.google.com/maps/api/js?sensor=' + (Modernizr.geolocation? 'true' : 'false') + '&callback=google_maps_api_ready' + (msos.google.maps.places ? '&libraries=places' : '');
+msos.google.maps.url_google_api = 'http://maps.google.com/maps/api/js?callback=google_maps_api_ready' + (msos.google.maps.places ? '&libraries=places' : '');
 msos.google.maps.loaded = false;
 msos.google.maps.ran = false;
 msos.google.maps.run_onload = [];
