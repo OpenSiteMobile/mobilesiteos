@@ -1,0 +1,43 @@
+
+
+    <section>
+		<h1>HTML5 Video Test Page<br />(no <u>MediaElementPlayer</u>)</h1>
+
+		<div class="pgrph">
+			This is a simple test page demonstarating the standard HTML5 Audio and Video Players your browser provides (or not).
+			No&nbsp;<u>MediaElementPlayer</u>&nbsp;is being used, so play is by browser default.
+			We use this page to verify the default browser behavior.
+		</div>
+
+    </section>
+
+	<h2>HTML5 &lt;video&gt; Tag</h2>
+	<!-- Ref: "Video For Everybody" v0.4.2 by Kroc Camen of Camen Design <camendesign.com/code/video_for_everybody>
+		 =================================================================================================================== -->
+	<!-- first try HTML5 playback: if serving as XML, expand `controls` to `controls="controls"` and autoplay likewise       -->
+	<!-- warning: playback does not work on iPad/iPhone if you include the poster attribute! fixed in iOS4                   -->
+
+	<!-- Note: To allow max. viewing width, do not set video and control tags within <section> tags. -->
+	<video id="no_player" width="640" height="360" poster="../mobilesiteos/media/echo-hereweare.jpg" controls="controls" preload="none">
+		<!-- MP4 source must come first for iOS -->
+		<source type="video/mp4" src="../mobilesiteos/media/echo-hereweare.mp4" />
+		<!-- WebM for Firefox 4, Chrome and Opera -->
+		<source type="video/webm" src="../mobilesiteos/media/echo-hereweare.webm" />
+		<!-- OGG for Firefox 3 -->
+		<source type="video/ogv" src="../mobilesiteos/media/echo-hereweare.ogv" />
+	</video>
+
+	<h2>Pre HTML5 Video via &lt;object&gt; Tag</h2>
+
+	<object width="640" height="360" type="application/x-shockwave-flash" data="../mobilesiteos/mep/shim/218/flashmediaelement.swf"> 		
+		<param name="movie" value="../mobilesiteos/mep/shim/218/flashmediaelement.swf" />
+		<param name="flashvars" value="controls=true&amp;file=../../../media/echo-hereweare.mp4" />	
+		<img src="../mobilesiteos/media/echo-hereweare.jpg" alt="Here we are" title="No video playback capabilities, please download the video below" />
+	</object>
+
+	<h2>HTML5 &lt;audio&gt; Tag</h2>
+
+	<audio controls="controls">
+		<source src="../mobilesiteos/media/ToneWobble.mp3" type='audio/mpeg'>
+		<source src="../mobilesiteos/media/ToneWobble.ogg" type='audio/ogg'>
+    </audio>
