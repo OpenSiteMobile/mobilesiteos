@@ -10,12 +10,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.overlays");
 
-mep.overlays.version = new msos.set_version(14, 6, 14);
+mep.overlays.version = new msos.set_version(15, 11, 14);
 
 
 mep.overlays.start = function () {
@@ -34,7 +35,8 @@ mep.overlays.start = function () {
 					ovl_butt,
 					button,
 					loading_posn,
-					button_posn;
+					button_posn,
+					canplay_to;
 
 				ovl_load = jQuery('<div class="mejs-overlay">');
 				loading  = jQuery('<div class="mejs-overlay-loading"><i class="fa fa-spinner fa-spin fa-2x loading"></i></div>');
@@ -150,6 +152,19 @@ mep.overlays.start = function () {
 					function () {
 						ovl_load.show();
 						if (ply_obj.buffer) { ply_obj.buffer.show(); }
+
+						if (window.navigator.userAgent.match(/android/i) !== null) {
+							canplay_to = window.setTimeout(
+								function () {
+									if (document.createEvent) {
+										var evt = document.createEvent('HTMLEvents');
+										evt.initEvent('canplay', true, true);
+										ply_obj.media.dispatchEvent(evt);
+									}
+								},
+								300
+							);
+						}
 					},
 					false
 				);
@@ -159,6 +174,8 @@ mep.overlays.start = function () {
 					function () {
 						ovl_load.fadeOut('slow');
 						if (ply_obj.buffer) { ply_obj.buffer.fadeOut('slow'); }
+
+						clearTimeout(canplay_to);
 					},
 					false
 				);

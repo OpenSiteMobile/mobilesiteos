@@ -10,20 +10,22 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
+
+// Language selection text, ref. 'msos.config.i18n.select_trans_msos'
 
 msos.provide("mep.tracks");
 
-mep.tracks.version = new msos.set_version(14, 6, 15);
+mep.tracks.version = new msos.set_version(15, 11, 12);
 
-
-// Language selection text, ref. 'msos.config.i18n.select_trans_msos'
 
 // Start by loading our tracks.css stylesheet
 mep.tracks.css = new msos.loader();
 mep.tracks.css.load('mep_tracks_css', msos.resource_url('mep', 'css/tracks.css'));
 
+	
 mep.tracks.SMPTEtoSec = function (SMPTE) {
 	"use strict";
 
@@ -72,8 +74,7 @@ mep.tracks.format_parser = {
 
 	webvvt: {
 		// match start "chapter-" (or anythingelse)
-		pattern_identifier: /^([a-zA-z]+-)?[0-9]+$/,
-		pattern_timecode: /^([0-9]{2}:[0-9]{2}:[0-9]{2}([,.][0-9]{1,3})?) --\> ([0-9]{2}:[0-9]{2}:[0-9]{2}([,.][0-9]{3})?)(.*)$/,
+		pattern_timecode: /^((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{1,3})?) --\> ((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{3})?)(.*)$/,
 
 		parse: function (trackText) {
 			"use strict";
@@ -81,39 +82,47 @@ mep.tracks.format_parser = {
 				lines = mep.tracks.format_parser.split2(trackText, /\r?\n/),
 				entries = { text: [], times: [] },
 				timecode,
-				text;
+				text,
+				identifier;
 
 			for (i = 0; i < lines.length; i += 1) {
-				// check for the line number
-				if (this.pattern_identifier.exec(lines[i])) {
-					// skip to the next line where the start --> end time code should be
-					i += 1;
-					timecode = this.pattern_timecode.exec(lines[i]);
 
-					if (timecode && i < lines.length) {
-						i += 1;
-						// grab all the (possibly multi-line) text that follows
-						text = lines[i];
-						i += 1;
+				timecode = this.pattern_timecode.exec(lines[i]);
 
-						while (lines[i] !== '' && i < lines.length) {
-							text = text + '\n' + lines[i];
-							i += 1;
-						}
+				if (timecode
+				 && i < lines.length) {
 
-						text = jQuery.trim(text).replace(/(\b(https?|ftp|file):\/\/[\-A-Z0-9+&@#\/%?=~_|!:,.;]*[\-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
-
-						// Text is in a different array so I can use .join
-						entries.text.push(text);
-						entries.times.push(
-							{
-								start: (mep.tracks.SMPTEtoSec(timecode[1]) === 0) ? 0.200 : (mep.tracks.SMPTEtoSec(timecode[1])),
-								stop: (mep.tracks.SMPTEtoSec(timecode[3])),
-								settings: timecode[5]
-							}
-						);
+					if ((i - 1) >= 0
+					 && lines[i - 1] !== '') {
+						identifier = lines[i - 1];
 					}
+
+					i += 1;
+
+					// grab all the (possibly multi-line) text that follows
+					text = lines[i];
+
+					i += 1;
+
+					while(lines[i] !== '' && i < lines.length){
+						text = text + '\n' + lines[i];
+						i += 1;
+					}
+
+					text = jQuery.trim(text).replace(/(\b(https?|ftp|file):\/\/[\-A-Z0-9+&@#\/%?=~_|!:,.;]*[\-A-Z0-9+&@#\/%=~_|])/ig, "<a href='$1' target='_blank'>$1</a>");
+
+					// Text is in a different array so I can use .join
+					entries.text.push(text);
+					entries.times.push(
+						{
+							identifier: identifier,
+							start: (mep.tracks.SMPTEtoSec(timecode[1]) === 0) ? 0.200 : mep.tracks.SMPTEtoSec(timecode[1]),
+							stop: mep.tracks.SMPTEtoSec(timecode[3]),
+							settings: timecode[5]
+						}
+					);
 				}
+				identifier = '';
 			}
 			return entries;
 		}
@@ -133,8 +142,6 @@ mep.tracks.format_parser = {
 				styles,
 				style,
 				_style,
-				begin,
-				end,
 				text,
 				entries = { text: [], times: [] },
 				attributes,
@@ -174,7 +181,9 @@ mep.tracks.format_parser = {
 
 				if (styles) {
 					for (_style in styles) {
-						style += _style + ":" + styles[_style] + ";";
+						if (styles.hasOwnProperty(_style)) {
+							style += _style + ":" + styles[_style] + ";";
+						}
 					}
 				}
 
@@ -209,20 +218,48 @@ mep.tracks.start = function () {
 
     // add extra default options 
     jQuery.extend(
-		mep.player.config, {
-			startLanguage: msos.config.locale
+		mep.player.config,
+		{
+			auto_start_cc: false,
+
+			startLanguage: msos.config.locale,
+
+			tracksText: 'Captions/Subtitles',	// mejs.i18n updates needed
+
+			// By default, no WAI-ARIA live region - don't make a
+			// screen reader speak captions over an audio track.
+			tracksAriaLive: false,
+
+			// option to remove the [cc] button when no <track kind="subtitles"> are present
+			hideCaptionsButtonWhenEmpty: true,
+
+			// If true and we only have one track, just launch
+			toggle_for_one: false,
+
+			// #id or .class
+			slidesSelector: ''
 		}
 	);
 
-    jQuery.extend(
-
-    mep.player.controls, {
+    jQuery.extend(mep.player.controls, {
 
         hasChapters: false,
 
         buildtracks: function (ply_obj) {
 
-            var i;
+            var temp_bt = 'mep.tracks.start - buildtracks -> ',
+				button,
+				i = 0,
+				subtitleCount = 0;
+
+			msos.console.debug(temp_bt + 'start.');
+
+			// If browser will do native captions, prefer mejs captions, loop through tracks -> hide
+			if (ply_obj.node.textTracks) {
+				for (i = ply_obj.node.textTracks.length - 1; i >= 0; i -= 1) {
+					ply_obj.node.textTracks[i].mode = "hidden";
+				}
+			}
 
 			ply_obj.tracks = [];
             ply_obj.trackToLoad = -1;
@@ -254,74 +291,73 @@ mep.tracks.start = function () {
 			// No tracks, so quit
             if (ply_obj.tracks.length === 0) { return; }
 
+			for (i = 0; i < ply_obj.tracks.length; i += 1) {
+				if (ply_obj.tracks[i].kind === 'subtitles') {
+					subtitleCount += 1;
+				}
+			}
+
+			msos.console.debug(temp_bt + 'found: ' + ply_obj.tracks.length + ', type subtitles: ' + subtitleCount);
+
 			// Define our html, since there are some tracks
-			ply_obj.chapters = jQuery('<div class="mejs-chapters"></div>');
-			ply_obj.captionsText = jQuery('<span class="mejs-captions-text"></span>');
-			ply_obj.captionsPos = jQuery('<div class="mejs-captions-position"></div>');
 			ply_obj.captions = jQuery('<div class="mejs-captions-layer"></div>');
-			ply_obj.captionsSelect = jQuery(
-				'<div class="mejs-captions-selector">' +
-					'<ul>' +
-						'<li>' +
-							'<input type="radio" name="' + ply_obj.id + '_captions" id="' + ply_obj.id + '_captions_none" value="none" checked="checked" />' +
-							'<label for="' + ply_obj.id + '_captions_none">' + ply_obj.options.i18n.tracks_none + '</label>' +
-						'</li>' +
-					'</ul>' +
-				'</div>');
-			ply_obj.captionsButton = jQuery(
-				'<div class="mejs-button mejs-captions-button">' +
-					'<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.options.i18n.tracks_text + '"></button>' +
-				'</div>');
+			ply_obj.captionsButton = jQuery('<div class="mejs-button mejs-captions-button"></div>');
+			ply_obj.captionsSelect = jQuery('<div class="mejs-captions-selector"><ul></ul></div>');
+			ply_obj.captionsPos = jQuery('<div class="mejs-captions-position"></div>');
+			ply_obj.captionsText = jQuery('<span class="mejs-captions-text"></span>');
+			ply_obj.chapters = jQuery('<div class="mejs-chapters"></div>');
+
+			button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '_captions" title="' + ply_obj.options.i18n.tracks_text + '" aria-label="' + ply_obj.options.i18n.tracks_text + '"><i class="fa fa-cc"></i></button>');
+
+			ply_obj.captionsButton.append(button);
+
+			if (ply_obj.options.tracksAriaLive) {
+				ply_obj.captionsPos.attr({ role: "log", 'aria-live': "assertive", 'aria-atomic': false });
+			}
 
 			ply_obj.adjustLanguageBox = function () {
 				// adjust the size of the outer box
 				ply_obj.captionsSelect.height(
-					ply_obj.captionsSelect.find('ul').outerHeight(true) + ply_obj.captionsButton.find('.mejs-captions-translations').outerHeight(true)
+					ply_obj.captionsSelect.find('ul').outerHeight(true)
 				);
+			};
+
+			ply_obj.removeTrackButton = function (lang) {
+
+				ply_obj.captionsButton.find('input[value=' + lang + ']').closest('li').remove();
+
+				ply_obj.adjustLanguageBox();
 			};
 
 			ply_obj.addTrackButton = function (lang, label) {
-
-				if (label === '') { label = msos.config.i18n.select_trans_msos[lang] || lang; }
-
-				ply_obj.captionsSelect.find('ul').append(
-					jQuery(
-						'<li>' +
-							'<input type="radio" name="' + ply_obj.id + '_captions" id="' + ply_obj.id + '_captions_' + lang + '" value="' + lang + '" disabled="disabled" />' +
-							'<label for="' + ply_obj.id + '_captions_' + lang + '">' + label + '</label>' +
-						'</li>'
-					)
-				);
-
-				ply_obj.adjustLanguageBox();
-
-				// remove this from the dropdownlist (if it exists)
-				ply_obj.container.find('.mejs-captions-translations option[value=' + lang + ']').remove();
-			};
-
-			ply_obj.enableTrackButton = function (lang, label) {
 
 				if (label === '') {
 					label = msos.config.i18n.select_trans_msos[lang] || lang;
 				}
 
-				ply_obj.captionsSelect.find('input[value=' + lang + ']').prop('disabled', false).siblings('label').html(label);
+				var radio_input = jQuery(
+						'<input type="radio" name="' + ply_obj.id + '_captions" id="' + ply_obj.id + '_captions_' + lang + '" value="' + lang + '"' + (lang === 'none' ? 'checked="checked"' : '') + ' />'
+					),
+					add_trk_li = jQuery(
+						'<li><label for="' + ply_obj.id + '_captions_' + lang + '">' + label + '</label></li>'
+					);
 
-				// auto select
-				if (ply_obj.options.startLanguage === lang) {
-					jQuery('#' + ply_obj.id + '_captions_' + lang).click();
-				}
+				add_trk_li.prepend(radio_input);
+				ply_obj.captionsSelect.find('ul').append(add_trk_li);
+
+				radio_input.on(
+					'click',
+					function (e) {
+						msos.do_nothing(e);
+						ply_obj.setTrack(radio_input.val());
+					}
+				);
 
 				ply_obj.adjustLanguageBox();
 			};
 
 			ply_obj.loadTrack = function (index) {
-				var track = ply_obj.tracks[index],
-					after = function () {
-						track.isLoaded = true;
-						ply_obj.enableTrackButton(track.srclang, track.label);
-						ply_obj.loadNextTrack();
-					};
+				var track = ply_obj.tracks[index];
 
 				jQuery.ajax({
 					url: track.src,
@@ -335,12 +371,21 @@ mep.tracks.start = function () {
 							track.entries = mep.tracks.format_parser.webvvt.parse(d);
 						}
 
-						after();
+						track.isLoaded = true;
+
+						// auto select
+						if (ply_obj.options.auto_start_cc
+						 && ply_obj.options.startLanguage === track.srclang) {
+							jQuery('#' + ply_obj.id + '_captions_' + track.srclang).trigger('click');
+						}
+
+						ply_obj.adjustLanguageBox();
+						ply_obj.loadNextTrack();
 
 						if (track.kind === 'chapters') {
 							ply_obj.media.addEventListener(
 								'play',
-								function (e) {
+								function () {
 									if (ply_obj.media.duration > 0) {
 										ply_obj.displayChapters(track);
 									}
@@ -348,11 +393,35 @@ mep.tracks.start = function () {
 								false
 							);
 						}
+
+						if (track.kind === 'slides') {
+							ply_obj.setupSlides(track);
+						}
 					},
 					error: function () {
+						msos.console.error(temp_bt + 'error during jQuery.ajax call.');
+						ply_obj.removeTrackButton(track.srclang);
 						ply_obj.loadNextTrack();
 					}
 				});
+			};
+
+			ply_obj.setTrack = function (lang){
+
+				var i = 0;
+
+				if (lang === 'none') {
+					ply_obj.selectedTrack = null;
+				} else {
+					for (i = 0; i < ply_obj.tracks.length; i += 1) {
+						if (ply_obj.tracks[i].srclang === lang) {
+							ply_obj.selectedTrack = ply_obj.tracks[i];
+							ply_obj.captions.attr('lang', ply_obj.selectedTrack.srclang);
+							ply_obj.displayCaptions();
+							break;
+						}
+					}
+				}
 			};
 
 			ply_obj.loadNextTrack = function () {
@@ -364,22 +433,50 @@ mep.tracks.start = function () {
 				} else {
 					// add done?
 					ply_obj.isLoadingTrack = false;
+					ply_obj.checkForTracks();
+				}
+			};
+
+			ply_obj.checkForTracks = function () {
+				var i = 0,
+					hasSubtitles = false;
+
+				// check if any subtitles
+				if (ply_obj.options.hideCaptionsButtonWhenEmpty) {
+					for (i = 0; i < ply_obj.tracks.length; i += 1) {
+						if (ply_obj.tracks[i].kind === 'subtitles'
+						 && ply_obj.tracks[i].isLoaded) {
+							hasSubtitles = true;
+							break;
+						}
+					}
+
+					if (!hasSubtitles) {
+						ply_obj.captionsButton.hide();
+						ply_obj.setControlsSize();
+					}
 				}
 			};
 
 			ply_obj.displayCaptions = function () {
 
+				if (ply_obj.tracks === undefined) {
+					return;
+				}
+
 				var i, track = ply_obj.selectedTrack;
 
 				if (track !== null && track.isLoaded) {
+
 					for (i = 0; i < track.entries.times.length; i += 1) {
 						if (ply_obj.media.currentTime >= track.entries.times[i].start
 						 && ply_obj.media.currentTime <= track.entries.times[i].stop) {
-							ply_obj.captionsText.html(track.entries.text[i]);
+							ply_obj.captionsText.html(track.entries.text[i]).attr('class', 'mejs-captions-text ' + (track.entries.times[i].identifier || ''));
 							ply_obj.captions.show().height(0);
 							return; // exit out if one is visible;
 						}
 					}
+
 					ply_obj.captions.hide();
 				} else {
 					ply_obj.captions.hide();
@@ -387,7 +484,9 @@ mep.tracks.start = function () {
 			};
 
 			ply_obj.drawChapters = function (chapters) {
-				var i, dur, percent = 0,
+				var i,
+					dur,
+					percent = 0,
 					usedPercent = 0;
 
 				ply_obj.chapters.empty();
@@ -401,7 +500,16 @@ mep.tracks.start = function () {
 					}
 
 					ply_obj.chapters.append(
-						jQuery('<div class="mejs-chapter" rel="' + chapters.entries.times[i].start + '" style="left: ' + usedPercent.toString() + '%;width: ' + percent.toString() + '%;">' + '<div class="mejs-chapter-block' + ((i === chapters.entries.times.length - 1) ? ' mejs-chapter-block-last' : '') + '">' + '<span class="ch-title">' + chapters.entries.text[i] + '</span>' + '<span class="ch-time">' + mep.player.utils.secondsToTimeCode(chapters.entries.times[i].start) + '&ndash;' + mep.player.utils.secondsToTimeCode(chapters.entries.times[i].stop) + '</span>' + '</div>' + '</div>')
+						jQuery('<div class="mejs-chapter" rel="' + chapters.entries.times[i].start + '" style="left: ' + usedPercent.toString() + '%;width: ' + percent.toString() + '%;">' +
+							   '<div class="mejs-chapter-block' + ((i === chapters.entries.times.length - 1) ? ' mejs-chapter-block-last' : '') + '">' +
+									'<span class="ch-title">' +
+										chapters.entries.text[i] +
+									'</span>' +
+									'<span class="ch-time">' +
+										mep.player.utils.secondsToTimeCode(chapters.entries.times[i].start, ply_obj.options) + '&ndash;' + mep.player.utils.secondsToTimeCode(chapters.entries.times[i].stop, ply_obj.options) +
+									'</span>' +
+								'</div>' +
+							'</div>')
 					);
 					usedPercent += percent;
 				}
@@ -416,6 +524,68 @@ mep.tracks.start = function () {
 					});
 
 				ply_obj.chapters.show();
+			};
+
+			ply_obj.setupSlides = function (track) {
+
+				ply_obj.slides = track;
+				ply_obj.slides.entries.imgs = [ply_obj.slides.entries.text.length];
+				ply_obj.showSlide(0);
+			};
+
+			ply_obj.showSlide = function (index) {
+
+				if (ply_obj.tracks === undefined
+				 || ply_obj.slidesContainer === undefined) {
+					return;
+				}
+
+				var url = ply_obj.slides.entries.text[index],
+					img = ply_obj.slides.entries.imgs[index];
+
+				if (img === undefined || img.fadeIn === undefined) {
+
+					ply_obj.slides.entries.imgs[index] = img = jQuery('<img src="' + url + '">')
+							.on(
+								'load',
+								function () {
+									img.appendTo(ply_obj.slidesContainer)
+										.hide()
+											.fadeIn()
+												.siblings(':visible')
+													.fadeOut();
+								}
+							);
+	
+				} else {
+	
+					if (!img.is(':visible') && !img.is(':animated')) {
+	
+						img.fadeIn()
+							.siblings(':visible')
+								.fadeOut();
+					}
+				}
+			};
+
+			ply_obj.displaySlides = function () {
+
+				var slides = ply_obj.slides,
+					i;
+	
+				if (slides === undefined) {
+					return;
+				}
+
+				for (i = 0; i < slides.entries.times.length; i += 1) {
+					if (ply_obj.media.currentTime >= slides.entries.times[i].start
+					 && ply_obj.media.currentTime <= slides.entries.times[i].stop) {
+	
+						ply_obj.showSlide(i);
+	
+						return; // exit out if one is visible;
+					}
+				}
 			};
 
 			ply_obj.displayChapters = function () {
@@ -439,35 +609,47 @@ mep.tracks.start = function () {
             ply_obj.captions.prependTo(ply_obj.layers).hide();
 
 			ply_obj.captionsButton.append(ply_obj.captionsSelect);
-            ply_obj.captionsButton
-				.appendTo(ply_obj.controls)
-				.hover(
-					function () {
-						ply_obj.captionsSelect.css('visibility', 'visible');
-					},
-					function () {
-						ply_obj.captionsSelect.css('visibility', 'hidden');
-					})
-				.delegate(
-					'input[type=radio]',
-					'click',
-					function (e) {
-						var lang = this.value;
+            ply_obj.captionsButton.appendTo(ply_obj.controls);
 
-						if (lang === 'none') {
-							ply_obj.selectedTrack = null;
-						} else {
-							for (i = 0; i < ply_obj.tracks.length; i += 1) {
-								if (ply_obj.tracks[i].srclang === lang) {
-									ply_obj.selectedTrack = ply_obj.tracks[i];
-									ply_obj.captions.attr('lang', ply_obj.selectedTrack.srclang);
-									ply_obj.displayCaptions();
-									break;
-								}
-							}
+			// if only one language then just make the button a toggle
+			if (ply_obj.options.toggle_for_one && subtitleCount === 1){
+
+				button.on(
+					'click',
+					function () {
+						var lang = 'none';
+
+						if (ply_obj.selectedTrack === null) {
+							lang = ply_obj.tracks[0].srclang;
 						}
+
+						ply_obj.setTrack(lang);
 					}
 				);
+
+			} else {
+
+				// Mobile
+				button.on(
+					'click',
+					function () {
+						ply_obj.captionsSelect.css('visibility', 'visible');
+					}
+				);
+
+				// hover or keyboard focus
+				ply_obj.captionsButton.on(
+					'mouseenter focusin',
+					function () {
+						ply_obj.captionsSelect.css('visibility', 'visible');
+					}
+				).on(
+					'mouseleave focusout',
+					function () {
+						ply_obj.captionsSelect.css('visibility', 'hidden');
+					}
+				);
+			}
 
             if (!ply_obj.options.alwaysShowControls) {
                 // move with controls
@@ -491,7 +673,10 @@ mep.tracks.start = function () {
                 ply_obj.captionsPos.addClass('mejs-captions-position-hover');
             }
 
-            // add to list
+			// Add language eq 'none' to stop CC display
+			ply_obj.addTrackButton('none', ply_obj.options.i18n.tracks_none);
+
+            // Add to <ul> all available tracks
             for (i = 0; i < ply_obj.tracks.length; i += 1) {
                 if (ply_obj.tracks[i].kind === 'subtitles') {
                     ply_obj.addTrackButton(
@@ -501,19 +686,32 @@ mep.tracks.start = function () {
                 }
             }
 
+			// start loading tracks
             ply_obj.loadNextTrack();
 
             ply_obj.media.addEventListener(
 				'timeupdate',
-				function (e) {
+				function () {
 					ply_obj.displayCaptions();
 				},
 				false
 			);
 
+			if (ply_obj.options.slidesSelector !== '') {
+				ply_obj.slidesContainer = jQuery(ply_obj.options.slidesSelector);
+
+				ply_obj.media.addEventListener(
+					'timeupdate',
+					function () {
+						ply_obj.displaySlides();
+					},
+					false
+				);
+			}
+
             ply_obj.media.addEventListener(
 				'loadedmetadata',
-				function (e) {
+				function () {
 					ply_obj.displayChapters();
 				},
 				false
@@ -530,7 +728,8 @@ mep.tracks.start = function () {
 					}
 				},
 				function () {
-					if (ply_obj.hasChapters && !ply_obj.media.paused) {
+					if (ply_obj.hasChapters
+					&& !ply_obj.media.paused) {
 						ply_obj.chapters.fadeOut(
 							200,
 							function () {
@@ -542,10 +741,12 @@ mep.tracks.start = function () {
 				}
 			);
 
-            // check for autoplay (why?)
+            // check for autoplay
             if (ply_obj.node.getAttribute('autoplay') !== null) {
                 ply_obj.chapters.css('visibility', 'hidden');
             }
+
+			msos.console.debug(temp_bt + 'done!');
         }
     });
 };

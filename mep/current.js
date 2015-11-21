@@ -1,12 +1,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.current");
 
-mep.current.version = new msos.set_version(14, 6, 15);
+mep.current.version = new msos.set_version(15, 11, 13);
 
 
 mep.current.start = function () {
@@ -17,26 +18,20 @@ mep.current.start = function () {
 		{
 			buildcurrent: function (ply_obj) {
 
-				var cfg = ply_obj.options,
-					tm =	jQuery('<div class="mejs-time">'),
-					ct =	jQuery('<span>' +
-								(cfg.alwaysShowHours ? '00:' : '') + (cfg.showTimecodeFrameCount ? '00:00:00' : '00:00') +
-							'</span>');
+				var cfg = ply_obj.options;
 
-				tm.append(ct);
-				tm.appendTo(ply_obj.controls);
+				ply_obj.ct_container = jQuery('<div class="mejs-time">');
+				ply_obj.currenttime = jQuery('<span>' + mep.player.utils.secondsToTimeCode(0, cfg) + '</span>');
 
-				ply_obj.ct_container = tm;
-				ply_obj.currenttime = ct;
+				ply_obj.ct_container.append(ply_obj.currenttime);
+				ply_obj.ct_container.appendTo(ply_obj.controls);
 
 				ply_obj.updateCurrent = function () {
 					if (ply_obj.currenttime) {
 						ply_obj.currenttime.html(
 							mep.player.utils.secondsToTimeCode(
 								ply_obj.media.currentTime,
-								cfg.alwaysShowHours || ply_obj.media.duration > 3600,
-								cfg.showTimecodeFrameCount,
-								cfg.framesPerSecond || 25
+								cfg
 							)
 						);
 					}

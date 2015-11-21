@@ -3,7 +3,7 @@
 //			Copyright©2010-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
-//			http://opensite.mobi
+//			http://opensitemobile.com
 // ==========================================================================
 // Contact Information:
 //			Author: Dwight Vietzke
@@ -18,7 +18,7 @@
     _: false
 */
 
-msos.version = new msos.set_version(15, 9, 25);
+msos.version = new msos.set_version(15, 11, 21);
 
 msos.console.info('msos/core -> start, ' + msos.version);
 msos.console.time('core');
@@ -45,9 +45,8 @@ msos.valid_jq_node = function ($node, type) {
 
 	if (msos.in_dom_jq_node($node)) {
 		if ($node[0].tagName.toLowerCase() === type) { return true; }
-		else {
-			msos.console.error(temp_vn + 'valid jQuery node: ', $node);
-		}
+
+		msos.console.error(temp_vn + 'valid jQuery node: ', $node);
 	} else {
 		msos.console.error(temp_vn + 'node of type: ' + type);
 	}
@@ -61,7 +60,7 @@ msos.in_dom_jq_node = function ($node) {
 	if ($node
 	 && $node.length
 	 && $node[0].parentNode) {
-		return true
+		return true;
 	}
 
 	$node = null;	// clean it up
@@ -183,28 +182,28 @@ msos.gen_select_menu = function (select_elm, options_object, selected) {
             optgroup, inner_obj;
 
         for (key in options_obj) {
-
-			inner_obj = options_obj[key];
-			if (typeof inner_obj === 'object') {
-				key.replace('_', ' ');
-				optgroup = jQuery('<optgroup label="' + key + '">');
-				add_opts(optgroup, inner_obj);
-				sel_elm.append(optgroup);
-			}
-			else if (typeof inner_obj === 'string') {
-				value = jQuery.trim(options_obj[key]);
-				if (key === selected) {
-					sel_elm.append(new Option(value, key, false, true));
+			if (options_obj.hasOwnProperty(key)) {
+				inner_obj = options_obj[key];
+				if (typeof inner_obj === 'object') {
+					key.replace('_', ' ');
+					optgroup = jQuery('<optgroup label="' + key + '">');
+					add_opts(optgroup, inner_obj);
+					sel_elm.append(optgroup);
+				}
+				else if (typeof inner_obj === 'string') {
+					value = jQuery.trim(options_obj[key]);
+					if (key === selected) {
+						sel_elm.append(new Option(value, key, false, true));
+					}
+					else {
+						sel_elm.append(new Option(value, key));
+					}
+					to_check.push(key);
 				}
 				else {
-					sel_elm.append(new Option(value, key));
+					msos.console.error(temp_gen + ' -> oops: ' + key);
 				}
-				to_check.push(key);
 			}
-			else {
-				msos.console.error(temp_gen + ' -> oops: ' + key);
-			}
-
         }
     }
 
@@ -259,7 +258,7 @@ msos.require = function (module_name, add_onsuccess_func) {
 		uri = '';
 
 	// Only allow a-z, 0-9, period, dash in module names
-	if (!/^[0-9a-zA-Z.-]+$/.test(module_name)) {
+	if (!/^[0-9a-zA-Z.\-]+$/.test(module_name)) {
 		msos.console.error(req_text + 'name not allowed: ' + module_name);
 		return;
 	}
@@ -359,7 +358,7 @@ msos.template = function (template_name, add_onsuccess_func) {
 		uri = '';
 
 	// Only allow a-z, 0-9, period, dash in module names
-	if (!/^[0-9a-zA-Z.-]+$/.test(template_name)) {
+	if (!/^[0-9a-zA-Z.\-]+$/.test(template_name)) {
 		msos.console.error(req_text + 'name not allowed: ' + template_name);
 		return;
 	}
@@ -550,6 +549,8 @@ msos.notify = {
 	current: null,
 
 	clear_current: function () {
+		"use strict";
+
 		var self = msos.notify;
 
 		// Errors and warnings are a special case, (we always show them to completion)
@@ -564,6 +565,8 @@ msos.notify = {
 	},
 
 	clear: function () {
+		"use strict";
+
 		var self = msos.notify,
 			n = 0;
 
@@ -671,6 +674,7 @@ msos.notify = {
 
 	info: function (message, title) {
 		"use strict";
+
 		var obj = new msos.notify.base(
 			'info',
 			message,
@@ -682,6 +686,7 @@ msos.notify = {
 
 	warning: function (message, title) {
 		"use strict";
+
 		var obj = new msos.notify.base(
 			'warning',
 			message,
@@ -694,6 +699,7 @@ msos.notify = {
 
 	error: function (message, title) {
 		"use strict";
+
 		var obj = new msos.notify.base(
 			'error',
 			message,
@@ -706,6 +712,7 @@ msos.notify = {
 
 	success: function (message, title) {
 		"use strict";
+
 		var obj = new msos.notify.base(
 			'success',
 			message,
@@ -717,6 +724,7 @@ msos.notify = {
 
 	loading: function (message, title) {
 		"use strict";
+
 		var obj = new msos.notify.base(
 			'loading',
 			message,
@@ -761,10 +769,12 @@ msos.check_deferred_scripts = function () {
 
 	// Verify that all deferred scripts have loaded
 	for (script in deferred) {
-		deferred_attr = deferred[script].getAttribute('defer') || false;
-		if (deferred_attr && deferred[script].msos_load_state !== 'loaded') {
-			deferred_flag = false;
-			msos.console.debug(temp_cds + 'still loading: ' + script + ', attemp: ' + msos.require_deferred);
+		if (deferred.hasOwnProperty(script)) {
+			deferred_attr = deferred[script].getAttribute('defer') || false;
+			if (deferred_attr && deferred[script].msos_load_state !== 'loaded') {
+				deferred_flag = false;
+				msos.console.debug(temp_cds + 'still loading: ' + script + ', attemp: ' + msos.require_deferred);
+			}
 		}
 	}
 
@@ -810,9 +820,11 @@ msos.check_resources = function () {
 
     // Check our ajax retrieved scripts for loading
     for (mod_id in msos.registered_modules) {
-		if (!msos.registered_modules[mod_id]) {
-			msos.console.error(temp_chk + 'module failed to load: ' + (mod_id.replace(/_/g, '.')));
-			count_module += 1;
+		if (msos.registered_modules.hasOwnProperty(mod_id)) {
+			if (!msos.registered_modules[mod_id]) {
+				msos.console.error(temp_chk + 'module failed to load: ' + (mod_id.replace(/_/g, '.')));
+				count_module += 1;
+			}
 		}
     }
 
@@ -834,8 +846,10 @@ msos.check_resources = function () {
 		 && msos.i18n.common
 		 && msos.i18n.common.bundle) {
 			for (key in i18n) {
-				if (msos.i18n.common.bundle[key]) {
-					i18n[key] = msos.i18n.common.bundle[key];
+				if (i18n.hasOwnProperty(key)) {
+					if (msos.i18n.common.bundle[key]) {
+						i18n[key] = msos.i18n.common.bundle[key];
+					}
 				}
 			}
 		}
@@ -884,8 +898,10 @@ msos.set_bandwidth = function () {
 
 	// Determine new values...(for just loaded files, as others should come from cache)
 	for (kbps in ajx_ldg) {
-		ajx_ses[kbps] = ajx_ldg[kbps];
-		kbps_new = true;
+		if (ajx_ldg.hasOwnProperty(kbps)) {
+			ajx_ses[kbps] = ajx_ldg[kbps];
+			kbps_new = true;
+		}
 	}
 
 	if (kbps_new) {
@@ -893,8 +909,10 @@ msos.set_bandwidth = function () {
 		msos.console.debug(temp_sb + 'new value(s) added!');
 
 		for (kbps in ajx_ses) {
-			sum += parseInt(ajx_ses[kbps], 10);
-			cnt += 1;
+			if (ajx_ses.hasOwnProperty(kbps)) {
+				sum += parseInt(ajx_ses[kbps], 10);
+				cnt += 1;
+			}
 		}
 
 		avg = sum / cnt;

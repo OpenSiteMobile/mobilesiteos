@@ -1,13 +1,13 @@
 @charset "utf-8";
 
 /* Start: SourceChooser */
-.mejs-controls .mejs-sourcechooser-button {
+.mejs-sourcechooser-button {
 	position:relative;
 }
-.mejs-controls .mejs-sourcechooser-button button {
+.mejs-sourcechooser-button button {
 	background-position:-128px 0;
 }
-.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector {
+.mejs-sourcechooser-button .mejs-sourcechooser-selector {
 	visibility:hidden;
 	position:absolute;
 	bottom:20px;
@@ -24,14 +24,14 @@
 			border-radius:0.4em;
 	z-index:1011;
 }
-.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul {
+.mejs-sourcechooser-button .mejs-sourcechooser-selector ul {
 	margin:0;
 	padding:0;
 	display:block;
 	list-style-type:none !important;
 	overflow:hidden;
 }
-.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li{
+.mejs-sourcechooser-button .mejs-sourcechooser-selector ul li{
 	margin:0 0 6px 0;
 	padding:0;
 	list-style-type:none !important;
@@ -39,12 +39,12 @@
 	color:#FFF;
 	overflow:hidden;
 }
-.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li input{
+.mejs-sourcechooser-button .mejs-sourcechooser-selector ul li input{
 	clear:both;
 	float:left;
 	margin:3px 3px 0 5px;
 }
-.mejs-controls .mejs-sourcechooser-button .mejs-sourcechooser-selector ul li label{
+.mejs-sourcechooser-button .mejs-sourcechooser-selector ul li label{
 	width:100px;
 	float:left;
 	padding:4px 0 0 0;

@@ -10,12 +10,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.stop");
 
-mep.stop.version = new msos.set_version(14, 6, 15);
+mep.stop.version = new msos.set_version(15, 11, 15);
 
 
 mep.stop.start = function () {
@@ -27,34 +28,35 @@ mep.stop.start = function () {
 		{
 			buildstop: function (ply_obj) {
 
-				var stop =
-						jQuery('<div class="mejs-button mejs-stop-button mejs-stop">' +
-							'<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.options.i18n.stop_text + '"><i class="fa fa-stop"></i></button>' +
-						'</div>');
+				var button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.options.i18n.stop_text + '"><i class="fa fa-stop"></i></button>'),
+					stop = jQuery('<div class="mejs-button mejs-stop-button mejs-stop"></div>');
 
-				stop
-					.appendTo(ply_obj.controls)
-					.click(
-						function (e) {
-							msos.console.debug('mep.stop.start -> stop fired.');
+				button.click(
+					function (e) {
 
-							msos.do_nothing(e);
+						msos.console.debug('mep.stop.start - click -> stop fired.');
 
-							if (!ply_obj.media.paused) {
-								ply_obj.media.pause();
-							}
+						msos.do_nothing(e);
 
-							// Streaming doesn't have a duration
-							if (!isNaN(ply_obj.media.duration) && ply_obj.media.currentTime > 0) {
-								ply_obj.media.setCurrentTime(0);
-								ply_obj.current.width('0px');
-								ply_obj.handle.css('left', '0px');
-								ply_obj.tfltcur.html(mep.player.utils.secondsToTimeCode(0));
-								ply_obj.currenttime.html(mep.player.utils.secondsToTimeCode(0));
-								if (ply_obj.poster) { ply_obj.poster.show(); }
-							}
+						if (!ply_obj.media.paused) {
+							ply_obj.media.pause();
 						}
-					);
+
+						if (ply_obj.media.currentTime > 0) {
+							ply_obj.media.setCurrentTime(0);
+							ply_obj.current.width('0');
+							ply_obj.handle.css('left', '0');
+							ply_obj.tfltcur.html(mep.player.utils.secondsToTimeCode(0, ply_obj.options));
+							ply_obj.currenttime.html(mep.player.utils.secondsToTimeCode(0, ply_obj.options));
+							if (ply_obj.poster) { ply_obj.poster.show(); }
+						}
+
+						jQuery(this).blur();
+					}
+				);
+
+				stop.append(button);
+				stop.appendTo(ply_obj.controls);
 
 				ply_obj.stop = stop;
 			}

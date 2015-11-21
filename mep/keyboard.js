@@ -10,12 +10,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.keyboard");
 
-mep.keyboard.version = new msos.set_version(14, 6, 15);
+mep.keyboard.version = new msos.set_version(15, 11, 15);
 
 
 mep.keyboard.start = function () {
@@ -44,6 +45,13 @@ mep.keyboard.start = function () {
                 {
                     keys: [38], // UP
                     action: function (ply_obj) {
+							ply_obj.volumeSlider.css('display','block');
+
+							if (ply_obj.isVideo) {
+								ply_obj.showControls();
+								ply_obj.startControlsTimer();
+							}
+
                         var newVolume = Math.min(ply_obj.media.volume + 0.1, 1);
                         ply_obj.media.setVolume(newVolume);
                     }
@@ -51,6 +59,13 @@ mep.keyboard.start = function () {
                 {
                     keys: [40], // DOWN
                     action: function (ply_obj) {
+						ply_obj.volumeSlider.css('display','block');
+
+						if (ply_obj.isVideo) {
+							ply_obj.showControls();
+							ply_obj.startControlsTimer();
+						}
+
                         var newVolume = Math.max(ply_obj.media.volume - 0.1, 0);
                         ply_obj.media.setVolume(newVolume);
                     }
@@ -91,7 +106,7 @@ mep.keyboard.start = function () {
                     }
                 },
                 {
-                    keys: [70], // f
+                    keys: [70], // F
                     action: function (ply_obj) {
                         if (ply_obj.enterFullScreen !== undefined) {
                             if (ply_obj.isFullScreen) {
@@ -101,7 +116,21 @@ mep.keyboard.start = function () {
                               }
                         }
                     }
-                }
+                },
+				{
+						keys: [77], // M
+						action: function (ply_obj) {
+								ply_obj.volumeSlider.css('display','block');
+
+								if (ply_obj.isVideo) {
+										ply_obj.showControls();
+										ply_obj.startControlsTimer();
+								}
+
+								if (ply_obj.media.muted)	{ ply_obj.setMuted(false); }
+								else						{ ply_obj.setMuted(true); }
+						}
+				}
             ]
 		}
 	);
@@ -119,16 +148,17 @@ mep.keyboard.start = function () {
 							cfg = ply_obj.options,
                             il = cfg.keyActions.length,
                             keyAction,
-                            j = 0,
-                            jl = keyAction.keys.length;
+                            j = 0;
 
                         if (ply_obj.hasFocus && cfg.enableKeyboard) {
                             // find a matching key
                             for (i = 0; i < il; i += 1) {
+
                                 keyAction = cfg.keyActions[i];
-                                for (j = 0; j < jl; j += 1) {
+
+                                for (j = 0; j < keyAction.keys.length; j += 1) {
                                     if (e.keyCode === keyAction.keys[j]) {
-                                        e.preventDefault();
+                                        if (typeof(e.preventDefault) === "function") { e.preventDefault(); }
 										keyAction.action(ply_obj);
 										msos.console.debug(this.name + ' - buildkeyboard - keydown -> called for: ' + e.keyCode);
                                         return false;

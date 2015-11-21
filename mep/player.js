@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					player.js
-//			Copyright©2012-2014 - OpenSiteMobile
+//			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -41,8 +41,8 @@ msos.console.debug('mep.player -> loading start.');
 // Namespace
 mep.player = {
 
-	version: new msos.set_version(14, 6, 13),
-	org_version: '2.10.3',		// from original version by John Dyer
+	version: new msos.set_version(15, 11, 12),
+	org_version: '2.18.2',		// from original v2.10.3 + version updates
 	meIndex: 0,
 	mepIndex: 0,
 	players: [],
@@ -150,12 +150,17 @@ mep.player = {
 					}
 				),
 				tagName = ply_obj.node.tagName.toLowerCase(),
+				player_title = tagName,
+				isSVG = document.documentElement.nodeName.toLowerCase() === 'svg',
 				cloned;
 
 			msos.console.debug(ply_obj.name + ' - init -> start, tag: ' + tagName);
 
 			ply_obj.isVideo = (tagName !== 'audio');
 			ply_obj.tagName = tagName;
+
+//			player_title = ply_obj.isVideo ? mejs.i18n.t('Video Player') : mejs.i18n.t('Audio Player');
+			jQuery('<span class="visually_hidden">' + player_title + '</span>').insertBefore(ply_obj.$node);
 
 			// Remove native controls
 			ply_obj.$node.removeAttr('controls');
@@ -169,8 +174,16 @@ mep.player = {
 
 			// Add defining class, id
 			ply_obj.container
-				.attr('id', ply_obj.id)
-				.addClass('mejs-container notranslate');
+				.attr({ 'id': ply_obj.id, tabindex: 0, role: 'application', 'aria-label': player_title })
+				.addClass('mejs-container notranslate' + (isSVG ? ' svg' : ' no-svg'))
+				.focus(
+					function (e) {
+						if (!ply_obj.controlsAreVisible) {
+							ply_obj.showControls(true);
+							ply_obj.play_pause.focus();
+						}
+					}
+				);
 
 			// Build out our container w/controls, etc.
 			ply_obj.layers			= jQuery('<div class="mejs-layers">');
@@ -269,7 +282,7 @@ mep.player = {
 
 			doAnimation = doAnimation === undefined || doAnimation;
 
-			if (!t.controlsAreVisible) { return; }
+			if (!t.controlsAreVisible || t.options.alwaysShowControls || t.keyboardAction) { return; }
 
 			if (doAnimation) {
 				if (msos.config.verbose) {
@@ -575,12 +588,15 @@ mep.player.determinePlayback = function (ply_obj, options) {
 
 		// Go thru media types and see what
 		for (i = 0; i < mediaFiles.length; i += 1) {
-			// normal check, then special case for Mac/Safari 5.0.3 which answers '' to canPlayType('audio/mp3') but 'maybe' to canPlayType('audio/mpeg')
-			if (html5_elm.canPlayType(mediaFiles[i].type).replace(/no/, '') !== ''
-			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/mp3/, 'mpeg')).replace(/no/, '') !== '') {
-				result.method = 'native';
-				result.url = mediaFiles[i].url;
-				break;
+			if (mediaFiles[i].type == "video/m3u8"
+			 || html5_elm.canPlayType(mediaFiles[i].type).replace(/no/, '') !== ''
+			 // special case for Mac/Safari 5.0.3 which answers '' to canPlayType('audio/mp3') but 'maybe' to canPlayType('audio/mpeg')
+			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/mp3/,'mpeg')).replace(/no/, '') !== ''
+			 // special case for m4a supported by detecting mp4 support
+			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/m4a/,'mp4')).replace(/no/, '') !== '') {
+					result.method = 'native';
+					result.url = mediaFiles[i].url;
+					break;
 			}
 		}
 
@@ -623,7 +639,7 @@ mep.player.determinePlayback = function (ply_obj, options) {
 							// test for plugin playback types
 							for (l = 0; l < pluginInfo.types.length; l += 1) {
 								// find plugin that can play the type
-								if (type === pluginInfo.types[l]) {
+								if (type.toLowerCase() === pluginInfo.types[l].toLowerCase()) {
 									result.method = pluginName;
 									result.url = mediaFiles[i].url;
 									msos.console.debug(temp_pb + 'done, ' + db_note + ', result: ', result);
@@ -730,7 +746,8 @@ mep.player.controls = function (ply_obj) {
 		$media = jQuery(ply_obj.media),
 		i,
 		func_name,
-		func_build;
+		func_build,
+		duration = null;
 
 	// make sure it can't create itself again if a plugin reloads
 	if (ply_obj.created) {
@@ -781,7 +798,7 @@ mep.player.controls = function (ply_obj) {
 		} else {
 
 			// click controls
-			var on_mouseover = function () {
+			var on_mouseenter = function () {
 					if (ply_obj.controlsEnabled) {
 						if (!ply_obj.options.alwaysShowControls) {							
 							ply_obj.killControlsTimer('enter');
@@ -819,8 +836,8 @@ mep.player.controls = function (ply_obj) {
 			// show/hide controls
 			ply_obj.container
 				.bind(
-					'mouseenter mouseover',
-					_.throttle(on_mouseover, 500)
+					'mouseenter',
+					_.throttle(on_mouseenter, 500)
 				)
 				.bind(
 					'mousemove',
@@ -918,6 +935,20 @@ mep.player.controls = function (ply_obj) {
 		false
 	);
 
+	ply_obj.media.addEventListener(
+		'timeupdate',
+		function () {
+			if (duration !== ply_obj.media.duration) {
+				duration = ply_obj.media.duration;
+				mep.player.utils.calculateTimeFormat(
+					duration,
+					ply_obj.options
+				);
+			}
+		},
+		false
+	);
+
 	msos.console.debug(temp_pc + ' -> done!');
 };
 
@@ -988,52 +1019,181 @@ mep.player.utils = {
 
 	getTypeFromFile: function (url) {
 		"use strict";
+
 		url = url.split('?')[0];
-		var ext = url.substring(url.lastIndexOf('.') + 1);
-		return (/(mp4|m4v|ogg|ogv|webm|webmv|flv|wmv|mpeg|mov)/gi.test(ext) ? 'video' : 'audio') + '/' + mep.player.utils.getTypeFromExtension(ext);
+
+		var ext = url.substring(url.lastIndexOf('.') + 1).toLowerCase(),
+			av = /(mp4|m4v|ogg|ogv|m3u8|webm|webmv|flv|wmv|mpeg|mov)/gi.test(ext) ? 'video/' : 'audio/';
+
+		return mep.player.utils.getTypeFromExtension(ext, av);
 	},
 
-	getTypeFromExtension: function (ext) {
+	getTypeFromExtension: function (ext, av) {
 		"use strict";
+
+		av = av || '';
 
 		switch (ext) {
 			case 'mp4':
 			case 'm4v':
-				return 'mp4';
+			case 'm4a':
+			case 'f4v':
+			case 'f4a':
+				return av + 'mp4';
+			case 'flv':
+				return av + 'x-flv';
 			case 'webm':
 			case 'webma':
-			case 'webmv':
-				return 'webm';
+			case 'webmv':	
+				return av + 'webm';
 			case 'ogg':
 			case 'oga':
-			case 'ogv':
-				return 'ogg';
+			case 'ogv':	
+				return av + 'ogg';
+			case 'm3u8':
+				return 'application/x-mpegurl';
+			case 'ts':
+				return av + 'mp2t';
 			default:
-				return ext;
+				return av + ext;
 		}
 	},
 
-	secondsToTimeCode: function (time, forceHours, showFrameCount, fps) {
+	/*
+	 * Calculate the time format to use. We have a default format set in the
+	 * options but it can be imcomplete. We ajust it according to the media
+	 * duration.
+	 *
+	 * We support format like 'hh:mm:ss:ff'.
+	 */
+	calculateTimeFormat: function(time, options) {
 		"use strict";
 
-		//add framecount
-		if (showFrameCount === undefined) {
-		    showFrameCount = false;
-		} else if (fps === undefined) {
-		    fps = 25;
-		}
+		if (time < 0) { time = 0; }
 
-		var hours = Math.floor(time / 3600) % 24,
+		var temp_ct = 'mep.player.utils.calculateTimeFormat -> ',
+			fps = options.framesPerSecond || 25,
+			format = options.timeFormat,
+			firstChar = format[0],
+			firstTwoPlaces = (format[1] == format[0]),
+			separatorIndex = firstTwoPlaces? 2 : 1,
+			separator = ':',
+			hours = Math.floor(time / 3600) % 24,
 			minutes = Math.floor(time / 60) % 60,
 			seconds = Math.floor(time % 60),
 			frames = Math.floor(((time % 1) * fps).toFixed(3)),
-			result =
-					((forceHours || hours > 0) ? (hours < 10 ? '0' + hours : hours) + ':' : '')
-						+ (minutes < 10 ? '0' + minutes : minutes) + ':'
-						+ (seconds < 10 ? '0' + seconds : seconds)
-						+ ((showFrameCount) ? ':' + (frames < 10 ? '0' + frames : frames) : '');
+			lis = [
+				[frames, 'f'],
+				[seconds, 's'],
+				[minutes, 'm'],
+				[hours, 'h']
+			],
+			required = false,
+			len=lis.length,
+			i = 0,
+			j = 0,
+			hasNextValue;
 
-		return result;
+		msos.console.debug(temp_ct + 'start, time: ' + time + ', fps: ' + fps);
+
+		// Try to get the separator from the format
+		if (format.length < separatorIndex) {
+			separator = format[separatorIndex];
+		}
+
+		for (i = 0; i < len; i += 1) {
+			if (format.indexOf(lis[i][1]) !== -1) {
+				required = true;
+			} else if (required) {
+				hasNextValue = false;
+				for (j = i; j < len; j += 1) {
+					if (lis[j][0] > 0) {
+						hasNextValue = true;
+						break;
+					}
+				}
+
+				if (!hasNextValue) { break; }
+
+				if (!firstTwoPlaces) {
+					format = firstChar + format;
+				}
+
+				format = lis[i][1] + separator + format;
+
+				if (firstTwoPlaces) {
+					format = lis[i][1] + format;
+				}
+
+				firstChar = lis[i][1];
+			}
+		}
+		options.currentTimeFormat = format;
+
+		msos.console.debug(temp_ct + 'done, format: ' + format);
+	},
+
+	twoDigitsString: function (n) {
+		"use strict";
+
+		if (n < 10) {
+			return '0' + n;
+		}
+
+		return String(n);
+	},
+
+	secondsToTimeCode: function (time, options) {
+		"use strict";
+
+		var format = '',
+			fps,
+			format,
+			hours,
+			minutes,
+			seconds,
+			frames,
+			lis,
+			res,
+			i = 0;
+
+		if (time < 0) { time = 0; }
+
+		// Maintain backward compatibility with method signature before v2.18.
+		if (typeof options !== 'object') {
+			format = 'm:ss';
+			format = arguments[1] ? 'hh:mm:ss' : format;		// forceHours
+			format = arguments[2] ? format + ':ff' : format;	// showFrameCount
+
+			options = {
+				currentTimeFormat: format,
+				framesPerSecond: arguments[3] || 25
+			};
+		}
+
+		fps = options.framesPerSecond || 25;
+
+		format = options.currentTimeFormat;
+		hours = Math.floor(time / 3600) % 24;
+		minutes = Math.floor(time / 60) % 60;
+		seconds = Math.floor(time % 60);
+		frames = Math.floor(((time % 1)*fps).toFixed(3));
+
+		lis = [
+			[frames, 'f'],
+			[seconds, 's'],
+			[minutes, 'm'],
+			[hours, 'h']
+		];
+
+		res = format;
+
+		for (i = 0; i < lis.length; i += 1) {
+			res = res.replace(lis[i][1] + lis[i][1], this.twoDigitsString(lis[i][0]));
+			res = res.replace(lis[i][1], lis[i][0]);
+		}
+
+		return res;
 	},
 
 	timeCodeToSeconds: function (hh_mm_ss_ff, forceHours, showFrameCount, fps) {
@@ -1120,6 +1280,24 @@ mep.player.build = function ($node, cfg, feat_cfg, opts) {
 		cfg,
 		feat_cfg,
 		opts
+	);
+
+	if (!po.options.timeFormat) {
+		// Generate the time format according to options
+		po.options.timeFormat = 'mm:ss';
+
+		if (po.options.alwaysShowHours) {
+			po.options.timeFormat = 'hh:mm:ss';
+		}
+
+		if (po.options.showTimecodeFrameCount) {
+			po.options.timeFormat += ':ff';
+		}
+	}
+
+	mep.player.utils.calculateTimeFormat(
+		0,
+		po.options
 	);
 
 	msos.console.debug(temp_mep + 'config & options added.');

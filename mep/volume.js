@@ -10,12 +10,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.volume");
 
-mep.volume.version = new msos.set_version(14, 6, 15);
+mep.volume.version = new msos.set_version(15, 11, 13);
 
 
 // Start by loading our volume.css stylesheet
@@ -28,6 +29,8 @@ mep.volume.start = function () {
 	jQuery.extend(
 		mep.player.config,
 		{
+			muteText: 'Mute Toggle',				// mejs.i18n.t('Mute Toggle'),
+			allyVolumeControlText: 'Use Up/Down Arrow keys to increase or decrease volume.',	// mejs.i18n.t('Use Up/Down Arrow keys to increase or decrease volume.'),
 			audioVolume: 'horizontal',
 			videoVolume: 'vertical'
 		}
@@ -38,8 +41,13 @@ mep.volume.start = function () {
 		{
 			buildvolume: function (ply_obj) {
 
+				// Skip volume control for mobile touch devices
+				if (msos.config.browser.mobile
+				 && msos.config.browser.touch) { return; }
+
 				var cfg = ply_obj.options,
 					mode = (ply_obj.isVideo) ? cfg.videoVolume : cfg.audioVolume,
+					button,
 					mute,
 					volumeSlider =	(mode === 'horizontal') ? jQuery('<div class="mejs-horizontal-volume-slider">')  : jQuery('<div class="mejs-volume-slider">'),
 					volumeTotal =	(mode === 'horizontal') ? jQuery('<div class="mejs-horizontal-volume-total">')   : jQuery('<div class="mejs-volume-total">'),
@@ -52,9 +60,10 @@ mep.volume.start = function () {
 
 				volumeSlider.append(volumeTotal, volumeCurrent, volumeHandle);
 
-				mute =	jQuery('<div class="mejs-button mejs-volume-button mejs-mute">' +
-							'<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.mute_toggle + '"><i class="fa fa-volume-up"></i><i class="fa fa-volume-off"></button>' +
-						'</div>');
+				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.mute_toggle + '"><i class="fa fa-volume-up"></i><i class="fa fa-volume-off"></button>');
+				mute =	jQuery('<div class="mejs-button mejs-volume-button mejs-mute"></div>');
+
+				mute.append(button);
 
 				if (mode === 'horizontal') {
 					mute.appendTo(ply_obj.controls);
@@ -80,8 +89,10 @@ mep.volume.start = function () {
 					// ajust mute button style
 					if (volume === 0) {
 						mute.removeClass('mejs-mute').addClass('mejs-unmute');
+//						mute.children('button').attr('title', mejs.i18n.t('Unmute')).attr('aria-label', mejs.i18n.t('Unmute'));
 					} else {
 						mute.removeClass('mejs-unmute').addClass('mejs-mute');
+//						mute.children('button').attr('title', mejs.i18n.t('Mute')).attr('aria-label', mejs.i18n.t('Mute'));
 					}
 
 					var totalWidth,
@@ -108,7 +119,9 @@ mep.volume.start = function () {
 						// show the current visibility
 						volumeCurrent.height(totalHeight - newTop);
 						volumeCurrent.css('top', totalPosition.top + newTop);
+
 					} else {
+
 						// height of the full size volume slider background
 						totalWidth = volumeTotal.width();
 
@@ -168,55 +181,107 @@ mep.volume.start = function () {
 					} else {
 						ply_obj.media.setMuted(false);
 					}
+
 					ply_obj.media.setVolume(volume);
 				};
 
 				// SLIDER
-
-				mute
-					.hover(
-						function () {
-							volumeSlider.show();
-							mouseIsOver = true;
-						},
-						function () {
-							mouseIsOver = false;
-							if (!mouseIsDown && mode === 'vertical') {
-								volumeSlider.hide();
-							}
-						}
-					);
-
-				volumeSlider
-					.bind('mouseover', function () {
+				mute.hover(
+					function () {
+						volumeSlider.show();
 						mouseIsOver = true;
-					})
-					.bind('mousedown', function (e) {
+					},
+					function () {
+						mouseIsOver = false;
+						if (!mouseIsDown && mode === 'vertical') {
+							volumeSlider.hide();
+						}
+					}
+				);
+
+				volumeSlider.bind(
+					'mouseover',
+					function () {
+						mouseIsOver = true;
+					}
+				).bind(
+					'mousedown',
+					function (e) {
 						handleVolumeMove(e);
-						jQuery(document)
-							.bind('mousemove.vol', function (e) {
+						jQuery(document).bind(
+							'mousemove.vol',
+							function (e) {
 								handleVolumeMove(e);
-							})
-							.bind('mouseup.vol', function () {
+							}
+						).bind(
+							'mouseup.vol',
+							function () {
 								mouseIsDown = false;
 								jQuery(document).unbind('.vol');
 
 								if (!mouseIsOver && mode === 'vertical') {
 									volumeSlider.hide();
 								}
-							});
+							}
+						);
 						mouseIsDown = true;
+						return false;
+					}
+				).bind(
+					'keydown',
+					function (e) {
+						var keyCode = e.keyCode,
+							volume = ply_obj.media.volume;
+
+						switch (keyCode) {
+							case 38: // Up
+								volume += 0.1;
+								break;
+							case 40: // Down
+								volume -= 0.1;
+								break;
+							default:
+								return true;
+						}
+	
+						mouseIsDown = false;
+						positionVolumeHandle(volume);
+						ply_obj.media.setVolume(volume);
 
 						return false;
-					});
+					}
+				);
 
 				// MUTE button
-				mute.find('button').click(
+				button.click(
 					function (e) {
 						msos.do_nothing(e);
 						ply_obj.media.setMuted(!ply_obj.media.muted);
+						jQuery(this).blur();
 					}
 				);
+
+				// Keyboard input
+				button.bind(
+					'focus',
+					function () {
+						volumeSlider.show();
+					}
+				);
+
+				function updateVolumeSlider(e) {
+					var volume = Math.floor(ply_obj.media.volume * 100);
+
+					volumeSlider.attr({
+						'aria-label': 'volume slide control',		// mejs.i18n.t('volumeSlider'),
+						'aria-valuemin': 0,
+						'aria-valuemax': 100,
+						'aria-valuenow': volume,
+						'aria-valuetext': volume + '%',
+						'role': 'slider',
+						'tabindex': 0
+					});
+				}
 
 				// listen for volume change events from other sources
 				ply_obj.media.addEventListener(
@@ -231,6 +296,7 @@ mep.volume.start = function () {
 								mute.removeClass('mejs-unmute').addClass('mejs-mute');
 							  }
 						}
+						updateVolumeSlider(e);
 					},
 					false
 				);
@@ -244,6 +310,19 @@ mep.volume.start = function () {
 						ply_obj.media.setVolume(cfg.startVolume);
 					}
 				}
+
+				// mutes the media and sets the volume icon muted if the initial volume is set to 0
+				if (cfg.startVolume === 0) {
+					ply_obj.media.setMuted(true);
+				}
+
+				// shim gets the startvolume as a parameter, but we have to set it on the native <video> and <audio> elements
+				if (ply_obj.media.pluginType === 'native') {
+					ply_obj.media.setVolume(cfg.startVolume);
+				}
+
+				// Save ref. to jQuery object
+				ply_obj.volumeSlider = volumeSlider;
 			}
 		}
 	);

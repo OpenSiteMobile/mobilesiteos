@@ -13,7 +13,7 @@ msos.require("mep.player");
 
 mep.play.video = {
 
-	version: new msos.set_version(14, 6, 15),
+	version: new msos.set_version(15, 11, 12),
 
 	config: {
 		// auto:			attempts to detect what the browser can do
@@ -24,12 +24,17 @@ mep.play.video = {
 		// remove or reorder to change plugin priority and availability
 		plugins: ['flash', 'youtube', 'vimeo'],
 		// name of plugin specific required external file
-		flashName: 'flashmediaelement.swf',
-		// path to Flash plugin
-		shim_path: msos.resource_url('mep', 'shim/'),
-		// name of flash file
+		flash_uri: msos.resource_url('mep', 'shim/218/flashmediaelement.swf'),
+		// streamer for RTMP streaming
+		flashStreamer: '',
+		// set to 'always' for CDN version
+		flashScriptAccess: 'sameDomain',
 		// turns on the smoothing filter in Flash
 		enablePluginSmoothing: false,
+		// enabled pseudo-streaming (seek) on .mp4 files
+		enablePseudoStreaming: false,
+		// start query parameter sent to server for pseudo-streaming
+		pseudoStreamingStartQueryParam: 'start',
 		// default amount to move back when back key is pressed		
 		defaultSeekBackwardInterval: function (media) {
 			"use strict";
@@ -68,10 +73,10 @@ mep.play.video = {
             flash: [
                 {
                     version: [9, 0, 124],
-                    types: [
-                        'video/mp4', 'video/m4v', 'video/mov', 'video/flv', 'video/rtmp', 'video/x-flv',
-                        'video/youtube', 'video/x-youtube'
-                    ]
+					types: [
+						'video/mp4', 'video/m4v', 'video/mov', 'video/flv', 'video/rtmp', 'video/x-flv',
+						'video/youtube', 'video/x-youtube', 'video/dailymotion', 'video/x-dailymotion', 'application/x-mpegURL'
+					]
                 }
             ],
             youtube: [
@@ -108,8 +113,8 @@ mep.play.video = {
     // Additional available: 'contextmenu', 'tracks', 'sourcechooser', 'postroll', 'loop'
 	// Needs work: 'fullscreen'
     features_by_size: {
-		'desktop':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop', 'keyboard'],
-        'large':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop', 'keyboard'],
+		'desktop':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'skipback', 'jumpforward', 'volume', 'stop', 'keyboard'],
+        'large':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'skipback', 'jumpforward', 'volume', 'stop', 'keyboard'],
         'medium':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'small':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'tablet':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration'],
@@ -304,13 +309,17 @@ mep.play.video.init = function () {
 				if (msos.config.verbose) {
 					msos.console.debug(temp_h5 + ' -> player object:', mep_obj);
 
-					for (i = 0; i < events.length; i += 1) {
-						mep_obj.media.addEventListener(
-							events[i],
-							function (e) {
-								msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
-							}
-						);
+					if (mep_obj.media) {
+						for (i = 0; i < events.length; i += 1) {
+							mep_obj.media.addEventListener(
+								events[i],
+								function (e) {
+									msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
+								}
+							);
+						}
+					} else {
+						msos.console.warn(temp_h5 + ' -> media object is not ready (' + mep_obj.media + ')');
 					}
 				}
             }

@@ -1,12 +1,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.postroll");
 
-mep.postroll.version = new msos.set_version(14, 6, 15);
+mep.postroll.version = new msos.set_version(15, 11, 12);
 
 
 // Start by loading our progress.css stylesheet
@@ -23,28 +24,36 @@ mep.postroll.start = function () {
 
 		buildpostroll: function(ply_obj) {
 
-			var postrollLink = ply_obj.container.find('script[type="text/postroll"]').attr('src');
+			var postroll_link = ply_obj.container.find('script[type="text/postroll"]').attr('src'),
+				postroll_close = jQuery('<a class="btn btn-danger mejs-postroll-close" title="' + ply_obj.options.i18n.close + '"><i class="fa fa-times"></i></a>'),
+				postroll_content = jQuery('<div class="mejs-postroll-layer-content"></div>'),
+				postroll_container = jQuery('<div class="mejs-postroll-layer mejs-layer"></div>');
 
-			if (postrollLink !== undefined) {
-				ply_obj.postroll =
-					jQuery(
-						'<div class="mejs-postroll-layer mejs-layer">' +
-							'<a class="mejs-postroll-close" onclick="jQuery(this).parent().hide();return false;">' + ply_obj.options.i18n.close + '</a>' +
-							'<div class="mejs-postroll-layer-content"></div>' +
-						'</div>'
-					).prependTo(ply_obj.layers).hide();
+			postroll_close.click(
+				function (e) {
+					msos.do_nothing(e);
+					jQuery(this).parent().hide();
+					return false;
+				}
+			);
+
+			postroll_container.append(postroll_close, postroll_content);
+
+			if (postroll_link !== undefined) {
+
+				postroll_container.prependTo(ply_obj.layers).hide();
 
 				ply_obj.media.addEventListener(
 					'ended',
-					function (e) {
+					function () {
 						jQuery.ajax({
 							dataType: 'html',
-							url: postrollLink,
+							url: postroll_link,
 							success: function (data, textStatus) {
-								ply_obj.layers.find('.mejs-postroll-layer-content').html(data);
+								postroll_content.html(data);
 							}
 						});
-						ply_obj.postroll.show();
+						postroll_container.show();
 					},
 					false
 				);

@@ -10,12 +10,13 @@
 
 /*global
     msos: false,
-    jQuery: false
+    jQuery: false,
+    mep: false
 */
 
 msos.provide("mep.poster");
 
-mep.poster.version = new msos.set_version(14, 6, 15);
+mep.poster.version = new msos.set_version(15, 11, 12);
 
 
 mep.poster.start = function () {
@@ -28,24 +29,19 @@ mep.poster.start = function () {
 			buildposter: function (ply_obj) {
 
 				var poster = jQuery('<div class="mejs-poster">').appendTo(ply_obj.layers),
-					posterUrl = ply_obj.$node.attr('poster'),
+					posterUrl = ply_obj.$node.attr('poster') || ply_obj.options.poster,
 					setPoster = function (url) {
 						var posterImg = poster.find('img');
 
 						if (posterImg.length === 0) {
-							posterImg = jQuery('<img width="100%" height="100%" />').appendTo(poster);
+							posterImg = jQuery('<img alt="poster" />').appendTo(poster);
 						}
+
 						posterImg.attr('src', url);
 					};
 
-				// prioriy goes to option (this is useful if you need to support iOS 3.x (iOS completely fails with poster)
-				if (ply_obj.options.poster !== '') {
-					posterUrl = ply_obj.options.poster;
-				}
-
 				// second, try the real poster
-				if (posterUrl !== ''
-				 && posterUrl !== null) {
+				if (posterUrl) {
 					setPoster(posterUrl);
 				} else {
 					poster.hide();

@@ -26,7 +26,7 @@ mep.youtube.api = {
 	createEvent: function (player, pluginMediaElement, eventName) {
 		"use strict";
 
-		var obj = {
+		var event = {
 				type: eventName,
 				target: pluginMediaElement
 			},
@@ -35,32 +35,32 @@ mep.youtube.api = {
 		if (player && player.getDuration) {
 
 			// time 
-			pluginMediaElement.currentTime	= obj.currentTime =	player.getCurrentTime();
-			pluginMediaElement.duration		= obj.duration =	player.getDuration();
+			pluginMediaElement.currentTime	= event.currentTime =	player.getCurrentTime();
+			pluginMediaElement.duration		= event.duration =		player.getDuration();
 
 			// state
-			obj.paused	= pluginMediaElement.paused;
-			obj.ended	= pluginMediaElement.ended;
+			event.paused	= pluginMediaElement.paused;
+			event.ended		= pluginMediaElement.ended;
 
 			// sound
-			obj.muted	= player.isMuted();
-			obj.volume	= player.getVolume() / 100;
+			event.muted		= player.isMuted();
+			event.volume	= player.getVolume() / 100;
 
 			// progress
-			obj.bytesTotal		= player.getVideoBytesTotal();
-			obj.bufferedBytes	= player.getVideoBytesLoaded();
+			event.bytesTotal	= player.getVideoBytesTotal();
+			event.bufferedBytes	= player.getVideoBytesLoaded();
 
 			// fake the W3C buffered TimeRange
-			bufferedTime = obj.bufferedBytes / obj.bytesTotal * obj.duration;
+			bufferedTime = event.bufferedBytes / event.bytesTotal * event.duration;
 
-			obj.target.buffered = obj.buffered = {
+			event.target.buffered = event.buffered = {
 				start:	function (index) { return 0; },
 				end:	function (index) { return bufferedTime; },
 				length: 1
 			};
 		}
 		// send event up the chain
-		pluginMediaElement.dispatchEvent(obj.type, obj);
+		pluginMediaElement.dispatchEvent(event);
 	},
 
 	handleStateChange: function (youTubeState, player, pluginMediaElement) {
@@ -168,7 +168,7 @@ mep.youtube.api = {
 
 	// Flash api
 	flashPlayers: {},
-	createFlash: function (settings) {
+	createFlash: function (settings, options) {
 		"use strict";
 		this.flashPlayers[settings.pluginId] = settings;
 	},
@@ -204,13 +204,13 @@ mep.youtube.api = {
 };
 
 // IFRAME
-function onYouTubePlayerAPIReady() {
+window.onYouTubePlayerAPIReady = function () {
 	"use strict";
 	mep.youtube.api.iFrameReady();
-}
+};
 
 // FLASH
-function onYouTubePlayerReady(id) {
+window.onYouTubePlayerReady = function (id) {
 	"use strict";
 	mep.youtube.api.flashReady(id);
-}
+};

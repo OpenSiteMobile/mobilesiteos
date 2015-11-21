@@ -10,7 +10,7 @@ msos.require("mep.player");
 
 mep.play.audio = {
 
-	version: new msos.set_version(14, 6, 14),
+	version: new msos.set_version(15, 11, 14),
 
 	config: {
 		// auto:			attempts to detect what the browser can do
@@ -21,12 +21,17 @@ mep.play.audio = {
 		// remove or reorder to change plugin priority and availability
 		plugins: ['flash', 'youtube', 'vimeo'],
 		// name of plugin specific required external file
-		flashName: 'flashmediaelement.swf',
-		// path to Flash plugin
-		shim_path: msos.resource_url('mep', 'shim/'),
-		// name of flash file
+		flash_uri: msos.resource_url('mep', 'shim/218/flashmediaelement.swf'),
+		// streamer for RTMP streaming
+		flashStreamer: '',
+		// set to 'always' for CDN version
+		flashScriptAccess: 'sameDomain',
 		// turns on the smoothing filter in Flash
 		enablePluginSmoothing: false,
+		// enabled pseudo-streaming (seek) on .mp4 files
+		enablePseudoStreaming: false,
+		// start query parameter sent to server for pseudo-streaming
+		pseudoStreamingStartQueryParam: 'start',
 		// default amount to move back when back key is pressed		
 		defaultSeekBackwardInterval: function (media) {
 			"use strict";

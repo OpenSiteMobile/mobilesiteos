@@ -15,15 +15,14 @@
 */
 
 // MediaElementPlayer plugins variable,
-// flash etc. use mejs for bridging
+// flash etc. use mejs for bridging. Also used: window.MediaElement = mejs.MediaElement;
 window.mejs = {};
-//window.MediaElement = mejs.MediaElement;
 
 msos.provide("mep.plugins");
 
 mep.plugins = {
 
-	version: new msos.set_version(14, 6, 15),
+	version: new msos.set_version(15, 11, 12),
 	name: 'mep.plugins',
 	detected: {},
 
@@ -111,7 +110,7 @@ mep.plugins = {
 				// test for plugin playback types
 				for (j = 0; j < pluginInfo.types.length; j += 1) {
 					// find plugin that can play the type
-					if (type === pluginInfo.types[j]) {
+					if (type.toLowerCase() === pluginInfo.types[j].toLowerCase()) {
 						return true;
 					}
 				}
@@ -143,7 +142,7 @@ mep.plugins = {
 		// copy attributes from html media element to plugin media element
 		for (i = 0; i < ply_obj.node.attributes.length; i += 1) {
 			attribute = ply_obj.node.attributes[i];
-			if (attribute.specified === true) {
+			if (attribute.specified) {
 				plugin_interface.setAttribute(attribute.name, attribute.value);
 			}
 		}
@@ -159,14 +158,19 @@ mep.plugins = {
 
 		// flash vars
 		initVars = [
-			'id='			+ plugin_id,
-			'isvideo='		+ ((playback.isVideo) ? "true" : "false"),
-			'autoplay='		+ ((autoplay) ? "true" : "false"),
-			'preload='		+ preload,
-			'width='		+ width,
-			'startvolume='	+ me_opts.startVolume,
-			'timerrate='	+ me_opts.timerRate,
-			'height='		+ height];
+			'id='					+ plugin_id,
+			'jsinitfunction='		+ "mejs.MediaPluginBridge.initPlugin",
+			'jscallbackfunction='	+ "mejs.MediaPluginBridge.fireEvent",
+			'isvideo='				+ ((playback.isVideo) ? "true" : "false"),
+			'autoplay='				+ ((autoplay) ? "true" : "false"),
+			'preload='				+ preload,
+			'width='				+ width,
+			'startvolume='			+ me_opts.startVolume,
+			'timerrate='			+ me_opts.timerRate,
+			'flashstreamer='		+ me_opts.flashStreamer,
+			'height='				+ height,
+			'pseudostreamstart='	+ me_opts.pseudoStreamingStartQueryParam
+		];
 
 		if (playback.url !== null) {
 			if (playback.method === 'flash') {
@@ -180,6 +184,9 @@ mep.plugins = {
 		}
 		if (me_opts.enablePluginSmoothing) {
 			initVars.push('smoothing=true');
+		}
+		if (me_opts.enablePseudoStreaming) {
+			initVars.push('pseudostreaming=true');
 		}
 		if (controls) {
 			initVars.push('controls=true'); // shows controls in the plugin if desired
@@ -212,7 +219,7 @@ mep.plugins = {
 
 					plugin_html_txt = mep.plugins.youtube_html(plugin_id, width, height, initVars, me_opts);
 
-					mep.youtube.api.createFlash(youtubeSettings);
+					mep.youtube.api.createFlash(youtubeSettings, me_opts);
 
 				} else if (mep.youtube) {
 					mep.youtube.api.enqueueIframe(youtubeSettings);
@@ -277,10 +284,10 @@ mep.plugins.flash_html = function (pluginid, width, height, initVars, options) {
 			'quality="high" ' +
 			'bgcolor="#000000" ' +
 			'wmode="transparent" ' +
-			'allowScriptAccess="always" ' +
+			'allowScriptAccess="' + options.flashScriptAccess + '" ' +
 			'allowFullScreen="true" ' +
 			'type="application/x-shockwave-flash" pluginspage="//www.macromedia.com/go/getflashplayer" ' +
-			'src="' + options.shim_path + options.flashName + '" ' +
+			'src="' + options.flash_uri + '" ' +
 			'flashvars="' + initVars.join('&') + '" ' +
 			'width="' + width + '" ' +
 			'height="' + height + '" ' +
@@ -304,12 +311,12 @@ mep.plugins.youtube_html = function (pluginid, width, height, initVars, options)
 
 	return	'<object type="application/x-shockwave-flash" id="' + pluginid + '" data="' + youtubeUrl + '" ' +
 				'width="' + width + '" height="' + height + '" style="visibility: visible; " class="mejs-shim">' +
-				'<param name="allowScriptAccess" value="always">' +
-				'<param name="wmode" value="transparent">' +
+				'<param name="allowScriptAccess" value="' + options.flashScriptAccess + '" />' +
+				'<param name="wmode" value="transparent" />' +
 			'</object>';
 };
 
-//Mimics the <video/audio> element by calling Flash's External Interface or Silverlights [ScriptableMember]
+// Mimics the <video/audio> element by calling Flash's External Interface or Silverlights [ScriptableMember]
 mep.plugins.plugin_interface = function (pluginid, pluginType, mediaUrl) {
 	"use strict";
 
@@ -472,7 +479,7 @@ mep.plugins.plugin_interface.prototype = {
 					this.pluginApi.unMute();
 				  }
 				this.muted = muted;
-				this.dispatchEvent('volumechange');
+				this.dispatchEvent({ type: 'volumechange' });
 			} else {
 				this.pluginApi.setMuted(muted);
 			}
@@ -550,16 +557,16 @@ mep.plugins.plugin_interface.prototype = {
 		}
 		return false;
 	},
-	dispatchEvent: function (eventName) {
+	dispatchEvent: function (event) {
 		"use strict";
-		var i,
+
+		var i = 0,
 			args,
-			callbacks = this.events[eventName];
+			callbacks = this.events[event.type];
 
 		if (callbacks) {
-			args = Array.prototype.slice.call(arguments, 1);
 			for (i = 0; i < callbacks.length; i += 1) {
-				callbacks[i].apply(null, args);
+				callbacks[i].apply(this, [event]);
 			}
 		}
 	},
@@ -590,6 +597,7 @@ mep.plugins.plugin_interface.prototype = {
 	remove: function () {
 		"use strict";
 		mep.plugins.removeSwf(this.pluginElement.id);
+		mejs.MediaPluginBridge.unregisterPluginElement(this.pluginElement.id);
 	}
 };
 
@@ -608,34 +616,36 @@ mejs.MediaPluginBridge = {
 		this.htmlMediaElements[id] = media_elm;
 	},
 
+	unregisterPluginElement: function (id) {
+		"use strict";
+
+		delete this.pluginMediaElements[id];
+		delete this.htmlMediaElements[id];
+	},
+
 	// when Flash/Silverlight is ready, it calls out to this method
 	initPlugin: function (id) {
 		"use strict";
 
 		var temp_ip = ' - initPlugin -> ',
-			debug = '',
-			pluginMediaElement	= this.pluginMediaElements[id],
-			htmlMediaElement	= this.htmlMediaElements[id];
+			pme	= this.pluginMediaElements[id],
+			hme	= this.htmlMediaElements[id];
 
 		msos.console.debug(this.name + temp_ip + 'start, id: ' + id);
 
-		if (pluginMediaElement) {
+		if (pme && pme.pluginType === 'flash') {
+
 			// find the javascript bridge
-			switch (pluginMediaElement.pluginType) {
-				case "flash":
-					pluginMediaElement.pluginElement = document.getElementById(id);
-					pluginMediaElement.pluginApi     = document.getElementById(id);
-					debug = 'using flash';
-					break;
+			pme.pluginElement = pme.pluginApi = document.getElementById(id);
+
+			if (pme.pluginApi && pme.success) {
+				pme.success(pme, hme);
 			}
 
-			if (typeof pluginMediaElement.success === 'function') {
-				debug = 'success ' + debug;
-				pluginMediaElement.success();
-			}
+			msos.console.debug(this.name + temp_ip + 'done!');
+		} else {
+			msos.console.error(this.name + temp_ip + 'failed:', pme);
 		}
-
-		msos.console.debug(this.name + temp_ip + 'done, ' + debug);
 	},
 
 	// receives events from Flash/Silverlight and sends them out as HTML5 media events
@@ -643,11 +653,20 @@ mejs.MediaPluginBridge = {
 	fireEvent: function (id, eventName, values) {
 		"use strict";
 
-		var e,
+		var temp_fe = ' - fireEvent -> ',
+			e,
 			i,
 			bufferedTime,
 			pluginMediaElement = this.pluginMediaElements[id];
 
+		if (msos.config.verbose) {
+			msos.console.debug(this.name + temp_fe + 'start, id: ' + id);
+		}
+
+		if(!pluginMediaElement){
+			msos.console.error(this.name + temp_fe + 'failed!');
+            return;
+        }
 		// fake event object to mimic real HTML media event.
 		e = {
 			type: eventName,
@@ -669,7 +688,11 @@ mejs.MediaPluginBridge = {
 			length: 1
 		};
 
-		pluginMediaElement.dispatchEvent(e.type, e);
+		pluginMediaElement.dispatchEvent(e);
+
+		if (msos.config.verbose) {
+			msos.console.debug(this.name + temp_fe + 'done, id: ' + id);
+		}
 	}
 };
 

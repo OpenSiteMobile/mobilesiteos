@@ -3,7 +3,7 @@
 //			Copyright©2012-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
-//			http://opensite.mobi
+//			http://opensitemobile.com
 // ==========================================================================
 // Contact Information:
 //			Author: Dwight Vietzke
@@ -13,7 +13,7 @@
 	OpenSiteMobile MobileSiteOS base object file.
 	Use as the installation base for all your MobileSiteOS web apps.
 
-	This file includes: Underscore.js, Purl.js, Verge.js, Basil.js
+	This file includes: Underscore.js, Modernizr.js, Purl.js, Verge.js, Basil.js
 */
 
 if (console && console.info) { console.info('msos/base -> start.'); }
@@ -612,17 +612,21 @@ msos.parse_query = function () {
 
     for (key in result) {
 		// only allow std word characters
-		result[key] = result[key].replace(/[^0-9a-zA-Z_]/g, '_');
-
-        if (result[key] === 'true')		{ result[key] = true; }
-        if (result[key] === 'false')	{ result[key] = false; }
+		if (result.hasOwnProperty(key)) {
+			result[key] = result[key].replace(/[^0-9a-zA-Z_]/g, '_');
+	
+			if (result[key] === 'true')		{ result[key] = true; }
+			if (result[key] === 'false')	{ result[key] = false; }
+		}
 	}
 
     // Update msos.config if new info passed in by query string
     for (cfg in msos.config) {
-        if (result[cfg] || result[cfg] === false) {
-            msos.config[cfg] = result[cfg];
-        }
+		if (msos.config.hasOwnProperty(cfg)) {
+			if (result[cfg] || result[cfg] === false) {
+				msos.config[cfg] = result[cfg];
+			}
+		}
     }
 
 	// Verbose output implies debugging too.
@@ -4092,8 +4096,10 @@ msos.browser_touch = function () {
 
     // Is touch capability showing up?
     for (test in msos.config.touch) {
-		if (msos.config.touch[test] === true)	{ touch_avail += 1; }
-		else									{ touch_avail -= 1; }
+		if (msos.config.touch.hasOwnProperty(test)) {
+			if (msos.config.touch[test] === true)	{ touch_avail += 1; }
+			else									{ touch_avail -= 1; }
+		}
     }
 
     // Try creating or adding an event
@@ -4278,8 +4284,11 @@ msos.create_node = function (tag, atts_obj, win) {
     }
 
     for (at in atts_obj) {
-		elem.setAttribute(at, atts_obj[at]);
+		if (atts_obj.hasOwnProperty(at)) {
+			elem.setAttribute(at, atts_obj[at]);
+		}
     }
+
     return elem;
 };
 
@@ -4446,7 +4455,9 @@ msos.loader = function (win) {
 
 		if (attribs !== undefined && typeof attribs === 'object') {
 			for (ats in attribs) {
-				node_attrs[ats] = attribs[ats];
+				if (attribs.hasOwnProperty(ats)) {
+					node_attrs[ats] = attribs[ats];
+				}
 			}
 		}
 
@@ -4583,10 +4594,12 @@ msos.calc_display_size = function () {
 
     for (size in msos.config.size_wide) {
 		// Get the size that fits (size_wide + 1%)
-		adj_width = msos.config.size_wide[size] + (msos.config.size_wide[size] * 0.01);
-		if (scrn_px > adj_width) {
-			if (view) { if (msos.config.size_wide[view] < msos.config.size_wide[size])	{ view = size; } }
-			else																		{ view = size; }
+		if (msos.config.size_wide.hasOwnProperty(size)) {
+			adj_width = msos.config.size_wide[size] + (msos.config.size_wide[size] * 0.01);
+			if (scrn_px > adj_width) {
+				if (view) { if (msos.config.size_wide[view] < msos.config.size_wide[size])	{ view = size; } }
+				else																		{ view = size; }
+			}
 		}
     }
 

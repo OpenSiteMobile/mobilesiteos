@@ -83,9 +83,8 @@ mep.progress.start = function () {
 						// position floating time box
 						if (!msos.config.browser.touch) {
 							tfloat.css('left', pos);
-							tfltcur.html(mep.player.utils.secondsToTimeCode(newTime));
+							tfltcur.html(mep.player.utils.secondsToTimeCode(newTime, ply_obj.options));
 							tfloat.show();
-							//msos.console.debug(temp_ps + 'buildprogress - handleMouseMove -> fired, for pos: ' + pos);
 						}
 					}
 				};
@@ -120,8 +119,10 @@ mep.progress.start = function () {
 					 && target.buffered.length > 0
 					 && target.buffered.end
 					 && target.duration) {
-						percent = target.buffered.end(0) / target.duration;
+						// account for a real array with multiple values - always read the end of the last buffer
+						percent = target.buffered.end(target.buffered.length - 1) / target.duration;
 					}
+
 					// Some browsers (e.g., FF3.6 and Safari 5) cannot calculate target.bufferered.end()
 					// to be anything other than 0. If the byte count is available we use this instead.
 					// Browsers that support the else if do not seem to have the bufferedBytes value and
