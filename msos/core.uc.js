@@ -526,7 +526,7 @@ msos.notify = {
 	add: function () {
 		"use strict";
 
-		var cont = msos.notify.container;
+		var cont = this.container;
 
 		// Add our container
 		jQuery('body').append(cont);
@@ -551,7 +551,7 @@ msos.notify = {
 	clear_current: function () {
 		"use strict";
 
-		var self = msos.notify;
+		var self = this;
 
 		// Errors and warnings are a special case, (we always show them to completion)
 		if (self.current !== null
@@ -567,7 +567,7 @@ msos.notify = {
 	clear: function () {
 		"use strict";
 
-		var self = msos.notify,
+		var self = this,
 			n = 0;
 
 		msos.console.debug('msos.notify.clear -> called, for queue: ' + self.queue.length);
@@ -586,7 +586,7 @@ msos.notify = {
 		"use strict";
 
 		var temp_rn = 'msos.notify.run -> ',
-			self = msos.notify;
+			self = this;
 
 			self.current = self.queue.shift() || null;
 
@@ -606,7 +606,7 @@ msos.notify = {
 		"use strict";
 
 		var temp_ntf = 'msos.notify.base -> ',
-			self = msos.notify,
+			self = this,
 			base_obj = {
 				type: type,
 				delay: delay || 4000,		// default (minimum) is 4 sec.
@@ -675,7 +675,7 @@ msos.notify = {
 	info: function (message, title) {
 		"use strict";
 
-		var obj = new msos.notify.base(
+		var obj = msos.notify.base(
 			'info',
 			message,
 			title,
@@ -687,7 +687,7 @@ msos.notify = {
 	warning: function (message, title) {
 		"use strict";
 
-		var obj = new msos.notify.base(
+		var obj = msos.notify.base(
 			'warning',
 			message,
 			title,
@@ -700,7 +700,7 @@ msos.notify = {
 	error: function (message, title) {
 		"use strict";
 
-		var obj = new msos.notify.base(
+		var obj = msos.notify.base(
 			'error',
 			message,
 			title,
@@ -713,7 +713,7 @@ msos.notify = {
 	success: function (message, title) {
 		"use strict";
 
-		var obj = new msos.notify.base(
+		var obj = msos.notify.base(
 			'success',
 			message,
 			title,
@@ -725,7 +725,7 @@ msos.notify = {
 	loading: function (message, title) {
 		"use strict";
 
-		var obj = new msos.notify.base(
+		var obj = msos.notify.base(
 			'loading',
 			message,
 			title,
