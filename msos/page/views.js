@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				  page/views.js
-//			Copyright©2013 - OpenSiteMobile
+//			Copyright©2013-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -22,7 +22,7 @@ msos.provide("msos.page.views");
 msos.require("msos.page");
 msos.require("msos.stickup");
 
-msos.page.views.version = new msos.set_version(14, 3, 26);
+msos.page.views.version = new msos.set_version(15, 11, 24);
 
 
 // Helper functions
@@ -213,14 +213,32 @@ msos.page.views.BBViewContent = Backbone.View.extend({
 
         msos.console.debug(this.bv_name + 'render -> called, for: ' + name);
 
+		if (!name) {
+			msos.console.error(this.bv_name + 'render -> failed, for no name.');
+			return this;
+		}
+
 		self.$el.hide();
 
         if (!self.cached_template[name]) {
+
             self.cached_template[name] = _.template(msos_tmpl_obj.text);
-			self.cached_onload[name] = msos.onload_functions.slice(0) || [];
-        } else if (self.cached_onload[name].length) {
-			msos.onload_functions = self.cached_onload[name];
+        }
+
+		if (!self.cached_onload[name]) {
+
+			self.cached_onload[name] = [];
+
+			// Cache page content creation functions
+			self.cached_onload[name][0] = msos.onload_func_start.slice(0)	|| [];
+			self.cached_onload[name][1] = msos.onload_functions.slice(0)	|| [];
+			self.cached_onload[name][2] = msos.onload_func_done.slice(0)	|| [];
 		}
+
+		// Apply page content creation functions
+		msos.onload_func_start =	self.cached_onload[name][0];
+		msos.onload_functions =		self.cached_onload[name][1];
+		msos.onload_func_done =		self.cached_onload[name][2];
 
 		// Add the input (or cached) html to the page
         self.$el.html(self.cached_template[name](msos.page));

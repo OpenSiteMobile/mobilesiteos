@@ -20,7 +20,7 @@
 msos.provide("msos.page.routes");
 msos.require("msos.page");	// Already called, but here for ref.
 
-msos.page.routes.version = new msos.set_version(15, 6, 5);
+msos.page.routes.version = new msos.set_version(15, 11, 24);
 
 
 msos.page.routes.Router = Backbone.Router.extend({
@@ -63,7 +63,7 @@ msos.page.routes.Router = Backbone.Router.extend({
 		msos.console.debug(this.br_name + 'page -> start, page: ' + name_page_js);
 
 		// Only allow a-z, A-Z, 0-9, period, dash in content js reference name
-		if (!/^[0-9a-zA-Z.-]+$/.test(name_page_js)) {
+		if (!/^[0-9a-zA-Z\.\-]+$/.test(name_page_js)) {
 
 			msos.console.error(this.br_name + 'page -> invalid name: ' + name_page_js);
 
@@ -86,11 +86,21 @@ msos.page.routes.Router = Backbone.Router.extend({
 			trac.name = name_array[1];
 		}
 
+		if (msos.config.verbose) {
+			msos.console.debug(this.br_name + 'page -> for name length: ' + name_lngth+ ', trac:', trac);
+		}
+
 		// If not yet defined, get to it.
-		if (!pw.available[trac.group]) { this.vent.trigger('update_avail'); }
+		if (!pw.available[trac.group]) {
+			if (msos.config.verbose) {
+				msos.console.debug(this.br_name + 'page -> trigger update for trac.group: ' + trac.group + ', ref:', pw.available);
+			}
+			this.vent.trigger('update_avail');
+		}
 
 		// Now check for valid page content
-		if (pw.available[trac.group] && pw.available[trac.group].indexOf('#/page/' + name_page_js) === -1) {
+		if (pw.available[trac.group]
+		 && pw.available[trac.group].indexOf('#/page/' + name_page_js) === -1) {
 
 			// Alert user to page problem
 			msos.notify.error(lang.sorry + ' ' + lang.invalid_page + ' ' + name_page_js, lang.page_error);
@@ -98,6 +108,7 @@ msos.page.routes.Router = Backbone.Router.extend({
 			msos.console.warn(this.br_name + 'page -> bad name: ' + name_page_js);
 
 			this.error(name_page_js);
+
 		} else {
 
 			// Reset to load "base page" (with specified content) from scratch

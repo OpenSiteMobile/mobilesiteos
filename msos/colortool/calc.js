@@ -262,7 +262,7 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
 
     var temp_name = 'msos.colortool.calc.generate_colortool',
         debug = msos.config.verbose,
-        clt_cookie = msos.config.cookie.site_cltl,
+        clt_store = msos.config.storage.site_cltl,
 
         ct_elms = {
             ct_buttons:     msos.byid('ct_buttons'),
@@ -374,8 +374,8 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
     this.clear_saved_colors = function (evt) {
         msos.do_nothing(evt);
         ctc_obj.saved_rgb_colors = [];
-        msos.cookie(clt_cookie.name, null);
-        clt_cookie.set = false;
+        msos.basil.set(clt_store.name, '');
+        clt_store.set = false;
         ctc_obj.display_saved_colors();
         if (msos.debug) {
             msos.debug.event(evt, "\n" + temp_name + " - clear_saved_colors");
@@ -582,14 +582,14 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
 
         tab_obj.act_tab_style = 'tab_active';
         tab_obj.pas_tab_style = 'tab_passive';
-        tab_obj.tab_cookie_name = 'colortool';
+        tab_obj.tab_store_name = 'colortool';
 
         main_onclick = function () {
             tab_obj.go_to_tab();
         };
 
-        // Get the tab index if saved to a cookie
-        tab_obj.get_tab_by_cookie();
+        // Get the tab index if saved to storage
+        tab_obj.get_tab_fr_store();
 
         main_tab = {
             caption: ct_obj.i18n.ct_txt_6,
@@ -738,7 +738,7 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
         msos.console.debug(temp_name + ' - display_saved_colors -> done!');
     };
 
-    this.save_to_cookie = function (evt) {
+    this.save_to_store = function (evt) {
         var i = 0,
             clr_array = [];
 
@@ -752,13 +752,12 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
         for (i = 0; i < ctc_obj.saved_rgb_colors.length; i += 1) {
             clr_array[clr_array.length] = msos.colortool.calc.rgb_to_hex(ctc_obj.saved_rgb_colors[i]);
         }
-        clt_cookie.value = JSON.stringify(clr_array)
-        msos.cookie(
-            clt_cookie.name,
-            clt_cookie.value,
-            clt_cookie.params
+        clt_store.value = JSON.stringify(clr_array)
+        msos.basil.set(
+            clt_store.name,
+            clt_store.value
         );
-        clt_cookie.set = true;
+        clt_store.set = true;
         ctc_obj.display_saved_colors();
         ctc_obj.on_click_but(evt);
     };
@@ -775,8 +774,8 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
 
         // Store a computed hex value
         var calc_color = '000000',
-            saved_cookie = msos.cookie(clt_cookie.name) || '',
-            colors_array = saved_cookie ? JSON.parse(saved_cookie) : [],
+            saved_val = msos.basil.get(clt_store.name) || '',
+            colors_array = saved_val ? JSON.parse(saved_val) : [],
             j = 0,
             colorwheel_move = null,
             onfocus_hex_inp = null,
@@ -871,7 +870,7 @@ msos.colortool.calc.generate_colortool = function (ct_obj) {
         jQuery(ct_elms.ct_use_color).click(ctc_obj.use_color);
 
         // Set ct_save_color button to store the current clr for later ref.
-        jQuery(ct_elms.ct_save_color).click(ctc_obj.save_to_cookie);
+        jQuery(ct_elms.ct_save_color).click(ctc_obj.save_to_store);
 
         // Generate the Canvas Color Wheel
         ctc_obj.generate_canvas_display();
