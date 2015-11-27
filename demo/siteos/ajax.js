@@ -53,7 +53,7 @@ msos.onload_functions.push(
         ajax_popup.tool_ajax_cache = true;
 
         // Set what file to get via ajax
-        ajax_popup.tool_load_url = './demo/siteos/tmpl/countrystate.html';
+        ajax_popup.tool_load_url = msos.resource_url('demo', 'siteos/tmpl/countrystate.html');
 
         // Add popup "onsuccess" function
         ajax_popup.tool_on_success.push(fill_div);
