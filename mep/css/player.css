@@ -4,7 +4,6 @@
 /* Please note: position:relative is set by fitmedia css code */
 .mejs-container {
 	background-color: #999;
-	overflow: hidden;
 	z-index: 200;
 }
 .mejs-container-fullscreen {
@@ -17,11 +16,9 @@
 }
 
 .mejs-audio {
-	height: 33px;
-	margin-bottom: 1em;
-	-webkit-border-radius: 0.4em;
-	   -moz-border-radius: 0.4em;
-			border-radius: 0.4em;
+	background-color: rgba(0, 0, 0, 0.9);
+	height: 30px;
+	border-radius: 0.4em;
 }
 
 .mejs-layers,
@@ -67,9 +64,7 @@
 	background-color: rgba(0, 0, 0, 0.7);
 	height: 30px;
 	width: 98%;
-	-webkit-border-radius: 0.3em;
-	   -moz-border-radius: 0.3em;
-			border-radius: 0.3em;
+	border-radius: 0.3em;
 	z-index: 200;
 }
 .mejs-controls > div {
@@ -117,14 +112,16 @@
 .mejs-play button > i.fa-play,
 .mejs-pause button > i.fa-pause,
 .mejs-stop button > i.fa-stop,
+.mejs-loop button > i.fa-repeat,
+.mejs-track button > i.fa-cc,
 .mejs-fullscreen button > i.fa-arrows-alt,
-.mejs-unfullscreen button > i.fa-square-o,
-.mejs-skip-back-button button > i.fa-step-backward,
-.mejs-jump-forward-button button > i.fa-step-forward,
-.mejs-captions-button button > i.fa-cc {
+.mejs-unfullscreen button > i.fa-compress,
+.mejs-sourcechooser button > i.fa-file-video-o,
+.mejs-skip-back button > i.fa-step-backward,
+.mejs-jump-forward button > i.fa-step-forward,
+.mejs-captions button > i.fa-cc {
 	display: inline;
 }
-
 .me-cannotplay > a > img {
 	width: 100%;
 	height: 100%;

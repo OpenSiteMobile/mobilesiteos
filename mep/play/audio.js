@@ -1,21 +1,28 @@
 
 /*global
     msos: false,
+    mep: false,
     jQuery: false,
-    Modernizr: false
+    Modernizr: false,
+    Backbone: false,
+    _: false
 */
 
 msos.provide("mep.play.audio");
 msos.require("mep.player");
+msos.require("msos.i18n.player");
 
-mep.play.audio = {
+mep.play.audio.version = new msos.set_version(15, 12, 9);
 
-	version: new msos.set_version(15, 11, 14),
 
-	config: {
-		// auto:			attempts to detect what the browser can do
-		// native:			forces HTML5 playback
-		// shim:			disallows HTML5, will attempt Flash
+mep.play.audio.defaults = function () {
+	"use strict";
+
+	this.config = {
+		i18n: msos.i18n.player.bundle,
+		// auto:	attempts to detect what the browser can do
+		// native:	forces HTML5 playback
+		// shim:	disallows HTML5, will attempt Flash
 		mode: _.indexOf(['auto', 'native', 'shim'], msos.config.query.player_mode) > 0 ? msos.config.query.player_mode : 'auto',
 		poster: '',
 		// remove or reorder to change plugin priority and availability
@@ -34,12 +41,10 @@ mep.play.audio = {
 		pseudoStreamingStartQueryParam: 'start',
 		// default amount to move back when back key is pressed		
 		defaultSeekBackwardInterval: function (media) {
-			"use strict";
 			return (media.duration * 0.05);
 		},
 		// default amount to move forward when forward key is pressed				
 		defaultSeekForwardInterval: function (media) {
-			"use strict";
 			return (media.duration * 0.05);
 		},
 		// additional plugin variables in 'key=value' form
@@ -75,35 +80,22 @@ mep.play.audio = {
                     ]
                 }
             ]
-        },
+        }
+	};
 
-		success_function: function (player_object) {
-			"use strict";
-
-			var temp_sf = 'mep.play.audio.success_function -> ';
-
-            msos.console.info(temp_sf + 'called: ' + player_object.id);
-		},
-
-		error_function:	 function (player_object) {
-			"use strict";
-
-			var temp_ef = 'mep.play.audio.error_function -> ';
-
-            msos.console.error(temp_ef + 'for: ' + player_object.id);
-		}
-	},
-
-    features_by_size: {
+    this.features_by_size = {
 		'desktop':	['playpause', 'current', 'progress', 'duration', 'volume', 'stop', 'keyboard'],
         'large':	['playpause', 'current', 'progress', 'duration', 'volume', 'stop', 'keyboard'],
         'medium':	['playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'small':	['playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'tablet':	['playpause', 'current', 'progress', 'duration'],
-        'phone':	['playpause', 'current', 'progress', 'duration']
-    },
+        'phone':	['playpause', 'current', 'progress', 'duration'],
+		'custom':	['playpause', 'duration']
+    };
 
-    format: {
+	this.size = msos.config.size || 'custom';	// default is minimal version
+
+    this.format = {
         mp3: {
             codec: 'audio/mpeg; codecs="mp3"',
             flash: true
@@ -132,83 +124,106 @@ mep.play.audio = {
             codec: 'audio/rtmp; codecs="rtmp"',
             flash: true
         }
-    },
+    };
 
-	html5: {
+	this.html5 = {
 		types: [
 			'audio/mp4', 'audio/ogg', 'audio/mpeg', 'audio/wav'
 		]
+	};
+
+	return this;
+};
+
+mep.play.audio.onresize = function () {
+	"use strict";
+
+	var temp_or = 'mep.play.audio.onresize -> ',
+		trk,
+		name_page_js = '';
+
+	msos.console.debug(temp_or + 'start.');
+
+	// If an msos.page app, do this
+	if (msos.page && msos.page.track) {
+
+		trk = msos.page.track;
+		name_page_js = '#/page/' + (trk.base ? trk.base + '.' : '') + trk.group + '.' + trk.name;
+
+		// Recall same page...so features get set and sized correctly
+		Backbone.history.navigate(name_page_js, { trigger: true });
+
+		msos.console.debug(temp_or + 'done, reload msos.page: ' + name_page_js);
+
+	}  else {
+
+		// Basic html page
+		if (msos.config.verbose) {
+			msos.console.debug(temp_or + 'done, reloading html page.');
+			alert('Debug note: reloading html page.');
+		}
+
+		window.location.reload();
 	}
 };
 
-mep.play.audio.init = function () {
+mep.play.audio.init = function ($node, audio_spec, player_spec) {
     "use strict";
 
     var temp_ai = 'mep.play.audio.init -> ',
-        aud_feat = mep.play.audio.features_by_size,
-        features = aud_feat[msos.config.size] || aud_feat.phone,
-        a_cfg = mep.play.audio.config;
+		tag = $node.prop("tagName").toLowerCase(),
+		id = $node.attr('id'),
+		set_options = $node.data('setOptions') || {},
+		audio = audio_spec || new mep.play.audio.defaults(),
+		player = player_spec || new mep.player.defaults(),
+        features = audio.features_by_size[audio.size];
 
-    msos.console.debug(temp_ai + 'start, screen size: ' + msos.config.size);
+    msos.console.debug(temp_ai + 'start, screen size: ' + msos.config.size + ', features size: ' + audio.size);
 
-    // Check browser/device HTML5 Media capabilities
-    mep.player.support.html5_media = Modernizr.audio;
+	// If using msos.page, we need to update between content renderings
+	if (msos.page && msos.page.track) { mep.player.players = {}; }
 
-    // No HTML5 Media or we want plugin detection, so check for available Audio plugins
-    if (!mep.player.support.html5_media || !(a_cfg.mode === 'auto' || a_cfg.mode === 'native')) {
-        msos.require("mep.plugins");
-    }
+	if (tag !== 'audio') {
+		msos.console.error(temp_ai + 'not an audio tag, ref.:' + tag);
+		return undefined;
+	}
+
+	if (!id) {
+		id = $node.attr('id', tag + '_' + player.id);
+	}
+
+	// Save ref. to jQuery and std. node
+	player.$node	= $node;
+	player.node		= $node[0];
+
+    // HTML5 audio is available?
+    player.support.html5_media = Modernizr.audio;
 
     // Add needed modules, per 'features_by_size' and  logic
-    mep.player.load_modules(features, a_cfg.use_native_ctrls.force);
+    player.load_features(features);
 
-	jQuery.fn.html5audio = function (options) {
+	jQuery.extend(
+		true,
+		player,
+		audio	// add video specifics to player object
+	);
 
-		return this.each(
-			function () {
-				var temp_h5 = 'mep.play.audio.init - jQuery.fn.html5audio',
-					$this = jQuery(this),
-					mep_obj = new mep.player.build($this, a_cfg, mep.player.config, options),
-						events = [
-						'loadstart', 'loadeddata',
-						'play', 'playing',
-						'seeking', 'seeked',
-						'pause', 'waiting',
-						'ended', 'canplay', 'error'
-					],
-					i = 0;
-
-				// Start up
-				mep_obj.init();
-				// Store each player
-				mep.player.players.push(mep_obj);
-
-				// Add some intense debugging
-				if (msos.config.verbose) {
-					msos.console.debug(temp_h5 + ' -> player object:', mep_obj);
-
-					for (i = 0; i < events.length; i += 1) {
-						mep_obj.media.addEventListener(
-							events[i],
-							function (e) {
-								msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
-							}
-						);
-					}
-				}
-			}
+	if (!_.isEmpty(set_options)) {
+		jQuery.extend(
+			player,
+			set_options
 		);
-	};
+	}
+
+	mep.player.players[id] = player;
+
+	// Let everything load...
+	msos.onload_func_post.push(function () { player.init(); });
 
     msos.console.debug(temp_ai + 'done!');
+
+	return player;
 };
 
-mep.play.audio.start = function () {
-    "use strict";
-
-    // Note: 'msos.load_html5_media_shim()' loads 'mep.play.audio' based on page.
-    jQuery('audio').html5audio();
-};
-
-
-msos.onload_func_start.push(mep.play.audio.init);
+// Onresize function adjusts for different features
+msos.onresize_functions.unshift(mep.play.audio.onresize);

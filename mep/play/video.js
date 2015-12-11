@@ -4,21 +4,25 @@
     mep: false,
     jQuery: false,
     Modernizr: false,
+    Backbone: false,
     _: false
 */
 
 msos.provide("mep.play.video");
 msos.require("mep.player");
+msos.require("msos.i18n.player");
+
+mep.play.video.version = new msos.set_version(15, 12, 7);
 
 
-mep.play.video = {
+mep.play.video.defaults = function () {
+	"use strict";
 
-	version: new msos.set_version(15, 11, 12),
-
-	config: {
-		// auto:			attempts to detect what the browser can do
-		// native:			forces HTML5 playback
-		// shim:			disallows HTML5, will attempt Flash
+	this.config = {
+		i18n: msos.i18n.player.bundle,
+		// auto:	attempts to detect what the browser can do
+		// native:	forces HTML5 playback
+		// shim:	disallows HTML5, will attempt Flash
 		mode: _.indexOf(['auto', 'native', 'shim'], msos.config.query.player_mode) > 0 ? msos.config.query.player_mode : 'auto',
 		poster: '',
 		// remove or reorder to change plugin priority and availability
@@ -37,12 +41,10 @@ mep.play.video = {
 		pseudoStreamingStartQueryParam: 'start',
 		// default amount to move back when back key is pressed		
 		defaultSeekBackwardInterval: function (media) {
-			"use strict";
 			return (media.duration * 0.05);
 		},
 		// default amount to move forward when forward key is pressed				
 		defaultSeekForwardInterval: function (media) {
-			"use strict";
 			return (media.duration * 0.05);
 		},
 		// additional plugin variables in 'key=value' form
@@ -91,37 +93,23 @@ mep.play.video = {
                     types: ['video/vimeo', 'video/x-vimeo']
                 }
             ]
-        },
+        }
+	};
 
-		success_function: function (player_object) {
-			"use strict";
-
-			var temp_sf = 'mep.play.video.success_function -> ';
-
-            msos.console.info(temp_sf + 'called: ' + player_object.id);
-		},
-
-		error_function:	 function (player_object) {
-			"use strict";
-
-			var temp_ef = 'mep.play.video.error_function -> ';
-
-            msos.console.error(temp_ef + 'for: ' + player_object.id);
-		}
-	},
-
-    // Additional available: 'contextmenu', 'tracks', 'sourcechooser', 'postroll', 'loop'
-	// Needs work: 'fullscreen'
-    features_by_size: {
+    // Additional available: 'contextmenu', 'tracks', 'sourcechooser', 'postroll', 'loop', 'fullscreen', 'speedselect'
+    this.features_by_size = {
 		'desktop':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'skipback', 'jumpforward', 'volume', 'stop', 'keyboard'],
         'large':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'skipback', 'jumpforward', 'volume', 'stop', 'keyboard'],
         'medium':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'small':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration', 'volume', 'stop'],
         'tablet':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration'],
-        'phone':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration']
-    },
+        'phone':	['poster', 'overlays', 'playpause', 'current', 'progress', 'duration'],
+		'custom':	['playpause', 'current', 'progress', 'duration']
+    };
 
-    format: {
+	this.size = msos.config.size || 'custom';	// default is the minimal version 'custom', which can be anything you want
+
+    this.format = {
         m4v: {
             codec: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
             flash: true
@@ -142,192 +130,151 @@ mep.play.video = {
             codec: 'video/rtmp; codecs="rtmp"',
             flash: true
         }
-    },
+    };
 
-	html5: {
+	this.html5 = {
 		types: [
 			'video/mp4', 'video/webm', 'video/ogg', 'video/flv', 'video/x-flv'
 		]
-	}
+	};
+
+	return this;
 };
 
-
-mep.play.video.fullscreen_tests = function () {
+mep.play.video.specific_features = function ($node) {
 	"use strict";
 
-	var vid = document.createElement('video') || null,
-		r = {
-			can_play_type: false,
-			can_play_mp4: false,
+	var temp_sf = 'mep.play.video.specific_features -> ',
+		add_features = $node.data('addFeatures') || [];
 
-			semi_native: false,
-			webkit_native: false,
-			moz_native: false,
-			ms_native: false,
-			true_native: false,
+    if ($node.find('track').length > 0) {
+		add_features.push('tracks');
+	}
 
-			native_fs: false,
-			native_fs_enabled: false,
+	if ($node.find('script[type="text/postroll"]').length > 0) {
+		add_features.push('postroll');
+	}
 
-			event_name: '',
+	if (add_features.length && msos.config.verbose) {
+		msos.console.debug(temp_sf + 'add:', add_features);
+	}
 
-			is_fullscreen: function () { return false; }
-		};
+	return add_features;
+};
 
-	if (!msos.var_is_null(vid)) {
+mep.play.video.onresize = function () {
+	"use strict";
 
-		r.can_play_type =	(vid.canPlayType !== undefined);
-		r.can_play_mp4 =	(vid.canPlayType
-						  && vid.canPlayType("video/mp4")	!== undefined);		// basic tests
+	var temp_or = 'mep.play.video.onresize -> ',
+		players = mep.player.players,
+		plyr,
+		is_fullscreen_mode = false,
+		trk,
+		name_page_js = '';
 
-		r.semi_native =		(vid.webkitEnterFullscreen		!== undefined);		// iOS
-		r.webkit_native =	(vid.webkitRequestFullScreen	!== undefined);		// Webkit
-		r.moz_native =		(vid.mozRequestFullScreen		!== undefined);		// firefox
-		r.ms_native =		(vid.msRequestFullscreen		!== undefined);		// MicroSoft
+	msos.console.debug(temp_or + 'start.');
 
-		r.true_native = (r.webkit_native || r.moz_native || r.ms_native);
+	for (plyr in players) {
+		if (players.hasOwnProperty(plyr)) {
 
-		r.native_fs_wc3 =	(vid.requestFullscreen !== undefined);
-		r.native_fs_enabled = r.true_native;
+			is_fullscreen_mode = players[plyr].config.fullscreenMode;
 
-		if (r.moz_native) {
-			r.native_fs_enabled = document.mozFullScreenEnabled;
-		}
-		if (r.ms_native) {
-			r.native_fs_enabled = document.msFullscreenEnabled;
-		}
-
-		if (r.true_native) {
-
-			if		(r.webkit_native)	{ r.event_name = 'webkitfullscreenchange'; }
-			else if (r.moz_native)		{ r.event_name = 'mozfullscreenchange'; }
-			else if (r.ms_native)		{ r.event_name = 'MSFullscreenChange'; }
-
-			// Is already Full-screen?
-			if			(vid.mozRequestFullScreen) {
-				r.is_fullscreen = function () {
-					return document.mozFullScreen;
-				};
-			} else if	(vid.webkitRequestFullScreen) {
-				r.is_fullscreen = function () {
-					return document.webkitIsFullScreen;
-				};
-			} else if (vid.hasMsNativeFullScreen) {
-				r.is_fullscreen = function () {
-					return document.msFullscreenElement !== null;
-				}
+			if (is_fullscreen_mode) {
+				// If any player has switched to fullscreen...then kill onresize
+				msos.console.debug(temp_or + 'done, fullscreen switch => ignore resize.');
+				return;
 			}
 		}
 	}
 
-	// clean up
-	vid = null;
+	// If an msos.page app, do this
+	if (msos.page && msos.page.track) {
 
-	if (msos.config.verbose) {
-		msos.console.debug('mep.play.video.fullscreen_tests -> called, results: ', r);
+		trk = msos.page.track;
+		name_page_js = '#/page/' + (trk.base ? trk.base + '.' : '') + trk.group + '.' + trk.name;
+
+		// Recall same page...so features get set and sized correctly
+		Backbone.history.navigate(name_page_js, { trigger: true });
+
+		msos.console.debug(temp_or + 'done, reload msos.page: ' + name_page_js);
+
+	}  else {
+
+		// Basic html page
+		if (msos.config.verbose) {
+			msos.console.debug(temp_or + 'done, reloading html page.');
+			alert('Debug note: reloading html page.');
+		}
+
+		window.location.reload();
 	}
-	return r;
 };
 
-mep.play.video.specific_features = function () {
-	"use strict";
-
-	var temp_sf = 'mep.play.video.specific_features -> ',
-		spec_features = [],
-		$video_nodes = jQuery('video');
-
-    if ($video_nodes.find('track').length > 0) {
-		spec_features.push('tracks');
-	}
-
-	if ($video_nodes.find('script[type="text/postroll"]').length > 0) {
-		spec_features.push('postroll');
-	}
-
-	if (spec_features.length && msos.config.verbose) {
-		msos.console.debug(temp_sf + 'add:', spec_features);
-	}
-
-	return spec_features;
-};
-
-mep.play.video.init = function () {
+mep.play.video.init = function ($node, video_spec, player_spec) {
     "use strict";
 
     var temp_vi = 'mep.play.video.init -> ',
-        vid_feat = mep.play.video.features_by_size,
-        features = vid_feat[msos.config.size] || vid_feat.phone,
-        v_cfg = mep.play.video.config;
+		tag = $node.prop("tagName").toLowerCase(),
+		id = $node.attr('id'),
+		set_options = $node.data('setOptions') || {},
+		video = video_spec || new mep.play.video.defaults(),
+		player = player_spec || new mep.player.defaults(),
+        features = video.features_by_size[video.size],
+		features_specific = [];
 
-    msos.console.debug(temp_vi + 'start, screen size: ' + msos.config.size);
+    msos.console.debug(temp_vi + 'start, screen size: ' + msos.config.size + ', features size: ' + video.size);
 
-    // Check browser/device fullscreen capabilities
-    mep.player.support.fs = mep.play.video.fullscreen_tests();
+	// If using msos.page, we need to update between content renderings
+	if (msos.page && msos.page.track) { mep.player.players = {}; }
 
-	// Check video tag for specific features
-	mep.player.specific = mep.play.video.specific_features();
-
-    // Check browser/device HTML5 Media capabilities
-    mep.player.support.html5_media = Modernizr.video;
-
-    // No HTML5 Media or we want plugin detection, so check for available Video plugins
-    if (!mep.player.support.html5_media || !(v_cfg.mode === 'auto' || v_cfg.mode === 'native')) {
-        msos.require("mep.plugins");
-    }
-
-    // Add needed modules, per 'features_by_size' and  logic
-    mep.player.load_modules(features);
-
-	// Add needed modules, as specified by individual video tags
-	if (mep.player.specific.length > 0) {
-		mep.player.load_modules(mep.player.specific);
+	if (tag !== 'video') {
+		msos.console.error(temp_vi + 'not a video tag, ref.:' + tag);
+		return undefined;
 	}
 
-    jQuery.fn.html5video = function (options) {
+	if (!id) {
+		id = $node.attr('id', tag + '_' + player.id);
+	}
 
-        return this.each(
-            function () {
-                var temp_h5 = 'mep.play.video.init - jQuery.fn.html5video',
-					$this = jQuery(this),
-                    mep_obj = new mep.player.build($this, v_cfg, mep.player.config, options),
-					events = [
-						'loadstart', 'loadeddata',
-						'play', 'playing',
-						'seeking', 'seeked',
-						'pause', 'waiting',
-						'ended', 'canplay', 'error'
-					],
-					i = 0;
+	// Save ref. to jQuery and std. node
+	player.$node	= $node;
+	player.node		= $node[0];
 
-                // Start up
-                mep_obj.init();
+	// HTML5 video is available?
+	player.support.html5_media = Modernizr.video;
 
-                // Store each player
-                mep.player.players.push(mep_obj);
+	// Check video tag for specific features
+	features_specific = mep.play.video.specific_features($node);
 
-				// Add some intense debugging
-				if (msos.config.verbose) {
-					msos.console.debug(temp_h5 + ' -> player object:', mep_obj);
+	features = features.concat(features_specific);
+	features = _.uniq(features, true);
 
-					if (mep_obj.media) {
-						for (i = 0; i < events.length; i += 1) {
-							mep_obj.media.addEventListener(
-								events[i],
-								function (e) {
-									msos.console.debug(temp_h5 + ' @@@@> player fired event: ' + e.type);
-								}
-							);
-						}
-					} else {
-						msos.console.warn(temp_h5 + ' -> media object is not ready (' + mep_obj.media + ')');
-					}
-				}
-            }
-        );
-    };
+    // Add needed modules, per 'features_by_size' and  'specific'
+    player.load_features(features);
+
+	jQuery.extend(
+		true,
+		player,
+		video	// add video specifics to player object
+	);
+
+	if (!_.isEmpty(set_options)) {
+		jQuery.extend(
+			player,
+			set_options
+		);
+	}
+
+	mep.player.players[id] = player;
+
+	// Let everything load...
+	msos.onload_func_post.push(function () { player.init(); });
 
     msos.console.debug(temp_vi + 'done!');
+
+	return player;
 };
 
+// Onresize function adjusts for different features
+msos.onresize_functions.unshift(mep.play.video.onresize);
 
-msos.onload_func_start.push(mep.play.video.init);

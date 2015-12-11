@@ -16,19 +16,19 @@
 
 msos.provide("mep.stop");
 
-mep.stop.version = new msos.set_version(15, 11, 15);
+mep.stop.version = new msos.set_version(15, 12, 2);
 
 
-mep.stop.start = function () {
+mep.stop.start = function (me_player) {
 	"use strict";
 
 	// STOP BUTTON
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildstop: function (ply_obj) {
 
-				var button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.options.i18n.stop_text + '"><i class="fa fa-stop"></i></button>'),
+				var button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.config.i18n.stop_text + '" aria-label="' + ply_obj.config.i18n.stop_text + '"><i class="fa fa-stop"></i></button>'),
 					stop = jQuery('<div class="mejs-button mejs-stop-button mejs-stop"></div>');
 
 				button.click(
@@ -46,8 +46,8 @@ mep.stop.start = function () {
 							ply_obj.media.setCurrentTime(0);
 							ply_obj.current.width('0');
 							ply_obj.handle.css('left', '0');
-							ply_obj.tfltcur.html(mep.player.utils.secondsToTimeCode(0, ply_obj.options));
-							ply_obj.currenttime.html(mep.player.utils.secondsToTimeCode(0, ply_obj.options));
+							ply_obj.tfltcur.html(mep.player.utils.secondsToTimeCode(0, ply_obj.config));
+							ply_obj.currenttime.html(mep.player.utils.secondsToTimeCode(0, ply_obj.config));
 							if (ply_obj.poster) { ply_obj.poster.show(); }
 						}
 
@@ -63,6 +63,3 @@ mep.stop.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.stop.start);

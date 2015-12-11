@@ -7,29 +7,28 @@
 
 msos.provide("mep.skipback");
 
-mep.skipback.version = new msos.set_version(15, 11, 12);
+mep.skipback.version = new msos.set_version(15, 12, 9);
 
 
-mep.skipback.start = function () {
+mep.skipback.start = function (me_player) {
 	"use strict";
 	// skip back button
 
 	// add extra default options 
     jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
-			skipBackInterval: 30,
-			skipBackText: 'Skip back %1 seconds'		// mejs.i18n.t('Skip back %1 seconds')
+			skipBackInterval: 30
 		}
 	);
 
-	jQuery.extend(mep.player.controls, {
+	jQuery.extend(me_player.controls, {
 
 		buildskipback: function (ply_obj) {
-			var cfg = ply_obj.options,
-				backText = cfg.skipBackText.replace('%1', cfg.skipBackInterval),
+			var cfg = ply_obj.config,
+				backText = cfg.i18n.skip_back.replace('%1', cfg.skipBackInterval),
 				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + backText + '" aria-label="' + backText + '"><i class="fa fa-step-backward"></i></button>'),
-				loop = jQuery('<div class="mejs-button mejs-skip-back-button"></div>');
+				loop = jQuery('<div class="mejs-button mejs-skip-back"></div>');
 
 			button.click(
 				function (e) {
@@ -46,6 +45,3 @@ mep.skipback.start = function () {
 		}
 	});
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.skipback.start);

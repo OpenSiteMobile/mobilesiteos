@@ -735,6 +735,30 @@ msos.console.time('base');
 msos.console.debug('msos/base -> msos.console now available.');
 msos.console.debug('msos/base -> purl.js now available.');
 
+msos.site_specific = function (settings) {
+	"use strict";
+
+	var i = 0,
+		ms_db = msos.config.debugging,
+		ms_qu = msos.config.query,
+		set = '';
+
+	for (i = 0; i < ms_db.length; i += 1) {
+		// configuration setting
+		set = ms_db[i];
+
+		if (typeof settings[set] === 'boolean') {
+			// Set msos.config based on site specific setting
+			msos.config[set] = settings[set];
+		}
+		if (typeof ms_qu[set] === 'boolean') {
+			// Or override w/ debugging settings if sent via query string
+			msos.config[set] = ms_qu[set];
+		}
+	}
+};
+
+
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3759,8 +3783,8 @@ Object.keys(msos.config.size_wide).map(
 		}
 	).sort(
 		function (a, b) {
-			if (a[1] < b[1]) { return -1; }
-			if (a[1] > b[1]) { return  1; }
+			if (a[1] < b[1]) return -1;
+			if (a[1] > b[1]) return  1;
 			return 0;
 		}
 	).forEach(
@@ -3926,7 +3950,7 @@ msos.base_script_url = msos.get_js_base();
 msos.resource_url = function (folder, resource_file) {
     "use strict";
     // Always relative to 'msos' folder
-    return msos.base_script_url.replace(/\/msos\//, '/' + folder + '/') + resource_file;
+    return msos.base_script_url.replace(/\/msos\//, '/' + (folder ? folder + '/' : '')) + resource_file;
 };
 
 msos.set_locale = function () {

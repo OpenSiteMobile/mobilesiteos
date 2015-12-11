@@ -16,66 +16,66 @@
 
 msos.provide("mep.contextmenu");
 
-mep.contextmenu.version = new msos.set_version(14, 6, 15);
+mep.contextmenu.version = new msos.set_version(15, 12, 8);
 
 
 // Start by loading our contextmenu.css stylesheet
 mep.contextmenu.css = new msos.loader();
 mep.contextmenu.css.load('mep_css_contextmenu', msos.resource_url('mep', 'css/contextmenu.css'));
 
-mep.contextmenu.start = function () {
+mep.contextmenu.start = function (me_player) {
 	"use strict";
 
 	var temp_cts = 'mep.contextmenu.start';
 
 	// options
 	jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{ 'contextMenuItems': [
 			{
-				render: function (player) {
+				render: function (ply_obj) {
 					// check for fullscreen plugin
-					if (player.enterFullScreen === undefined) { return null; }
+					if (ply_obj.enterFullScreen === undefined) { return null; }
 
-					if (player.isFullScreen) {
-						return player.options.i18n.fullscreen_off;
+					if (ply_obj.isFullScreen) {
+						return ply_obj.config.i18n.fullscreen_off;
 					}
-					return player.options.i18n.fullscreen_on;
+					return ply_obj.config.i18n.fullscreen_on;
 				},
-				click: function (player) {
-					if (player.isFullScreen)	{ player.exitFullScreen();  }
-					else						{ player.enterFullScreen(); }
+				click: function (ply_obj) {
+					if (ply_obj.isFullScreen)	{ ply_obj.exitFullScreen();  }
+					else						{ ply_obj.enterFullScreen(); }
 				}
 			},
 
 			{
-				render: function (player) {
-					if (player.media.muted) {
-						return player.options.i18n.mute_off;
+				render: function (ply_obj) {
+					if (ply_obj.media.muted) {
+						return ply_obj.config.i18n.mute_off;
 					}
-					return player.options.i18n.mute_on;
+					return ply_obj.config.i18n.mute_on;
 				},
-				click: function (player) {
-					if (player.media.muted)	{ player.setMuted(false); }
-					else					{ player.setMuted(true);  }
+				click: function (ply_obj) {
+					if (ply_obj.media.muted)	{ ply_obj.setMuted(false); }
+					else						{ ply_obj.setMuted(true);  }
 				}
 			},
 
 			{ isSeparator: true },
 
 			{
-				render: function (player) {
-					return player.options.i18n.download_video;
+				render: function (ply_obj) {
+					return ply_obj.config.i18n.download_video;
 				},
-				click: function (player) {
-					window.location.href = player.media.currentSrc;
+				click: function (ply_obj) {
+					window.location.href = ply_obj.media.currentSrc;
 				}
 			}
 		]}
 	);
 
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildcontextmenu: function (ply_obj) {
 				ply_obj.contextMenu = jQuery('<div class="mejs-contextmenu"></div>').appendTo(ply_obj.layers).hide();
@@ -96,7 +96,7 @@ mep.contextmenu.start = function () {
 
 				ply_obj.container.bind(
 					'click',
-					function (e) { ply_obj.contextMenu.hide(); }
+					function () { ply_obj.contextMenu.hide(); }
 				);
 
 				ply_obj.contextMenu.bind(
@@ -126,16 +126,25 @@ mep.contextmenu.start = function () {
 				};
 
 				ply_obj.renderContextMenu = function (x, y) {
-					var cfg = ply_obj.options,
+					var cfg = ply_obj.config,
 						html = '',
+						scroll = jQuery(document).scrollTop(),
 						layer_pos = ply_obj.layers.offset(),
-						layer_adj = ply_obj.layers.width() - 160,
+						x_adj = ply_obj.layers.width() - 160,
+						y_adj = ply_obj.layers.height() - (100 + scroll),
 						items = cfg.contextMenuItems,
 						i = 0,
 						il = items.length,
 						rendered;
 
-					msos.console.debug(temp_cts + ' - renderContextMenu -> called, x: ' + x + ', y: ' + y + ', adj: ' + layer_adj);
+					msos.console.debug(temp_cts + ' - renderContextMenu -> called'
+						+ ', x: ' + x
+						+ ', offset x: ' + layer_pos.left
+						+ ', adj x: ' + x_adj
+						+ ', y: ' + y
+						+ ', offset y: ' + layer_pos.top
+						+ ', adj y: ' + y_adj
+					);
 
 					for (i = 0; i < il; i += 1) {
 						if (items[i].isSeparator) {
@@ -156,8 +165,8 @@ mep.contextmenu.start = function () {
 						.empty()
 						.append(jQuery(html))
 						.css({
-							top:  y,
-							left: x - (x > layer_adj ? 149 : 0)
+							top:  (y + scroll) - (y > y_adj ?  80 : 5),
+							left: x - (x > x_adj ? 150 : 5)
 						})
 						.show();
 
@@ -193,6 +202,3 @@ mep.contextmenu.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.contextmenu.start);

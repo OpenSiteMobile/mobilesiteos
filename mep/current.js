@@ -7,20 +7,20 @@
 
 msos.provide("mep.current");
 
-mep.current.version = new msos.set_version(15, 11, 13);
+mep.current.version = new msos.set_version(15, 12, 8);
 
 
-mep.current.start = function () {
+mep.current.start = function (me_player) {
 	"use strict";
 
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildcurrent: function (ply_obj) {
 
-				var cfg = ply_obj.options;
+				var cfg = ply_obj.config;
 
-				ply_obj.ct_container = jQuery('<div class="mejs-time">');
+				ply_obj.ct_container = jQuery('<div class="mejs-time" role="timer" aria-live="off" title="' + cfg.i18n.elapsed_time + '">');
 				ply_obj.currenttime = jQuery('<span>' + mep.player.utils.secondsToTimeCode(0, cfg) + '</span>');
 
 				ply_obj.ct_container.append(ply_obj.currenttime);
@@ -46,6 +46,3 @@ mep.current.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.current.start);

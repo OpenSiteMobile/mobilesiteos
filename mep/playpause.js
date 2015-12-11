@@ -16,30 +16,21 @@
 
 msos.provide("mep.playpause");
 
-mep.playpause.version = new msos.set_version(15, 11, 13);
+mep.playpause.version = new msos.set_version(15, 12, 8);
 
 
-mep.playpause.start = function () {
+mep.playpause.start = function (me_player) {
 	"use strict";
-
-	jQuery.extend(
-		mep.player.config,
-		{
-			playText: 'Play',	// mejs.i18n.t('Play'),
-			pauseText: 'Pause'	// mejs.i18n.t('Pause')
-		}
-	);
 
 	// PLAY/pause BUTTON
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildplaypause: function (ply_obj) {
 
-				var cfg = ply_obj.options,
-					button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.playpause_text + '"><i class="fa fa-play"></i><i class="fa fa-pause"></i></button>'),
+				var cfg = ply_obj.config,
+					button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.playpause + '" aria-label="' + cfg.i18n.playpause + '"><i class="fa fa-play"></i><i class="fa fa-pause"></i></button>'),
 					play = jQuery('<div class="mejs-button mejs-play" ></div>');
-
 
 				button.click(
 					function (e) {
@@ -62,16 +53,8 @@ mep.playpause.start = function () {
 				function togglePlayPause(which) {
 					if ('play' === which) {
 						play.removeClass('mejs-play').addClass('mejs-pause');
-						button.attr({
-							'title': cfg.pauseText,
-							'aria-label': cfg.pauseText
-						});
 					} else {
 						play.removeClass('mejs-pause').addClass('mejs-play');
-						button.attr({
-							'title': cfg.playText,
-							'aria-label': cfg.playText
-						});
 					}
 				}
 
@@ -109,6 +92,3 @@ mep.playpause.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.playpause.start);

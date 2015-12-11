@@ -16,39 +16,60 @@
 
 msos.provide("mep.loop");
 
-mep.loop.version = new msos.set_version(15, 11, 15);
+mep.loop.version = new msos.set_version(15, 12, 8);
 
-mep.loop.start = function () {
+
+mep.loop.start = function (me_player) {
 	"use strict";
-
+	// add extra default options 
     jQuery.extend(
+		me_player.config,
+		{
+			loop_tf: false
+		}
+	);
 
-    mep.player.controls, {
+    jQuery.extend(me_player.controls, {
 
 		buildloop: function (ply_obj) {
-			var button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.options.i18n.loop_toggle + '"><i class="fa fa-repeat"></i></button>'),
-				loop = jQuery('<div class="mejs-button mejs-loop-button ' + ((ply_obj.options.loop) ? 'mejs-loop-on' : 'mejs-loop-off') + '"></div>');
+			var temp_bl = 'mep.loop.start - buildloop - ',
+				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + ply_obj.config.i18n.loop_toggle + '" aria-label="' + ply_obj.config.i18n.loop_toggle + '"><i class="fa fa-repeat ' + ((ply_obj.config.loop_tf) ? 'fa-spin' : '') + '"></i></button>');
+
+			ply_obj.loop_icon = button.find('i');
 
 			button.click(
 				function (e) {
 					msos.do_nothing(e);
-					ply_obj.options.loop = !ply_obj.options.loop;
+					ply_obj.config.loop_tf = !ply_obj.config.loop_tf;
 
-					if (ply_obj.options.loop) {
-						ply_obj.loop.removeClass('mejs-loop-off').addClass('mejs-loop-on');
+					msos.console.debug(temp_bl + 'click -> fired, for: ' + ply_obj.config.loop_tf);
+
+					if (ply_obj.config.loop_tf) {
+						ply_obj.loop_icon.addClass('fa-spin');
 					} else {
-						ply_obj.loop.removeClass('mejs-loop-on').addClass('mejs-loop-off');
+						ply_obj.loop_icon.removeClass('fa-spin');
 					}
 
 					jQuery(this).blur();
 				}
 			);
 
-			loop.append(button);
-			loop.appendTo(ply_obj.controls);
+			ply_obj.loop = jQuery('<div class="mejs-button mejs-loop"></div>');
+
+			ply_obj.loop.append(button);
+			ply_obj.loop.appendTo(ply_obj.controls);
+
+			ply_obj.container.on(
+				'controlsshown',
+				function () {
+					msos.console.debug(temp_bl + 'controlsshown -> fired, for: ' + ply_obj.config.loop_tf);
+
+					if (ply_obj.config.loop_tf) {
+						ply_obj.loop_icon.removeClass('fa-spin');
+						setTimeout(function () { ply_obj.loop_icon.addClass('fa-spin'); }, 100);
+					}
+				}
+			);
 		}
 	});
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.loop.start);

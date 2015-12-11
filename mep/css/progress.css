@@ -12,9 +12,7 @@ div.mejs-time-rail {
 	cursor:pointer;
 	width:180px;
 	height:10px;
-	-webkit-border-radius:3px;
-	   -moz-border-radius:3px;
-			border-radius:3px;
+	border-radius:3px;
 }
 .mejs-time-total {
 	top:11px;
@@ -45,9 +43,7 @@ div.mejs-time-rail {
 	margin:0;
 	width:12px;
 	background:#FFF;
-	-webkit-border-radius:5px;
-	   -moz-border-radius:5px;
-			border-radius:5px;
+	border-radius:5px;
 	cursor:pointer;
 	border:solid 2px #333;
 	top:-2px;
@@ -58,11 +54,9 @@ div.mejs-time-rail {
 	display:none;
 	background:#EEE;
 	width:40px;
-	height:17px;
+	height:20px;
 	border:solid 1px #333;
-	-webkit-border-radius:3px;
-	   -moz-border-radius:3px;
-			border-radius:3px;
+	border-radius:3px;
 	top:-24px;
 	left: 0;
 	margin-left: -20px;		/* offset to center indicator */
@@ -79,9 +73,7 @@ div.mejs-time-rail {
 	line-height:0;
 	border:solid 5px #EEE;
 	border-color:#EEE transparent transparent transparent;
-	-webkit-border-radius:0;
-	   -moz-border-radius:0;
-			border-radius:0;
+	border-radius:0;
 	top:15px;
 	left:13px;
 }

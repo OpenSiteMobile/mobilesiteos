@@ -18,7 +18,7 @@
     _: false
 */
 
-msos.version = new msos.set_version(15, 11, 21);
+msos.version = new msos.set_version(15, 11, 28);
 
 msos.console.info('msos/core -> start, ' + msos.version);
 msos.console.time('core');
@@ -36,6 +36,14 @@ msos.escape_html = function (str) {
     }
 
     return '';
+};
+
+msos.absolute_url = function (url) {
+    "use strict";
+    var el = document.createElement('div');
+
+    el.innerHTML = '<a href="' + msos.escape_html(url) + '">x</a>';
+    return el.firstChild.href;
 };
 
 msos.valid_jq_node = function ($node, type) {
@@ -239,6 +247,7 @@ msos.provide = function (register_module) {
     if (msos.registered_modules[mod_id]) {
 		msos.console.warn(temp_p + 'already registered: ' + register_module);
     } else {
+
 		msos.registered_modules[mod_id] = true;
     }
 
@@ -526,7 +535,7 @@ msos.notify = {
 	add: function () {
 		"use strict";
 
-		var cont = this.container;
+		var cont = msos.notify.container;
 
 		// Add our container
 		jQuery('body').append(cont);
@@ -551,7 +560,7 @@ msos.notify = {
 	clear_current: function () {
 		"use strict";
 
-		var self = this;
+		var self = msos.notify;
 
 		// Errors and warnings are a special case, (we always show them to completion)
 		if (self.current !== null
@@ -567,7 +576,7 @@ msos.notify = {
 	clear: function () {
 		"use strict";
 
-		var self = this,
+		var self = msos.notify,
 			n = 0;
 
 		msos.console.debug('msos.notify.clear -> called, for queue: ' + self.queue.length);
@@ -586,7 +595,7 @@ msos.notify = {
 		"use strict";
 
 		var temp_rn = 'msos.notify.run -> ',
-			self = this;
+			self = msos.notify;
 
 			self.current = self.queue.shift() || null;
 
@@ -606,7 +615,7 @@ msos.notify = {
 		"use strict";
 
 		var temp_ntf = 'msos.notify.base -> ',
-			self = this,
+			self = msos.notify,
 			base_obj = {
 				type: type,
 				delay: delay || 4000,		// default (minimum) is 4 sec.
@@ -675,7 +684,7 @@ msos.notify = {
 	info: function (message, title) {
 		"use strict";
 
-		var obj = msos.notify.base(
+		var obj = new msos.notify.base(
 			'info',
 			message,
 			title,
@@ -687,7 +696,7 @@ msos.notify = {
 	warning: function (message, title) {
 		"use strict";
 
-		var obj = msos.notify.base(
+		var obj = new msos.notify.base(
 			'warning',
 			message,
 			title,
@@ -700,7 +709,7 @@ msos.notify = {
 	error: function (message, title) {
 		"use strict";
 
-		var obj = msos.notify.base(
+		var obj = new msos.notify.base(
 			'error',
 			message,
 			title,
@@ -713,7 +722,7 @@ msos.notify = {
 	success: function (message, title) {
 		"use strict";
 
-		var obj = msos.notify.base(
+		var obj = new msos.notify.base(
 			'success',
 			message,
 			title,
@@ -725,7 +734,7 @@ msos.notify = {
 	loading: function (message, title) {
 		"use strict";
 
-		var obj = msos.notify.base(
+		var obj = new msos.notify.base(
 			'loading',
 			message,
 			title,

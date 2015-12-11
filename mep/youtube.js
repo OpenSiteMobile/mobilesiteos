@@ -16,7 +16,7 @@
 
 msos.provide("mep.youtube");
 
-mep.youtube.version = new msos.set_version(14, 6, 15);
+mep.youtube.version = new msos.set_version(15, 12, 9);
 
 
 // YouTube Flash and Iframe API

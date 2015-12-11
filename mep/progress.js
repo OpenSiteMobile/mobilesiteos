@@ -2,12 +2,13 @@
 /*global
     msos: false,
     jQuery: false,
-    Modernizr: false
+    Modernizr: false,
+    mep: false
 */
 
 msos.provide("mep.progress");
 
-mep.progress.version = new msos.set_version(14, 6, 13);
+mep.progress.version = new msos.set_version(15, 12, 3);
 
 
 // Start by loading our progress.css stylesheet
@@ -19,14 +20,12 @@ if (Modernizr.cssanimations && Modernizr.csstransforms) {
 	mep.progress.css.load('mep_css_animation',	msos.resource_url('mep', 'css/animation.css'));
 }
 
-mep.progress.start = function () {
+mep.progress.start = function (me_player) {
 	"use strict";
-
-	var temp_ps = 'mep.progress.start - ';
 
 	// progress/loaded bar
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildprogress: function (ply_obj) {
 
@@ -41,6 +40,7 @@ mep.progress.start = function () {
 					corner =	jQuery('<span class="mejs-time-float-corner">'),
 					mouseIsDown = false,
 					mouseIsOver = false,
+					updateSlider,
 					handleMouseMove,
 					setCurrentRail,
 					setProgressRail;
@@ -54,6 +54,22 @@ mep.progress.start = function () {
 				rail.appendTo(ply_obj.controls);
 
 				buffer.hide();
+
+				// Accessibility for slider
+				updateSlider = function () {
+					var seconds = ply_obj.media.currentTime,
+						time = mep.player.utils.secondsToTimeCode(seconds, ply_obj.config);
+
+					total.attr({
+						'aria-label': ply_obj.config.i18n.time_slider,
+						'aria-valuemin': 0,
+						'aria-valuemax': ply_obj.media.duration,
+						'aria-valuenow': seconds.toFixed(),
+						'aria-valuetext': time,
+						'role': 'slider',
+						'tabindex': 0
+					});
+				};
 
 				handleMouseMove = function (e) {
 					// mouse position relative to the object
@@ -83,7 +99,7 @@ mep.progress.start = function () {
 						// position floating time box
 						if (!msos.config.browser.touch) {
 							tfloat.css('left', pos);
-							tfltcur.html(mep.player.utils.secondsToTimeCode(newTime, ply_obj.options));
+							tfltcur.html(mep.player.utils.secondsToTimeCode(newTime, ply_obj.config));
 							tfloat.show();
 						}
 					}
@@ -102,8 +118,8 @@ mep.progress.start = function () {
 							newWidth = ply_obj.total.width() * ply_obj.media.currentTime / ply_obj.media.duration;
 							handlePos = newWidth - (ply_obj.handle.outerWidth(true) / 2);
 
-							ply_obj.current.width(newWidth);
-							ply_obj.handle.css('left', handlePos);
+							ply_obj.current.width(Math.round(newWidth));
+							ply_obj.handle.css('left', Math.round(handlePos));
 						}
 					}
 				};
@@ -145,7 +161,7 @@ mep.progress.start = function () {
 						percent = Math.min(1, Math.max(0, percent));
 						// update loaded bar
 						if (ply_obj.loaded && ply_obj.total) {
-							ply_obj.loaded.width(ply_obj.total.width() * percent);
+							ply_obj.loaded.width(Math.round(ply_obj.total.width() * percent));
 						}
 					}
 				};
@@ -210,6 +226,7 @@ mep.progress.start = function () {
 					function (e) {
 						setProgressRail(e);
 						setCurrentRail();
+						updateSlider();
 					},
 					false
 				);
@@ -227,5 +244,3 @@ mep.progress.start = function () {
 	);
 };
 
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.progress.start);

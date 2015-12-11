@@ -1,81 +1,58 @@
+@charset "utf-8";
 
 
-div.mejs-speed-button {
-	width: 46px !important;
+.mejs-speed {
 	position: relative;
 }
-
-.mejs-button.mejs-speed-button button {
-	background: transparent;
-	width: 36px;
+.mejs-speed button {
+	color: #FFF;
 	font-size: 11px;
-	line-height: normal;
-	color: #ffffff;
+	width: 40px;
+	text-align: left;
 }
-
-.mejs-speed-button .mejs-speed-selector {
-	display: none;
+.mejs-speed button:hover {
+	color: orange;
+}
+.mejs-speed-selector {
+	display: block;
+	visibility: hidden;
 	position: absolute;
-	top: -100px;
-	left: -10px;
-	width: 60px;
-	height: 100px;
-	background: url(background.png);
-	background: rgba(50, 50, 50, 0.7);
-	border: solid 1px transparent;
-	padding: 0;
+	bottom: 20px;
+	right: -10px;
+	width: 80px;
+	height: 130px;
+	background-color: #FFF;
+	opacity: 0.9;
+	border: solid 1px #999;
+	padding: 6px;
 	overflow: hidden;
-	-webkit-border-radius: 0;
-	-moz-border-radius: 0;
-	border-radius: 0;
+	border-radius: 0.4em;
+	z-index: 1012;
 }
-
-
-.mejs-speed-button:hover > .mejs-speed-selector {
+.mejs-speed-selector ul {
 	display: block;
-}
-
-.mejs-speed-button .mejs-speed-selector ul li label.mejs-speed-selected {
-	color: rgba(33, 248, 248, 1);
-}
-
-.mejs-speed-button .mejs-speed-selector ul {
-	margin: 0;
-	padding: 0;
-	display: block;
-	list-style-type: none !important;
 	overflow: hidden;
 }
-
-.mejs-speed-button .mejs-speed-selector ul li {
+.mejs-speed-selector ul li {
 	margin: 0 0 6px 0;
-	padding: 0 10px;
-	list-style-type: none !important;
+	padding: 0 4px;
 	display: block;
-	color: #fff;
 	overflow: hidden;
+	border-radius: 0.3em;
+	z-index: 1013;
 }
-
-.mejs-speed-button .mejs-speed-selector ul li input {
+.mejs-speed-selector ul li:hover {
+	background:#FF9933;
+	color:#FFF;
+}
+.mejs-speed-selector ul li input {
 	clear: both;
 	float: left;
 	margin: 3px 3px 0 5px;
-	display: none;
+	z-index: 1014;
 }
-
-.mejs-speed-button .mejs-speed-selector ul li label {
-	width: 60px;
-	float: left;
+.mejs-speed-selector ul li label {
 	padding: 4px 0 0 0;
 	line-height: 15px;
-	font-family: helvetica, arial;
-	font-size: 11.5px;
-	color: white;
-	margin-left: 5px;
-	cursor: pointer;
-}
-
-.mejs-speed-button .mejs-speed-selector ul li:hover {
-	background-color: rgb(200, 200, 200) !important;
-	background-color: rgba(255,255,255,.4) !important;
+	font-size: 10px;
 }

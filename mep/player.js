@@ -14,6 +14,7 @@
 
 /*global
     msos: false,
+    mep: false,
     jQuery: false,
     jquery: false,
     Modernizr: false,
@@ -22,9 +23,11 @@
 
 // Modified for use thru MobileSiteOS
 msos.provide("mep.player");
-msos.require("msos.i18n.player");
-msos.require("msos.common");
 msos.require("msos.fitmedia");
+
+if (msos.config.verbose) { msos.require("mep.debug"); }
+
+mep.player.version = new msos.set_version(15, 12, 8);
 
 
 // Start by loading our mep/player.css stylesheet
@@ -36,452 +39,490 @@ if (Modernizr.cssgradients) {
 	mep.player.css.load('mep_css_gradient',	msos.resource_url('mep', 'css/gradient.css'));
 }
 
-msos.console.debug('mep.player -> loading start.');
+mep.player.mepIndex = 0;
+mep.player.meIndex = 0;
+mep.player.players = {};
 
-// Namespace
-mep.player = {
+mep.player.defaults = function () {
+	"use strict";
 
-	version: new msos.set_version(15, 11, 12),
-	org_version: '2.18.2',		// from original v2.10.3 + version updates
-	meIndex: 0,
-	mepIndex: 0,
-	players: [],
-	config: {},
-	support: {},
-	options: {},
-	plugins: {},
-	features: [],
-	specific: [],
-	controls: {},
+	this.org_version = '2.18.2';		// from original v2.10.3 + version updates
+	this.name = 'mep.player';
+	this.hasFocus = false;
+	this.isLoaded = false;
+	this.controlsAreVisible = true;
+	this.controlsEnabled = true;
+	this.error = 'unknown';
 
-	html5_interface: {
+	this.media = null;
+	this.controlsTimer = null;
 
-		name: 'mep.player.html5_interface',
-		pluginType: 'native',
-		isFullScreen: false,
+	this.support = {};
+	this.plugins = {};
+	this.controls = {};
+	this.features = [];
 
-		setCurrentTime: function (time) {
-			"use strict";
-			this.currentTime = time;
-		},
-		setMuted: function (muted) {
-			"use strict";
-			this.muted = muted;
-		},
-		setVolume: function (volume) {
-			"use strict";
-			this.volume = volume;
-		},
-		// for parity with the plugin versions
-		stop: function () {
-			"use strict";
-			this.pause();
+	this.config = {
+		success_function: function (player_object) {
+			msos.console.debug(player_object.name + ' - success_function -> called: ' +  player_object.id);
 		},
 
-		// This can be a url string
-		// or an array [{ src:'file.mp4', type:'video/mp4' }, { src:'file.webm', type:'video/webm' }]
-		setSrc: function (url) {
-			"use strict";
-
-			msos.console.debug(this.name + ' - setSrc -> called, url: ', url);
-
-			// Fix for IE9 which can't set .src when there are <source> elements. Awesome, right?
-			var existingSources = this.getElementsByTagName('source'),
-				i,
-				media;
-
-			while (existingSources.length > 0) {
-				this.removeChild(existingSources[0]);
-			}
-
-			if (typeof url === 'string') {
-				this.src = url;
-			} else {
-				for (i = 0; i < url.length; i += 1) {
-					media = url[i];
-					if (this.canPlayType(media.type)) {
-						this.src = media.src;
-						break;
-					}
-				}
-			}
-		},
-
-		setVideoSize: function (width, height) {
-			"use strict";
-
-			this.width  = width;
-			this.height = height;
+		error_function:	 function (player_object) {
+			msos.console.debug(player_object.name + ' - error_function -> called: ' +  player_object.id);
 		}
-	},
+	};
 
-	base: {
+	this.load_features = function (feat) {
+		var i = 0,
+			temp_lf = 'mep.player.load_features -> ',
+			module = '';
 
-		name: 'mep.player.base',
-		hasFocus: false,
-		controlsAreVisible: true,
-		error: 'unknown',
+		msos.console.debug(temp_lf + 'start, input features:', feat);
 
-		init: function () {
-			"use strict";
+		if (!this.support.html5_media) {
+			// No HTML5, so detect available Video && Audio plugins
+			msos.require("mep.plugins");
+		}
 
-			var ply_obj = this,
-				// options for MediaElement (shim)
-				meOptions = jQuery.extend(
-					true,
-					{},
-					ply_obj.options,
-					{
-						success_function: function () {
-							mep.player.controls(ply_obj);
+		for (i = 0; i < feat.length; i += 1) {
+			module = 'mep.' + feat[i];
+			// Load the corresponding module, if not already loaded
+			if (!mep || !mep[feat[i]]) {
+				if (feat[i] === 'volume' && msos.config.browser.touch) { continue; }	// Skip for mobile (use native instead)
+				msos.require(module);
+			}
+			this.features.push(feat[i]);
+		}
 
-							if (typeof ply_obj.options.success_function === 'function') {
-								ply_obj.options.success_function(ply_obj);
-							}
-						},
-						error_function: function () {
-							ply_obj.controls.hide();
+		// Add some event tracking
+		if (mep.debug) { this.features.unshift('debug'); }
 
-							// Tell user that the file cannot be played
-							if (typeof ply_obj.options.error_function === 'function') {
-								ply_obj.options.error_function(ply_obj);
-							}
-						}
+		msos.console.debug(temp_lf + 'done!');
+	};
+
+	this.init = function () {
+		var ply_obj = this,
+			cfg = ply_obj.config,
+			success_func = cfg.success_function,
+			error_func = cfg.error_function, 
+			tagName = ply_obj.node.tagName.toLowerCase(),
+			player_title = '',
+			cloned;
+
+		msos.console.debug(ply_obj.name + ' - init -> start, tag: ' + tagName);
+
+		jQuery.extend(
+			cfg,
+			{
+				success_function: function () {
+					mep.player.controls(ply_obj);
+
+					if (typeof success_func === 'function') {
+						success_func(ply_obj);
 					}
-				),
-				tagName = ply_obj.node.tagName.toLowerCase(),
-				player_title = tagName,
-				isSVG = document.documentElement.nodeName.toLowerCase() === 'svg',
-				cloned;
+				},
+				error_function: function () {
+					ply_obj.controls.hide();
 
-			msos.console.debug(ply_obj.name + ' - init -> start, tag: ' + tagName);
-
-			ply_obj.isVideo = (tagName !== 'audio');
-			ply_obj.tagName = tagName;
-
-//			player_title = ply_obj.isVideo ? mejs.i18n.t('Video Player') : mejs.i18n.t('Audio Player');
-			jQuery('<span class="visually_hidden">' + player_title + '</span>').insertBefore(ply_obj.$node);
-
-			// Remove native controls
-			ply_obj.$node.removeAttr('controls');
-
-			// unique ID
-			ply_obj.id = 'mep_' + (mep.player.mepIndex += 1);
-
-			// 'container' is now the FidVids node
-			// (see mep.player.build)
-			ply_obj.container = ply_obj.$node.parent();
-
-			// Add defining class, id
-			ply_obj.container
-				.attr({ 'id': ply_obj.id, tabindex: 0, role: 'application', 'aria-label': player_title })
-				.addClass('mejs-container notranslate' + (isSVG ? ' svg' : ' no-svg'))
-				.focus(
-					function (e) {
-						if (!ply_obj.controlsAreVisible) {
-							ply_obj.showControls(true);
-							ply_obj.play_pause.focus();
-						}
+					// Tell user that the file cannot be played
+					if (typeof error_func === 'function') {
+						error_func(ply_obj);
 					}
-				);
+				}
+			}
+		);
 
-			// Build out our container w/controls, etc.
-			ply_obj.layers			= jQuery('<div class="mejs-layers">');
-			ply_obj.controls		= jQuery('<div class="mejs-controls">');
+		if (!cfg.timeFormat) {
+			// Generate the time format according to cfg
+			cfg.timeFormat = 'mm:ss';
+	
+			if (cfg.alwaysShowHours) {
+				cfg.timeFormat = 'hh:mm:ss';
+			}
+	
+			if (cfg.showTimecodeFrameCount) {
+				cfg.timeFormat += ':ff';
+			}
+		}
 
-			// Isolate the controls div from other layers
-			ply_obj.controls.bind(
-				'click',
-				msos.do_nothing
+		mep.player.utils.calculateTimeFormat(
+			0,
+			cfg
+		);
+
+		ply_obj.$node.fitMedia();
+
+		ply_obj.isVideo = (tagName !== 'audio');
+		ply_obj.tagName = tagName;
+
+		player_title = ply_obj.isVideo ? cfg.i18n.video_player : cfg.i18n.audio_player,
+
+		jQuery('<span class="visually_hidden">' + player_title + '</span>').insertBefore(ply_obj.$node);
+
+		// Remove native controls
+		ply_obj.$node.removeAttr('controls');
+
+		// unique ID
+		ply_obj.id = 'mep_' + (mep.player.mepIndex += 1);
+
+		// 'container' is now the FidVids node
+		// (see mep.player.build)
+		ply_obj.container = ply_obj.$node.parent();
+
+		// Add defining class, id
+		ply_obj.container
+			.attr({ 'id': ply_obj.id, tabindex: 0, role: 'application', 'aria-label': player_title })
+			.addClass('mejs-container notranslate')
+			.focus(
+				function () {
+					if (!ply_obj.controlsAreVisible) {
+						ply_obj.showControls(true);
+						ply_obj.play_pause.focus();
+					}
+				}
 			);
 
-			// Place it in DOM
-			ply_obj.container.append(
-				ply_obj.layers,
-				ply_obj.controls
-			);
+		// Build out our container w/controls, etc.
+		ply_obj.layers			= jQuery('<div class="mejs-layers">');
+		ply_obj.controls		= jQuery('<div class="mejs-controls">');
 
-			// Add classes for user and content
-			ply_obj.container.addClass((ply_obj.isVideo ? 'mejs-video ' : 'mejs-audio '));
+		// Isolate the controls div from other layers
+		ply_obj.controls.bind(
+			'click',
+			msos.do_nothing
+		);
 
-			// Clone original node
-			cloned = ply_obj.$node.clone();
+		// Place it in DOM
+		ply_obj.container.append(
+			ply_obj.layers,
+			ply_obj.controls
+		);
 
-			// Place our cloned node in correct position
-			ply_obj.container.prepend(cloned);
+		// Add classes for user and content
+		ply_obj.container.addClass((ply_obj.isVideo ? 'mejs-video ' : 'mejs-audio '));
 
-			// Remove the original node
-			ply_obj.$node.remove();
+		// Clone original node
+		cloned = ply_obj.$node.clone();
 
-			// Reset our html5 video/audio node
-			ply_obj.$node	= cloned;
-			ply_obj.node	= cloned[0];
+		// Place our cloned node in correct position
+		ply_obj.container.prepend(cloned);
 
-			mep.player.run(ply_obj, meOptions);
+		// Remove the original node
+		ply_obj.$node.remove();
 
-			// controls are shown when loaded
-			ply_obj.container.trigger('controlsshown');
+		// Reset our html5 video/audio node
+		ply_obj.$node	= cloned;
+		ply_obj.node	= cloned[0];
 
-			msos.console.debug(ply_obj.name + ' - init -> done!');
-		},
+		mep.player.run(ply_obj);
 
-		showControls: function (doAnimation) {
-			"use strict";
+		// controls are shown when loaded
+		ply_obj.container.trigger('controlsshown');
 
-			var t = this,
-				scl = ' - showControls -> ';
+		msos.console.debug(ply_obj.name + ' - init -> done!');
+	};
 
-			doAnimation = doAnimation === undefined || doAnimation;
+	this.showControls = function (doAnimation) {
+		var ply_obj = this,
+			scl = ' - showControls -> ';
 
-			if (t.controlsAreVisible) {
-				if (msos.config.verbose) {
-					msos.console.debug(t.name + scl + 'already visible.');
-				}
-				return;
+		doAnimation = doAnimation === undefined || doAnimation;
+
+		if (ply_obj.controlsAreVisible) {
+			if (msos.config.verbose) {
+				msos.console.debug(ply_obj.name + scl + 'already visible.');
 			}
+			return;
+		}
 
-			msos.console.debug(t.name + scl + 'start.');
+		msos.console.debug(ply_obj.name + scl + 'start, animation: ' + doAnimation);
 
-			if (doAnimation) {
-				t.controls
-					.css('visibility', 'visible')
-					.stop(true, true).fadeIn(200, function () {
-					      t.controlsAreVisible = true;
-					      t.container.trigger('controlsshown');
-					});
-
-				// any additional controls people might add and want to hide
-				t.container.find('.mejs-control')
-					.css('visibility', 'visible')
-					.stop(true, true).fadeIn(200, function () { t.controlsAreVisible = true; });
-
-			} else {
-				t.controls
-					.css('visibility', 'visible')
-					.css('display', 'block');
-
-				// any additional controls people might add and want to hide
-				t.container.find('.mejs-control')
-					.css('visibility', 'visible')
-					.css('display', 'block');
-
-				t.controlsAreVisible = true;
-				t.container.trigger('controlsshown');
-			}
-
-			msos.console.debug(t.name + scl + 'done!');
-		},
-
-		hideControls: function (doAnimation) {
-			"use strict";
-
-			var t = this,
-				hcl = ' - hideControls -> ';
-
-			msos.console.debug(t.name + hcl + 'start.');
-
-			doAnimation = doAnimation === undefined || doAnimation;
-
-			if (!t.controlsAreVisible || t.options.alwaysShowControls || t.keyboardAction) { return; }
-
-			if (doAnimation) {
-				if (msos.config.verbose) {
-					msos.console.debug(t.name + hcl + 'use animation!');
-				}
-				// fade out main controls
-				t.controls.stop(true, true).fadeOut(200, function () {
-					jQuery(this)
-						.css('visibility', 'hidden')
-						.css('display', 'block');
-
-					t.controlsAreVisible = false;
-					t.container.trigger('controlshidden');
+		if (doAnimation) {
+			ply_obj.controls
+				.css('visibility', 'visible')
+				.stop(true, true).fadeIn(200, function () {
+					  ply_obj.controlsAreVisible = true;
+					  ply_obj.container.trigger('controlsshown');
 				});
 
-			} else {
-				// hide main controls
-				t.controls
+			// any additional controls people might add and want to hide
+			ply_obj.container.find('.mejs-control')
+				.css('visibility', 'visible')
+				.stop(true, true).fadeIn(200, function () { ply_obj.controlsAreVisible = true; });
+
+		} else {
+			ply_obj.controls
+				.css('visibility', 'visible')
+				.css('display', 'block');
+
+			// any additional controls people might add and want to hide
+			ply_obj.container.find('.mejs-control')
+				.css('visibility', 'visible')
+				.css('display', 'block');
+
+			ply_obj.controlsAreVisible = true;
+			ply_obj.container.trigger('controlsshown');
+		}
+
+		msos.console.debug(ply_obj.name + scl + 'done!');
+	};
+
+	this.hideControls = function (doAnimation) {
+		var ply_obj = this,
+			hcl = ' - hideControls -> ';
+
+		doAnimation = doAnimation === undefined || doAnimation;
+
+		msos.console.debug(ply_obj.name + hcl + 'start, animation: ' + doAnimation);
+
+		if (!ply_obj.controlsAreVisible
+		  || ply_obj.config.alwaysShowControls
+		  || ply_obj.keyboardAction) { return; }
+
+		if (doAnimation) {
+
+			// fade out main controls
+			ply_obj.controls.stop(true, true).fadeOut(200, function () {
+				jQuery(this)
 					.css('visibility', 'hidden')
 					.css('display', 'block');
 
-				t.controlsAreVisible = false;
-				t.container.trigger('controlshidden');
-			}
-			msos.console.debug(t.name + hcl + 'done!');
-		},
+				ply_obj.controlsAreVisible = false;
+				ply_obj.container.trigger('controlshidden');
+			});
 
-		controlsTimer: null,
+		} else {
+			// hide main controls
+			ply_obj.controls
+				.css('visibility', 'hidden')
+				.css('display', 'block');
 
-		startControlsTimer: function (timeout) {
-			"use strict";
-
-			var t = this;
-
-			timeout = timeout !== undefined ? timeout : 1500;
-
-			t.killControlsTimer('start');
-
-			t.controlsTimer = setTimeout(
-				function () {
-					if (msos.config.verbose) {
-						msos.console.debug(t.name + ' - startControlsTimer -> fired');
-					}
-					t.hideControls();
-					t.killControlsTimer('hide');
-				},
-				timeout
-			);
-		},
-
-		killControlsTimer: function () {
-			"use strict";
-
-			var t = this;
-
-			if (t.controlsTimer !== null) {
-				clearTimeout(t.controlsTimer);
-				delete t.controlsTimer;
-				t.controlsTimer = null;
-			}
-		},
-
-		controlsEnabled: true,
-
-		disableControls: function () {
-			"use strict";
-			var t = this;
-
-			t.killControlsTimer();
-			t.hideControls(false);
-			this.controlsEnabled = false;
-		},
-
-		enableControls: function () {
-			"use strict";
-			var t = this;
-
-			t.showControls(false);
-			t.controlsEnabled = true;
-		},
-
-		setControlsSize: function () {
-			"use strict";
-
-			var scs = ' - setControlsSize -> ',
-				t = this,
-				used_width = 0,
-				rail_width = 0,
-				others = t.rail.siblings(),
-				lastControl = others.last(),
-				lastControlPosition = null;
-
-			msos.console.debug(t.name + scs + 'start.');
-
-			others = t.rail.siblings();
-
-			// Attempt to autosize
-			if (rail_width === 0 || !rail_width) {
-				// find the size of all the other controls besides the rail
-				others.each(
-					function () {
-						if (jQuery(this).css('position') !== 'absolute') {
-							used_width += jQuery(this).outerWidth(true);
-						}
-					}
-				);
-
-				// fit the rail into the remaining space
-				// (-5 is fudge factor for FF. It couldn't calc absolute pos. left: 1%, width: 98% correctly)
-				rail_width = t.controls.width() - used_width - (t.rail.outerWidth(true) - t.rail.width()) - 5;
-
-				msos.console.debug(t.name + scs + 'auto-size, rail width: ' + rail_width);
-			}
-
-			// Resize the rail (added 6/9/14)
-			do {			
-				// outer area
-				t.rail.width(rail_width);
-				// dark space
-				t.total.width(rail_width - (t.total.outerWidth(true) - t.total.width()));				
-
-				if (lastControl.css('position') !== 'absolute') {
-					lastControlPosition = lastControl.position();				
-					rail_width--;			
-				}
-			} while (lastControlPosition !== null
-				  && lastControlPosition.top > 0
-				  && rail_width > 0);
-
-			if (t.setProgressRail) { t.setProgressRail(); }
-			if (t.setCurrentRail)  { t.setCurrentRail();  }
-
-			msos.console.debug(t.name + scs + 'done!');
-		},
-
-		changeSkin: function (className) {
-			"use strict";
-			this.container[0].className = 'mejs-container ' + className;
-			this.setControlsSize();
-		},
-		play: function () {
-			"use strict";
-			msos.console.debug(this.name + ' - play -> fired.');
-			this.load();	// added 6/9/14
-			this.media.play();
-		},
-		pause: function () {
-			"use strict";
-			msos.console.debug(this.name + ' - pause -> fired.');
-			try {
-				this.media.pause();
-			} catch (e) {
-				msos.console.warn(this.name + ' - pause -> failed:' + e.message);
-			}	// added 6/9/14
-		},
-		load: function () {
-			"use strict";
-			if (!this.isLoaded) { this.media.load(); }
-			this.isLoaded = true;		// added 6/9/14
-		},
-		isLoaded: false,		// added 6/9/14
-		setMuted: function (muted) {
-			"use strict";
-			this.media.setMuted(muted);
-		},
-		setCurrentTime: function (time) {
-			"use strict";
-			this.media.setCurrentTime(time);
-		},
-		getCurrentTime: function () {
-			"use strict";
-			return this.media.currentTime;
-		},
-		setVolume: function (volume) {
-			"use strict";
-			this.media.setVolume(volume);
-		},
-		getVolume: function () {
-			"use strict";
-			return this.media.volume;
-		},
-		setSrc: function (src) {
-			"use strict";
-			this.media.setSrc(src);
-		},
-		remove: function () {
-			"use strict";
-			var t = this;
-
-			if (t.media.pluginType === 'flash') {
-				t.media.remove();
-			} else if (t.media.pluginTyp === 'native') {
-				t.media.prop('controls', true);
-			  }
+			ply_obj.controlsAreVisible = false;
+			ply_obj.container.trigger('controlshidden');
 		}
-	}
+		msos.console.debug(ply_obj.name + hcl + 'done!');
+	};
+
+	this.startControlsTimer = function (timeout) {
+		var ply_obj = this;
+
+		timeout = timeout !== undefined ? timeout : 1500;
+
+		ply_obj.killControlsTimer('start');
+
+		ply_obj.controlsTimer = setTimeout(
+			function () {
+				if (msos.config.verbose) {
+					msos.console.debug(ply_obj.name + ' - startControlsTimer -> fired');
+				}
+				ply_obj.hideControls();
+				ply_obj.killControlsTimer('hide');
+			},
+			timeout
+		);
+	};
+
+	this.killControlsTimer = function () {
+		var ply_obj = this;
+
+		if (ply_obj.controlsTimer !== null) {
+			clearTimeout(ply_obj.controlsTimer);
+			delete ply_obj.controlsTimer;
+			ply_obj.controlsTimer = null;
+		}
+	};
+
+	this.disableControls = function () {
+		var ply_obj = this;
+
+		ply_obj.killControlsTimer();
+		ply_obj.hideControls(false);
+		ply_obj.controlsEnabled = false;
+	};
+
+	this.enableControls = function () {
+		var ply_obj = this;
+
+		ply_obj.showControls(false);
+		ply_obj.controlsEnabled = true;
+	};
+
+	this.total_ctrls_width = 0;
+	this.set_rail_width = 0;
+
+	this.setControlsSize = function () {
+		var scs = ' - setControlsSize -> ',
+			ply_obj = this,
+			others = ply_obj.rail.siblings(),
+			lastControl = others.last(),
+			lastControlPosition = null;
+
+		msos.console.debug(ply_obj.name + scs + 'start.');
+
+		ply_obj.controls.show();	// make sure controls are displayed
+
+		// Zero out (storesfinised values)
+		ply_obj.total_ctrls_width = 0;
+		ply_obj.set_rail_width = 0;
+
+		// Attempt to autosize: find the size of all the other controls besides the rail (+ 1 is fudge factor)
+		others.each(
+			function () {
+				if (jQuery(this).css('position') !== 'absolute') {
+					ply_obj.total_ctrls_width += jQuery(this).outerWidth(true) + 1;
+				}
+			}
+		);
+
+		if (msos.config.verbose) {
+			msos.console.debug(ply_obj.name + scs + 'button width total: ' + ply_obj.total_ctrls_width);
+		}
+
+		// fit the rail into the remaining space
+		ply_obj.set_rail_width = ply_obj.controls.width() - ply_obj.total_ctrls_width - (ply_obj.rail.outerWidth(true) - ply_obj.rail.width());
+
+		msos.console.debug(ply_obj.name + scs + 'auto-size, rail width: ' + ply_obj.set_rail_width);
+
+		// Resize the rail (added 6/9/14)
+		do {	
+			// outer area
+			ply_obj.rail.width(ply_obj.set_rail_width);
+			// dark space
+			ply_obj.total.width(ply_obj.set_rail_width - (ply_obj.total.outerWidth(true) - ply_obj.total.width()));				
+
+			if (lastControl.css('position') !== 'absolute') {
+				lastControlPosition = lastControl.position();				
+				ply_obj.set_rail_width -= 1;			
+			}
+
+		} while (lastControlPosition !== null
+			  && lastControlPosition.top > 0
+			  && ply_obj.set_rail_width > 0);
+
+		if (ply_obj.setProgressRail) { ply_obj.setProgressRail(); }
+		if (ply_obj.setCurrentRail)  { ply_obj.setCurrentRail();  }
+
+		msos.console.debug(ply_obj.name + scs + 'done!');
+	};
+
+	this.changeSkin = function (className) {
+		this.container[0].className = 'mejs-container ' + className;
+		this.setControlsSize();
+	};
+
+	this.play = function () {
+		msos.console.debug(this.name + ' - play -> fired.');
+		this.load();	// added 6/9/14
+		this.media.play();
+	};
+
+	this.pause = function () {
+		msos.console.debug(this.name + ' - pause -> fired.');
+		try {
+			this.media.pause();
+		} catch (e) {
+			msos.console.warn(this.name + ' - pause -> failed:' + e.message);
+		}	// added 6/9/14
+	};
+
+	this.load = function () {
+		if (!this.isLoaded) { this.media.load(); }
+		this.isLoaded = true;		// added 6/9/14
+	};
+
+	this.setMuted = function (muted) {
+		this.media.setMuted(muted);
+	};
+
+	this.setCurrentTime = function (time) {
+		this.media.setCurrentTime(time);
+	};
+
+	this.getCurrentTime = function () {
+		return this.media.currentTime;
+	};
+
+	this.setVolume = function (volume) {
+		this.media.setVolume(volume);
+	};
+
+	this.getVolume = function () {
+		return this.media.volume;
+	};
+
+	this.setSrc = function (src) {
+		this.media.setSrc(src);
+	};
+
+	this.remove = function () {
+		var ply_obj = this;
+
+		if (ply_obj.media.pluginType === 'flash') {
+			ply_obj.media.remove();
+		} else if (ply_obj.media.pluginTyp === 'native') {
+			ply_obj.media.prop('controls', true);
+		  }
+	};
 };
 
-mep.player.run = function (ply_obj, opts) {
+mep.player.html5_interface = function () {
+	"use strict";
+
+	this.pluginType = 'native';
+	this.isFullScreen = false;
+
+	this.setCurrentTime = function (time) {
+		this.currentTime = time;
+	};
+
+	this.setMuted = function (muted) {
+		this.muted = muted;
+	};
+
+	this.setVolume = function (volume) {
+		this.volume = volume;
+	};
+
+	// for parity with the plugin versions
+	this.stop = function () {
+		this.pause();
+	};
+
+	// This can be a url string
+	// or an array [{ src:'file.mp4', type:'video/mp4' }, { src:'file.webm', type:'video/webm' }]
+	this.setSrc = function (url) {
+
+		// Fix for IE9 which can't set .src when there are <source> elements. Awesome, right?
+		var existingSources = this.getElementsByTagName('source'),
+			i,
+			media;
+
+		while (existingSources.length > 0) {
+			this.removeChild(existingSources[0]);
+		}
+
+		if (typeof url === 'string') {
+			this.src = url;
+		} else {
+			for (i = 0; i < url.length; i += 1) {
+				media = url[i];
+				if (this.canPlayType(media.type)) {
+					this.src = media.src;
+					break;
+				}
+			}
+		}
+	};
+
+	this.setVideoSize = function (width, height) {
+		this.width  = width;
+		this.height = height;
+	};
+
+	return this;
+};
+
+mep.player.run = function (ply_obj) {
 	"use strict";
 
 	var temp_pr = 'mep.player.run -> ',
@@ -492,15 +533,12 @@ mep.player.run = function (ply_obj, opts) {
 	msos.console.debug(temp_pr + 'start.');
 
 	// Test for HTML5 and plugin capabilities
-	playback = mep.player.determinePlayback(
-		ply_obj,
-		opts
-	);
+	playback = mep.player.determinePlayback(ply_obj);
 
 	if (playback.method === 'youtube') {
 
 		on_youtube_load = function () {
-			mep.player.create(ply_obj, playback, opts);
+			mep.player.create(ply_obj, playback, ply_obj.config);
 		};
 
 		msos.console.debug(temp_pr + 'loading youtube code!');
@@ -509,13 +547,13 @@ mep.player.run = function (ply_obj, opts) {
 	} else if (playback.method !== 'waiting') {
 
 		// Ready, so create the shim element
-		mep.player.create(ply_obj, playback, opts);
+		mep.player.create(ply_obj, playback, ply_obj.config);
 
 	} else {
 
 		// Re-run this function when 'mep.plugins' is loaded
 		on_plugins_load = function () {
-			mep.player.run(ply_obj, opts);
+			mep.player.run(ply_obj);
 		};
 
 		msos.require("mep.plugins", on_plugins_load);
@@ -524,7 +562,7 @@ mep.player.run = function (ply_obj, opts) {
 	msos.console.debug(temp_pr + 'done!');
 };
 
-mep.player.determinePlayback = function (ply_obj, options) {
+mep.player.determinePlayback = function (ply_obj) {
 	"use strict";
 
 	var html5_elm = ply_obj.node,
@@ -545,11 +583,7 @@ mep.player.determinePlayback = function (ply_obj, options) {
 		db_note = 'na',
 		media;
 
-	if (msos.config.verbose) {
-		msos.console.debug(temp_pb + 'start, options: ', options);
-	} else {
-		msos.console.debug(temp_pb + 'start.');
-	}
+	msos.console.debug(temp_pb + 'start.');
 
 	src = msos.var_is_empty(src) ? null : src;
 
@@ -582,13 +616,13 @@ mep.player.determinePlayback = function (ply_obj, options) {
 	}
 
 	// test for native HTML5 playback first
-	if (mep.player.support.html5_media && (options.mode === 'auto' || options.mode === 'native')) {
+	if (ply_obj.support.html5_media && (ply_obj.config.mode === 'auto' || ply_obj.config.mode === 'native')) {
 
-		db_note = 'native playback, mode: ' + options.mode;
+		db_note = 'native playback, mode: ' + ply_obj.config.mode;
 
 		// Go thru media types and see what
 		for (i = 0; i < mediaFiles.length; i += 1) {
-			if (mediaFiles[i].type == "video/m3u8"
+			if (mediaFiles[i].type === "video/m3u8"
 			 || html5_elm.canPlayType(mediaFiles[i].type).replace(/no/, '') !== ''
 			 // special case for Mac/Safari 5.0.3 which answers '' to canPlayType('audio/mp3') but 'maybe' to canPlayType('audio/mpeg')
 			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/mp3/,'mpeg')).replace(/no/, '') !== ''
@@ -610,24 +644,23 @@ mep.player.determinePlayback = function (ply_obj, options) {
 		}
 	}
 
-	// 'mep.plugins' module called in 'msos.video' or 'msos.audio' when obvious, or in 'run' above as a last resort
 	if (mep && mep.plugins) {
 
 		// if native playback didn't work, then test plugins
-		if (options.mode === 'auto'
-		 || options.mode === 'shim') {
+		if (ply_obj.config.mode === 'auto'
+		 || ply_obj.config.mode === 'shim') {
 
-			db_note = 'plugin playback, mode: ' + options.mode;
+			db_note = 'plugin playback, mode: ' + ply_obj.config.mode;
 
 			for (i = 0; i < mediaFiles.length; i += 1) {
 				type = mediaFiles[i].type;
 
 				// test all plugins
-				for (j = 0; j < options.plugins.length; j += 1) {
+				for (j = 0; j < ply_obj.config.plugins.length; j += 1) {
 
-					pluginName = options.plugins[j];
+					pluginName = ply_obj.config.plugins[j];
 					// test version of plugin (for future features)
-					pluginTypes = options.plugin_capabilities[pluginName];
+					pluginTypes = ply_obj.config.plugin_capabilities[pluginName];
 
 					for (k = 0; k < pluginTypes.length; k += 1) {
 						pluginInfo = pluginTypes[k];
@@ -663,7 +696,7 @@ mep.player.determinePlayback = function (ply_obj, options) {
 			result.url = mediaFiles[0].url;
 		}
 
-		db_note = 'hail mary, mode: ' + options.mode;
+		db_note = 'hail mary, mode: ' + ply_obj.config.mode;
 		msos.console.debug(temp_pb + 'done, ' + db_note + ', result: ', result);
 		return result;
 
@@ -674,11 +707,12 @@ mep.player.determinePlayback = function (ply_obj, options) {
 	return { method: 'waiting' };
 };
 
-mep.player.create = function (ply_obj, pb, opts) {
+mep.player.create = function (ply_obj, ply_bck) {
 	"use strict";
 
 	var temp_pc = 'mep.player.create',
 		html5_elm = ply_obj.node,
+		html5_intface = new mep.player.html5_interface(),
 		poster =	html5_elm.getAttribute('poster'),
 		autoplay =	html5_elm.getAttribute('autoplay'),
 		preload =	html5_elm.getAttribute('preload'),
@@ -694,38 +728,40 @@ mep.player.create = function (ply_obj, pb, opts) {
 	autoplay =	!(msos.var_is_null(autoplay) || autoplay === 'false');
 	controls =	!(msos.var_is_null(controls) || controls === 'false');
 
-	pb.url = (pb.url !== null) ? msos.common.absolute_url(pb.url) : '';
+	ply_bck.url = (ply_bck.url !== null) ? msos.absolute_url(ply_bck.url) : '';
 
-	if (pb.method === 'native') {
+	if (ply_bck.method === 'native') {
 
 		// Add methods to video object to bring it into parity with Flash Object
-		for (m in mep.player.html5_interface) {
-			html5_elm[m] = mep.player.html5_interface[m];
+		for (m in html5_intface) {
+			if (html5_intface.hasOwnProperty(m)) {
+				html5_elm[m] = html5_intface[m];
+			}
 		}
 
 		// Set our media interface (it is the video/audio node for HTML5)
 		ply_obj.media = html5_elm;
 
 		// fire success code
-		opts.success_function();
+		ply_obj.config.success_function();
 
-	} else if (pb.method !== '' && mep.plugins) {
+	} else if (ply_bck.method !== '' && mep.plugins) {
 
 		// create plugin to mimic HTMLMediaElement
-		mep.plugins.create(ply_obj, pb, opts, poster, autoplay, preload, controls);
+		mep.plugins.create(ply_obj, ply_bck, poster, autoplay, preload, controls);
 
 	} else {
 		msos.console.warn(temp_pc + ' -> failed!');
-		mep.player.createErrorMessage(ply_obj, pb, opts, poster);
+		mep.player.createErrorMessage(ply_obj, ply_bck, poster);
 	  }
 
-	msos.console.debug(temp_pc + ' -> done, playback: ' + pb.method);
+	msos.console.debug(temp_pc + ' -> done, playback: ' + ply_bck.method);
 };
 
-mep.player.createErrorMessage = function (ply_obj, playback, me_opts, poster) {
+mep.player.createErrorMessage = function (ply_obj, playback, poster) {
 	"use strict";
 
-	var dl_txt = ply_obj.options.i18n.click_to_download,
+	var dl_txt = ply_obj.config.i18n.click_to_download,
 		inner_tag = (poster !== '')
 			? '<a href="' + playback.url + '"><img src="' + poster + '" title="' + dl_txt + '" alt="' + dl_txt + '" /></a>'
 			: '<a href="' + playback.url + '"><span>' + dl_txt + '</span></a>',
@@ -734,7 +770,7 @@ mep.player.createErrorMessage = function (ply_obj, playback, me_opts, poster) {
 	ply_obj.container.prepend(errorContainer);
 	ply_obj.$node.css('display', 'none');
 
-	me_opts.error_function();
+	ply_obj.config.error_function();
 };
 
 // Sets up all controls and events
@@ -742,12 +778,14 @@ mep.player.controls = function (ply_obj) {
 	"use strict";
 
 	var temp_pc = 'mep.player.controls',
-		feat = mep.player.features,
+		feat = ply_obj.features,
 		$media = jQuery(ply_obj.media),
 		i,
 		func_name,
 		func_build,
-		duration = null;
+		duration = null,
+		on_mouseenter,
+		on_mousemove;
 
 	// make sure it can't create itself again if a plugin reloads
 	if (ply_obj.created) {
@@ -761,16 +799,27 @@ mep.player.controls = function (ply_obj) {
 
 	// add user-defined features/controls
 	for (i = 0; i < feat.length; i += 1) {
-		func_name = 'build' + feat[i];
-		func_build = mep.player.controls[func_name] || null;
-		if (func_build && typeof func_build === 'function') {
-			func_build(ply_obj);
-			msos.console.debug(temp_pc + ' -> executed: ' + func_name);
+
+		if (mep[feat[i]]
+		 && mep[feat[i]].start
+		 && typeof mep[feat[i]].start === 'function') {
+			mep[feat[i]].start(ply_obj);
+
+			func_name = 'build' + feat[i];
+			func_build = ply_obj.controls[func_name] || null;
+
+			if (func_build && typeof func_build === 'function') {
+				func_build(ply_obj);
+				msos.console.debug(temp_pc + ' -> executed: ' + func_name);
+			} else {
+				msos.console.warn(temp_pc + ' -> missing build function: ' + func_name);
+			}
 		} else {
 			msos.console.warn(temp_pc + ' -> missing module: ' + 'mep.' + feat[i]);
 		}
 	}
 
+	// Position controls for available space, given the loaded features
 	ply_obj.setControlsSize();
 
 	// controls fade
@@ -798,32 +847,33 @@ mep.player.controls = function (ply_obj) {
 		} else {
 
 			// click controls
-			var on_mouseenter = function () {
-					if (ply_obj.controlsEnabled) {
-						if (!ply_obj.options.alwaysShowControls) {							
-							ply_obj.killControlsTimer('enter');
-							ply_obj.showControls();
-							ply_obj.startControlsTimer(2500);
-						}
+			on_mouseenter = function () {
+				if (ply_obj.controlsEnabled) {
+					if (!ply_obj.config.alwaysShowControls) {							
+						ply_obj.killControlsTimer('enter');
+						ply_obj.showControls();
+						ply_obj.startControlsTimer(2500);
 					}
-				},
-				on_mousemove = function () {
-					if (ply_obj.controlsEnabled) {
-						if (!ply_obj.controlsAreVisible) {
-							ply_obj.showControls();
-						}
-						if (!ply_obj.options.alwaysShowControls) {
-							ply_obj.startControlsTimer(2500);
-						}
+				}
+			};
+
+			on_mousemove = function () {
+				if (ply_obj.controlsEnabled) {
+					if (!ply_obj.controlsAreVisible) {
+						ply_obj.showControls();
 					}
-				};
+					if (!ply_obj.config.alwaysShowControls) {
+						ply_obj.startControlsTimer(2500);
+					}
+				}
+			};
 
 			// click to play/pause
 			$media.click(
 				function (e) {
 					msos.do_nothing(e);
 					msos.console.debug(temp_pc + ' - click -> play/pause fired.');
-					if (ply_obj.options.clickToPlayPause) {
+					if (ply_obj.config.clickToPlayPause) {
 						if (ply_obj.media.paused) {
 							ply_obj.media.play();
 						} else {
@@ -847,7 +897,7 @@ mep.player.controls = function (ply_obj) {
 					'mouseleave',
 					function () {
 						if (ply_obj.controlsEnabled) {
-							if (!ply_obj.node.paused && !ply_obj.options.alwaysShowControls) {
+							if (!ply_obj.node.paused && !ply_obj.config.alwaysShowControls) {
 								ply_obj.startControlsTimer(1000);
 							}
 						}
@@ -862,25 +912,26 @@ mep.player.controls = function (ply_obj) {
 	ply_obj.media.addEventListener(
 		'play',
 		function () {
-			var i = 0,
-				il = mep.player.players.length,
+			var plr = '',
 				p;
 
-			if (msos.config.verbose) {
-				msos.console.debug(temp_pc + ' -> play triggered, players: ' + il);
+			// go through all other players
+			for (plr in mep.player.players) {
+				if (mep.player.players.hasOwnProperty(plr)) {
+
+					p = mep.player.players[plr];
+
+					if (p.id !== ply_obj.id
+					 && ply_obj.config.pauseOtherPlayers
+					 && !p.paused
+					 && !p.ended) {
+						p.pause();
+					}
+
+					p.hasFocus = false;
+				}
 			}
 
-			// go through all other players
-			for (i = 0; i < il; i += 1) {
-				p = mep.player.players[i];
-				if (p.id !== ply_obj.id
-				 && ply_obj.options.pauseOtherPlayers
-				 && !p.paused
-				 && !p.ended) {
-					p.pause();
-				}
-				p.hasFocus = false;
-			}
 			ply_obj.hasFocus = true;
 		},
 		false
@@ -895,7 +946,7 @@ mep.player.controls = function (ply_obj) {
 				msos.console.debug(temp_pc + ' -> ended triggered!');
 			}
 
-			if(ply_obj.options.autoRewind) {
+			if(ply_obj.config.autoRewind) {
 				try {
 					ply_obj.media.setCurrentTime(0);
 				} catch (e) {
@@ -908,9 +959,9 @@ mep.player.controls = function (ply_obj) {
 			if (ply_obj.setProgressRail) { ply_obj.setProgressRail(); }
 			if (ply_obj.setCurrentRail)  { ply_obj.setCurrentRail();  }
 
-			if (ply_obj.options.loop) {
+			if (ply_obj.config.loop_tf) {
 				ply_obj.media.play();
-			} else if (!ply_obj.options.alwaysShowControls && ply_obj.controlsEnabled) {
+			} else if (!ply_obj.config.alwaysShowControls && ply_obj.controlsEnabled) {
 				ply_obj.showControls();
 			  }
 		},
@@ -942,7 +993,7 @@ mep.player.controls = function (ply_obj) {
 				duration = ply_obj.media.duration;
 				mep.player.utils.calculateTimeFormat(
 					duration,
-					ply_obj.options
+					ply_obj.config
 				);
 			}
 		},
@@ -951,39 +1002,6 @@ mep.player.controls = function (ply_obj) {
 
 	msos.console.debug(temp_pc + ' -> done!');
 };
-
-mep.player.load_modules = function (feat) {
-	"use strict";
-
-	var i = 0,
-		temp_lf = 'mep.player.load_modules -> ',
-		module = '';
-
-	msos.console.debug(temp_lf + 'start.');
-
-	if (!Modernizr.video
-	 && !Modernizr.audio) {
-		// No HTML5, so detect available Video && Audio plugins
-		msos.require("mep.plugins");
-	}
-
-	for (i = 0; i < feat.length; i += 1) {
-		module = 'mep.' + feat[i];
-
-		if (feat[i] === 'volume') {
-			if (!msos.config.browser.touch) {	// Android and iOS don't support volume controls
-				msos.require(module);
-				mep.player.features.push(feat[i]);
-			}
-		} else if (!mep || !mep[feat[i]]) {		// Load the corresponding module, if not already loaded
-			msos.require(module);
-			mep.player.features.push(feat[i]);
-		}
-	}
-
-	msos.console.debug(temp_lf + 'done, loaded features: ', mep.player.features);
-};
-
 
 /*
 	Utility methods
@@ -1066,16 +1084,16 @@ mep.player.utils = {
 	 *
 	 * We support format like 'hh:mm:ss:ff'.
 	 */
-	calculateTimeFormat: function(time, options) {
+	calculateTimeFormat: function(time, cfg) {
 		"use strict";
 
 		if (time < 0) { time = 0; }
 
 		var temp_ct = 'mep.player.utils.calculateTimeFormat -> ',
-			fps = options.framesPerSecond || 25,
-			format = options.timeFormat,
+			fps = cfg.framesPerSecond || 25,
+			format = cfg.timeFormat,
 			firstChar = format[0],
-			firstTwoPlaces = (format[1] == format[0]),
+			firstTwoPlaces = (format[1] === format[0]),
 			separatorIndex = firstTwoPlaces? 2 : 1,
 			separator = ':',
 			hours = Math.floor(time / 3600) % 24,
@@ -1128,7 +1146,7 @@ mep.player.utils = {
 				firstChar = lis[i][1];
 			}
 		}
-		options.currentTimeFormat = format;
+		cfg.currentTimeFormat = format;
 
 		msos.console.debug(temp_ct + 'done, format: ' + format);
 	},
@@ -1143,11 +1161,10 @@ mep.player.utils = {
 		return String(n);
 	},
 
-	secondsToTimeCode: function (time, options) {
+	secondsToTimeCode: function (time, cfg) {
 		"use strict";
 
-		var format = '',
-			fps,
+		var fps,
 			format,
 			hours,
 			minutes,
@@ -1159,21 +1176,9 @@ mep.player.utils = {
 
 		if (time < 0) { time = 0; }
 
-		// Maintain backward compatibility with method signature before v2.18.
-		if (typeof options !== 'object') {
-			format = 'm:ss';
-			format = arguments[1] ? 'hh:mm:ss' : format;		// forceHours
-			format = arguments[2] ? format + ':ff' : format;	// showFrameCount
+		fps = cfg.framesPerSecond || 25;
 
-			options = {
-				currentTimeFormat: format,
-				framesPerSecond: arguments[3] || 25
-			};
-		}
-
-		fps = options.framesPerSecond || 25;
-
-		format = options.currentTimeFormat;
+		format = cfg.currentTimeFormat;
 		hours = Math.floor(time / 3600) % 24;
 		minutes = Math.floor(time / 60) % 60;
 		seconds = Math.floor(time % 60);
@@ -1194,118 +1199,5 @@ mep.player.utils = {
 		}
 
 		return res;
-	},
-
-	timeCodeToSeconds: function (hh_mm_ss_ff, forceHours, showFrameCount, fps) {
-		"use strict";
-
-		if (showFrameCount === undefined) {
-		    showFrameCount = false;
-		} else if (fps === undefined) {
-		    fps = 25;
-		}
-
-		var tc_array = hh_mm_ss_ff.split(":"),
-			tc_hh = parseInt(tc_array[0], 10),
-			tc_mm = parseInt(tc_array[1], 10),
-			tc_ss = parseInt(tc_array[2], 10),
-			tc_ff = 0,
-			tc_in_seconds = 0;
-
-		if (showFrameCount) {
-		    tc_ff = parseInt(tc_array[3], 10) / fps;
-		}
-
-		tc_in_seconds = (tc_hh * 3600) + (tc_mm * 60) + tc_ss + tc_ff;
-
-		return tc_in_seconds;
 	}
 };
-
-mep.player.add_features = function (media_elm) {
-	"use strict";
-
-	var temp_af = 'mep.player.add_features -> ',
-		add_array = media_elm.data('addFeatures') || [],
-		i = 0;
-
-	msos.console.debug(temp_af + 'start.');
-
-	for (i = 0; i < add_array.length; i += 1) {
-		mep.player.features.push(add_array[i]);
-	}
-
-	msos.console.debug(temp_af + 'done!');
-};
-
-// Build Media controls
-mep.player.build = function ($node, cfg, feat_cfg, opts) {
-	"use strict"; 
-
-	var po = {},
-		temp_mep = 'mep.player.build -> ';
-
-	msos.console.debug(temp_mep + 'start.');
-
-	// If our media node has a data attribute...
-	if ($node.data) {
-		// Add specific features per data attribute
-		mep.player.add_features($node);
-	}
-
-	// Note: reassigned to clone in po.init()
-	po.$node	= $node;
-	po.node		= $node[0];
-	po.media	= null;
-
-	// Build base player
-	jQuery.extend(
-		po,
-		mep.player.base
-	);
-
-	msos.console.debug(temp_mep + 'base added.');
-
-	// try to get options from data-mejsoptions
-	if (opts === undefined) {
-		opts = po.$node.data('mejsoptions');
-	}
-
-	// Add in language support
-	feat_cfg.i18n = msos.i18n.player.bundle;
-
-	// extend default options
-	po.options = jQuery.extend(
-		{},
-		cfg,
-		feat_cfg,
-		opts
-	);
-
-	if (!po.options.timeFormat) {
-		// Generate the time format according to options
-		po.options.timeFormat = 'mm:ss';
-
-		if (po.options.alwaysShowHours) {
-			po.options.timeFormat = 'hh:mm:ss';
-		}
-
-		if (po.options.showTimecodeFrameCount) {
-			po.options.timeFormat += ':ff';
-		}
-	}
-
-	mep.player.utils.calculateTimeFormat(
-		0,
-		po.options
-	);
-
-	msos.console.debug(temp_mep + 'config & options added.');
-
-	po.$node.fitMedia();
-
-	msos.console.debug(temp_mep + 'done, id: ' + (po.node.id || 'na'));
-	return po;
-};
-
-msos.console.debug('mep.player -> loading done!');

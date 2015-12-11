@@ -18,7 +18,7 @@
 
 msos.provide("mep.tracks");
 
-mep.tracks.version = new msos.set_version(15, 11, 12);
+mep.tracks.version = new msos.set_version(15, 12, 2);
 
 
 // Start by loading our tracks.css stylesheet
@@ -213,18 +213,16 @@ mep.tracks.format_parser = {
 	}
 };
 
-mep.tracks.start = function () {
+mep.tracks.start = function (me_player) {
     "use strict";
 
     // add extra default options 
     jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
 			auto_start_cc: false,
 
 			startLanguage: msos.config.locale,
-
-			tracksText: 'Captions/Subtitles',	// mejs.i18n updates needed
 
 			// By default, no WAI-ARIA live region - don't make a
 			// screen reader speak captions over an audio track.
@@ -241,13 +239,15 @@ mep.tracks.start = function () {
 		}
 	);
 
-    jQuery.extend(mep.player.controls, {
+    jQuery.extend(me_player.controls, {
 
         hasChapters: false,
 
         buildtracks: function (ply_obj) {
 
             var temp_bt = 'mep.tracks.start - buildtracks -> ',
+				radio_select = 'input[type=radio][name=' + ply_obj.id + '_captions]',
+				tracksRadioVal = 'none',	// start default
 				button,
 				i = 0,
 				subtitleCount = 0;
@@ -301,17 +301,17 @@ mep.tracks.start = function () {
 
 			// Define our html, since there are some tracks
 			ply_obj.captions = jQuery('<div class="mejs-captions-layer"></div>');
-			ply_obj.captionsButton = jQuery('<div class="mejs-button mejs-captions-button"></div>');
+			ply_obj.captionsButton = jQuery('<div class="mejs-button mejs-captions"></div>');
 			ply_obj.captionsSelect = jQuery('<div class="mejs-captions-selector"><ul></ul></div>');
 			ply_obj.captionsPos = jQuery('<div class="mejs-captions-position"></div>');
 			ply_obj.captionsText = jQuery('<span class="mejs-captions-text"></span>');
 			ply_obj.chapters = jQuery('<div class="mejs-chapters"></div>');
 
-			button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '_captions" title="' + ply_obj.options.i18n.tracks_text + '" aria-label="' + ply_obj.options.i18n.tracks_text + '"><i class="fa fa-cc"></i></button>');
+			button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '_captions" title="' + ply_obj.config.i18n.tracks_text + '" aria-label="' + ply_obj.config.i18n.tracks_text + '"><i class="fa fa-cc"></i></button>');
 
 			ply_obj.captionsButton.append(button);
 
-			if (ply_obj.options.tracksAriaLive) {
+			if (ply_obj.config.tracksAriaLive) {
 				ply_obj.captionsPos.attr({ role: "log", 'aria-live': "assertive", 'aria-atomic': false });
 			}
 
@@ -331,27 +331,22 @@ mep.tracks.start = function () {
 
 			ply_obj.addTrackButton = function (lang, label) {
 
+				if (lang === 'none') {
+					label = ply_obj.config.i18n.tracks_none;
+				}
+
 				if (label === '') {
 					label = msos.config.i18n.select_trans_msos[lang] || lang;
 				}
 
 				var radio_input = jQuery(
-						'<input type="radio" name="' + ply_obj.id + '_captions" id="' + ply_obj.id + '_captions_' + lang + '" value="' + lang + '"' + (lang === 'none' ? 'checked="checked"' : '') + ' />'
-					),
-					add_trk_li = jQuery(
-						'<li><label for="' + ply_obj.id + '_captions_' + lang + '">' + label + '</label></li>'
+						'<li>' +
+							'<input type="radio" name="' + ply_obj.id + '_captions" id="' + ply_obj.id + '_captions_' + lang + '" value="' + lang + '" />' +
+							'<label for="' + ply_obj.id + '_captions_' + lang + '">' + label + '</label>' +
+						'</li>'
 					);
 
-				add_trk_li.prepend(radio_input);
-				ply_obj.captionsSelect.find('ul').append(add_trk_li);
-
-				radio_input.on(
-					'click',
-					function (e) {
-						msos.do_nothing(e);
-						ply_obj.setTrack(radio_input.val());
-					}
-				);
+				ply_obj.captionsSelect.find('ul').append(radio_input);
 
 				ply_obj.adjustLanguageBox();
 			};
@@ -374,8 +369,8 @@ mep.tracks.start = function () {
 						track.isLoaded = true;
 
 						// auto select
-						if (ply_obj.options.auto_start_cc
-						 && ply_obj.options.startLanguage === track.srclang) {
+						if (ply_obj.config.auto_start_cc
+						 && ply_obj.config.startLanguage === track.srclang) {
 							jQuery('#' + ply_obj.id + '_captions_' + track.srclang).trigger('click');
 						}
 
@@ -442,7 +437,7 @@ mep.tracks.start = function () {
 					hasSubtitles = false;
 
 				// check if any subtitles
-				if (ply_obj.options.hideCaptionsButtonWhenEmpty) {
+				if (ply_obj.config.hideCaptionsButtonWhenEmpty) {
 					for (i = 0; i < ply_obj.tracks.length; i += 1) {
 						if (ply_obj.tracks[i].kind === 'subtitles'
 						 && ply_obj.tracks[i].isLoaded) {
@@ -506,7 +501,7 @@ mep.tracks.start = function () {
 										chapters.entries.text[i] +
 									'</span>' +
 									'<span class="ch-time">' +
-										mep.player.utils.secondsToTimeCode(chapters.entries.times[i].start, ply_obj.options) + '&ndash;' + mep.player.utils.secondsToTimeCode(chapters.entries.times[i].stop, ply_obj.options) +
+										mep.player.utils.secondsToTimeCode(chapters.entries.times[i].start, ply_obj.config) + '&ndash;' + mep.player.utils.secondsToTimeCode(chapters.entries.times[i].stop, ply_obj.config) +
 									'</span>' +
 								'</div>' +
 							'</div>')
@@ -612,7 +607,7 @@ mep.tracks.start = function () {
             ply_obj.captionsButton.appendTo(ply_obj.controls);
 
 			// if only one language then just make the button a toggle
-			if (ply_obj.options.toggle_for_one && subtitleCount === 1){
+			if (ply_obj.config.toggle_for_one && subtitleCount === 1){
 
 				button.on(
 					'click',
@@ -634,6 +629,7 @@ mep.tracks.start = function () {
 					'click',
 					function () {
 						ply_obj.captionsSelect.css('visibility', 'visible');
+						ply_obj.captionsSelect.find(radio_select + '[value=' + tracksRadioVal + ']').prop('checked', true);
 					}
 				);
 
@@ -642,6 +638,8 @@ mep.tracks.start = function () {
 					'mouseenter focusin',
 					function () {
 						ply_obj.captionsSelect.css('visibility', 'visible');
+						ply_obj.captionsSelect.find(radio_select + '[value=' + tracksRadioVal + ']').prop('checked', true);
+						
 					}
 				).on(
 					'mouseleave focusout',
@@ -651,7 +649,7 @@ mep.tracks.start = function () {
 				);
 			}
 
-            if (!ply_obj.options.alwaysShowControls) {
+            if (!ply_obj.config.alwaysShowControls) {
                 // move with controls
                 ply_obj.container
 					.bind(
@@ -674,7 +672,7 @@ mep.tracks.start = function () {
             }
 
 			// Add language eq 'none' to stop CC display
-			ply_obj.addTrackButton('none', ply_obj.options.i18n.tracks_none);
+			ply_obj.addTrackButton('none', ply_obj.config.i18n.tracks_none);
 
             // Add to <ul> all available tracks
             for (i = 0; i < ply_obj.tracks.length; i += 1) {
@@ -697,8 +695,8 @@ mep.tracks.start = function () {
 				false
 			);
 
-			if (ply_obj.options.slidesSelector !== '') {
-				ply_obj.slidesContainer = jQuery(ply_obj.options.slidesSelector);
+			if (ply_obj.config.slidesSelector !== '') {
+				ply_obj.slidesContainer = jQuery(ply_obj.config.slidesSelector);
 
 				ply_obj.media.addEventListener(
 					'timeupdate',
@@ -746,10 +744,22 @@ mep.tracks.start = function () {
                 ply_obj.chapters.css('visibility', 'hidden');
             }
 
+			ply_obj.captionsSelect.on(
+				'click',	// change doesn't work in FF
+				radio_select,
+				function () {
+					var value = jQuery(this).val();
+
+					tracksRadioVal = value;
+
+					msos.console.debug('mep.tracks.start - buildtracks - on.change -> fired, value: ' + value);
+
+					ply_obj.setTrack(value);
+					ply_obj.captionsSelect.css('visibility', 'hidden');
+				}
+			);
+
 			msos.console.debug(temp_bt + 'done!');
         }
     });
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.tracks.start);
