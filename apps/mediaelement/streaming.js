@@ -1,38 +1,32 @@
+// Page specific js code
+
+/*global
+    msos: false,
+    jQuery: false,
+    apps: false,
+    mep: false
+*/
 
 msos.provide('apps.mediaelement.streaming');
 msos.require("mep.play.video");
 
 
-apps.mediaelement.streaming.notify_loading = null;
-
-msos.onload_func_pre.push(
+msos.onload_func_start.push(
 	function () {
 		"use strict";
 
 		msos.console.info('Content: streaming.html loaded!');
 
-		apps.mediaelement.streaming.notify_loading = msos.notify.loading('Loading page and video player...', jQuery('title').text());
-	}
-);
+		var player = mep.play.video.init(jQuery('#streaming_html'));
 
-msos.onload_func_done.push(
-	function () {
-		"use strict";
+		player.config.success_function = function (plyr) {
+			// For demo: show the current player mode
+			jQuery('#streaming_mode').html('Mode: ' + plyr.node.pluginType);
 
-		jQuery('video').html5video(
-			{
-				success_function: function (plyr) {
-					// For demo...show the current player mode
-					jQuery('#' + plyr.node.id + '-mode').html('Mode: ' + plyr.node.pluginType);
-
-					// For demmo...add external control
-					jQuery('#pause_play').click(
-						function () { plyr.pause(); }
-					);
-
-					apps.mediaelement.streaming.notify_loading.fade_out();
-				}
-			}
-		);
+			// For demmo: add external control
+			jQuery('#streaming_pause_play').click(
+				function () { plyr.pause(); }
+			);
+		}
 	}
 );
