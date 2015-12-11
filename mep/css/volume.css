@@ -20,9 +20,7 @@
 	height: 115px;
 	width: 25px;
 	background: rgba(50, 50, 50, 0.7);
-	-webkit-border-radius: 0;
-	   -moz-border-radius: 0;
-			border-radius: 0;
+	border-radius: 0;
 	top: -115px;
 	left: 0;
 	z-index: 901;
@@ -30,9 +28,7 @@
 	margin: 0;
 }
 .mejs-volume-button:hover {
-	-webkit-border-radius: 0 0 4px 4px;
-	   -moz-border-radius: 0 0 4px 4px;
-			border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
 }
 .mejs-volume-button .mejs-volume-slider .mejs-volume-total {
 	position: absolute;
@@ -63,9 +59,7 @@
 	background: #DDD;
 	background: rgba(255, 255, 255, 0.9);
 	cursor: N-resize;
-	-webkit-border-radius: 3px;
-	   -moz-border-radius: 3px;
-			border-radius: 3px;
+	border-radius: 3px;
 	margin: 0;
 }
 
@@ -83,9 +77,7 @@ div.mejs-horizontal-volume-slider {
 	margin: 0;
 	padding: 0;
 	font-size: 1px;	/* wtf */
-	-webkit-border-radius: 2px;
-	   -moz-border-radius: 2px;
-			border-radius: 2px;	
+	border-radius: 2px;	
 	background: #333;
 	background: rgba(50,50,50,0.8);
 }
@@ -98,9 +90,7 @@ div.mejs-horizontal-volume-slider {
 	margin: 0;
 	padding: 0;
 	font-size: 1px;	/* wtf */
-	-webkit-border-radius: 2px;
-	   -moz-border-radius: 2px;
-			border-radius: 2px;
+	border-radius: 2px;
 	background: #FFF;
 	background: rgba(255,255,255,0.8);
 }

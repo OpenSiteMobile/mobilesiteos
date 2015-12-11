@@ -11,6 +11,7 @@
 /*global
     msos: false,
     jQuery: false,
+    mep: false,
     mejs: true
 */
 
@@ -22,7 +23,7 @@ msos.provide("mep.plugins");
 
 mep.plugins = {
 
-	version: new msos.set_version(15, 11, 12),
+	version: new msos.set_version(15, 12, 3),
 	name: 'mep.plugins',
 	detected: {},
 
@@ -119,7 +120,7 @@ mep.plugins = {
 		return false;
 	},
 
-	create: function (ply_obj, playback, me_opts, poster, autoplay, preload, controls) {
+	create: function (ply_obj, playback, poster, autoplay, preload, controls) {
 		"use strict";
 
 		var temp_cr = ' - create -> ',
@@ -137,7 +138,7 @@ mep.plugins = {
 
 		// copy tagName from html media element
 		plugin_interface.tagName = ply_obj.tagName;
-		plugin_interface.success = me_opts.success_function;
+		plugin_interface.success = ply_obj.config.success_function;
 
 		// copy attributes from html media element to plugin media element
 		for (i = 0; i < ply_obj.node.attributes.length; i += 1) {
@@ -165,11 +166,11 @@ mep.plugins = {
 			'autoplay='				+ ((autoplay) ? "true" : "false"),
 			'preload='				+ preload,
 			'width='				+ width,
-			'startvolume='			+ me_opts.startVolume,
-			'timerrate='			+ me_opts.timerRate,
-			'flashstreamer='		+ me_opts.flashStreamer,
+			'startvolume='			+ ply_obj.config.startVolume,
+			'timerrate='			+ ply_obj.config.timerRate,
+			'flashstreamer='		+ ply_obj.config.flashStreamer,
 			'height='				+ height,
-			'pseudostreamstart='	+ me_opts.pseudoStreamingStartQueryParam
+			'pseudostreamstart='	+ ply_obj.config.pseudoStreamingStartQueryParam
 		];
 
 		if (playback.url !== null) {
@@ -182,23 +183,23 @@ mep.plugins = {
 		if (msos.config.verbose) {
 			initVars.push('verbose=true');
 		}
-		if (me_opts.enablePluginSmoothing) {
+		if (ply_obj.config.enablePluginSmoothing) {
 			initVars.push('smoothing=true');
 		}
-		if (me_opts.enablePseudoStreaming) {
+		if (ply_obj.config.enablePseudoStreaming) {
 			initVars.push('pseudostreaming=true');
 		}
 		if (controls) {
 			initVars.push('controls=true'); // shows controls in the plugin if desired
 		}
-		if (me_opts.pluginVars) {
-			initVars = initVars.concat(me_opts.pluginVars);
+		if (ply_obj.config.pluginVars) {
+			initVars = initVars.concat(ply_obj.config.pluginVars);
 		}		
 
 		switch (playback.method) {
 
 			case 'flash':
-				plugin_html_txt = mep.plugins.flash_html(plugin_id, width, height, initVars, me_opts);
+				plugin_html_txt = mep.plugins.flash_html(plugin_id, width, height, initVars, ply_obj.config);
 			break;
 
 			case 'youtube':
@@ -217,9 +218,9 @@ mep.plugins = {
 				 && mep.plugins.hasPluginVersion('flash', [10, 0, 0])
 				 && mep.youtube) {
 
-					plugin_html_txt = mep.plugins.youtube_html(plugin_id, width, height, initVars, me_opts);
+					plugin_html_txt = mep.plugins.youtube_html(plugin_id, width, height, initVars, ply_obj.config);
 
-					mep.youtube.api.createFlash(youtubeSettings, me_opts);
+					mep.youtube.api.createFlash(youtubeSettings, ply_obj.config);
 
 				} else if (mep.youtube) {
 					mep.youtube.api.enqueueIframe(youtubeSettings);
@@ -232,7 +233,7 @@ mep.plugins = {
 
 				plugin_interface.vimeoid = playback.url.substr(playback.url.lastIndexOf('/') + 1);
 
-				plugin_html_txt = mep.plugins.vimeo_html(plugin_interface.vimeoid, width, height, initVars, me_opts);
+				plugin_html_txt = mep.plugins.vimeo_html(plugin_interface.vimeoid, width, height, initVars, ply_obj.config);
 			break;			
 		}
 
@@ -258,7 +259,7 @@ mep.plugins = {
 			me_plugin_elm[0]
 		);
 
-		// FYI: me_opts.success will be fired by the MediaPluginBridge
+		// FYI: ply_obj.config.success will be fired by the MediaPluginBridge
 		msos.console.debug(this.name + temp_cr + 'done for ' + playback.method);
 	},
 
@@ -432,15 +433,15 @@ mep.plugins.plugin_interface.prototype = {
 		msos.console.debug(this.name + ' - setSrc -> called, url: ', url);
 
 		if (typeof url === 'string') {
-			this.pluginApi.setSrc(msos.common.absolute_url(url));
-			this.src = msos.common.absolute_url(url);
+			this.pluginApi.setSrc(msos.absolute_url(url));
+			this.src = msos.absolute_url(url);
 		} else {
 
 			for (i = 0; i < url.length; i += 1) {
 				media = url[i];
 				if (this.canPlayType(media.type)) {
-					this.pluginApi.setSrc(msos.common.absolute_url(media.src));
-					this.src = msos.common.absolute_url(url);
+					this.pluginApi.setSrc(msos.absolute_url(media.src));
+					this.src = msos.absolute_url(url);
 					break;
 				}
 			}
@@ -659,11 +660,11 @@ mejs.MediaPluginBridge = {
 			bufferedTime,
 			pluginMediaElement = this.pluginMediaElements[id];
 
-		if (msos.config.verbose) {
-			msos.console.debug(this.name + temp_fe + 'start, id: ' + id);
+		if (msos.config.debug_output) {
+			msos.console.debug(this.name + temp_fe + 'start, id: ' + id + ', event: ' + eventName);
 		}
 
-		if(!pluginMediaElement){
+		if (!pluginMediaElement){
 			msos.console.error(this.name + temp_fe + 'failed!');
             return;
         }
@@ -675,8 +676,10 @@ mejs.MediaPluginBridge = {
 
 		// attach all values to element and event object
 		for (i in values) {
-			pluginMediaElement[i] = values[i];
-			e[i] = values[i];
+			if (values.hasOwnProperty(i)) {
+				pluginMediaElement[i] = values[i];
+				e[i] = values[i];
+			}
 		}
 
 		// fake the newer W3C buffered TimeRange (loaded and total have been removed)
@@ -690,7 +693,7 @@ mejs.MediaPluginBridge = {
 
 		pluginMediaElement.dispatchEvent(e);
 
-		if (msos.config.verbose) {
+		if (msos.config.debug_output) {
 			msos.console.debug(this.name + temp_fe + 'done, id: ' + id);
 		}
 	}

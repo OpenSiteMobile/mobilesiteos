@@ -16,20 +16,20 @@
 
 msos.provide("mep.poster");
 
-mep.poster.version = new msos.set_version(15, 11, 12);
+mep.poster.version = new msos.set_version(15, 12, 2);
 
 
-mep.poster.start = function () {
+mep.poster.start = function (me_player) {
 	"use strict";
 
 	// Add Poster for video
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildposter: function (ply_obj) {
 
 				var poster = jQuery('<div class="mejs-poster">').appendTo(ply_obj.layers),
-					posterUrl = ply_obj.$node.attr('poster') || ply_obj.options.poster,
+					posterUrl = ply_obj.$node.attr('poster') || ply_obj.config.poster,
 					setPoster = function (url) {
 						var posterImg = poster.find('img');
 
@@ -60,6 +60,3 @@ mep.poster.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.poster.start);

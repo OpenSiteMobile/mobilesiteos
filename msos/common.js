@@ -19,7 +19,7 @@
 
 msos.provide("msos.common");
 
-msos.common.version = new msos.set_version(15, 10, 7);
+msos.common.version = new msos.set_version(15, 11, 28);
 
 
 msos.common.button_count = 0;
@@ -307,14 +307,6 @@ msos.common.html_entity = function (str) {
         }
     }
     return result;
-};
-
-msos.common.absolute_url = function (url) {
-    "use strict";
-    var el = document.createElement('div');
-
-    el.innerHTML = '<a href="' + msos.escape_html(url) + '">x</a>';
-    return el.firstChild.href;
 };
 
 msos.common.escape_string = function (str) {

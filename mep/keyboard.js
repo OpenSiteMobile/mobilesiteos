@@ -16,14 +16,14 @@
 
 msos.provide("mep.keyboard");
 
-mep.keyboard.version = new msos.set_version(15, 11, 15);
+mep.keyboard.version = new msos.set_version(15, 12, 9);
 
 
-mep.keyboard.start = function () {
+mep.keyboard.start = function (me_player) {
 	"use strict";
 
 	jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
             // turns keyboard support on and off for this instance
             enableKeyboard: true,
@@ -82,7 +82,7 @@ mep.keyboard.start = function () {
                                 ply_obj.startControlsTimer();
                             }
                             // 5%
-							var newTime = Math.max(ply_obj.media.currentTime - ply_obj.options.defaultSeekBackwardInterval(ply_obj.media), 0);
+							var newTime = Math.max(ply_obj.media.currentTime - ply_obj.config.defaultSeekBackwardInterval(ply_obj.media), 0);
                             ply_obj.media.setCurrentTime(newTime);
                         }
                     }
@@ -100,7 +100,7 @@ mep.keyboard.start = function () {
                             }
 
                             // 5%
-							var newTime = Math.min(ply_obj.media.currentTime + ply_obj.options.defaultSeekForwardInterval(ply_obj.media), ply_obj.media.duration);
+							var newTime = Math.min(ply_obj.media.currentTime + ply_obj.config.defaultSeekForwardInterval(ply_obj.media), ply_obj.media.duration);
                             ply_obj.media.setCurrentTime(newTime);
                         }
                     }
@@ -137,7 +137,7 @@ mep.keyboard.start = function () {
 
 	// Add keyboard hot-keys, movements
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildkeyboard: function (ply_obj) {
 
@@ -145,7 +145,7 @@ mep.keyboard.start = function () {
                 jQuery(document).keydown(
                     function (e) {
                         var i = 0,
-							cfg = ply_obj.options,
+							cfg = ply_obj.config,
                             il = cfg.keyActions.length,
                             keyAction,
                             j = 0;
@@ -182,6 +182,3 @@ mep.keyboard.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.keyboard.start);

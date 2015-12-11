@@ -16,15 +16,15 @@
 
 msos.provide("mep.overlays");
 
-mep.overlays.version = new msos.set_version(15, 11, 14);
+mep.overlays.version = new msos.set_version(15, 12, 3);
 
 
-mep.overlays.start = function () {
+mep.overlays.start = function (me_player) {
 	"use strict";
 
 	// Add Poster for video
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildoverlays: function (ply_obj) {
 
@@ -87,6 +87,20 @@ mep.overlays.start = function () {
 
 				// Position play button using jquery.ui.position object
 				button.position(button_posn);
+
+				msos.onresize_functions.push(
+					function () {
+						if (ply_obj.config.size !== msos.config.size) {
+							// If device size changed
+							setTimeout(
+								function () {
+									button.position(button_posn);
+								},
+								750
+							);
+						}
+					}
+				);
 
 				// show/hide big play button
 				ply_obj.media.addEventListener(
@@ -205,6 +219,3 @@ mep.overlays.start = function () {
 		}
 	);
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.overlays.start);

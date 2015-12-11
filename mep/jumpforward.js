@@ -7,30 +7,28 @@
 
 msos.provide("mep.jumpforward");
 
-mep.jumpforward.version = new msos.set_version(15, 11, 12);
+mep.jumpforward.version = new msos.set_version(15, 12, 3);
 
-mep.jumpforward.start = function () {
+mep.jumpforward.start = function (me_player) {
 	"use strict";
 	// Jump forward button
 
 	// add extra default options 
     jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
-			jumpForwardInterval: 30,
-			// %1 will be replaced with jumpForwardInterval in this string
-			jumpForwardText: 'Jump forward %1 seconds'		// mejs.i18n.t('Jump forward %1 seconds')
+			jumpForwardInterval: 30
 		}
 	);
 
-	jQuery.extend(mep.player.controls, {
+	jQuery.extend(me_player.controls, {
 
 		buildjumpforward: function (ply_obj) {
 
-			var cfg = ply_obj.options,
-				forwardText = cfg.jumpForwardText.replace('%1', cfg.jumpForwardInterval),
+			var cfg = ply_obj.config,
+				forwardText = cfg.i18n.jump_forward.replace('%1', cfg.jumpForwardInterval),
 				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + forwardText + '" aria-label="' + forwardText + '"><i class="fa fa-step-forward"></i></button>'),
-				loop = jQuery('<div class="mejs-button mejs-jump-forward-button"></div>');
+				loop = jQuery('<div class="mejs-button mejs-jump-forward"></div>');
 
 			button.click(
 				function (e) {
@@ -49,6 +47,3 @@ mep.jumpforward.start = function () {
 		}
 	});
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.jumpforward.start);

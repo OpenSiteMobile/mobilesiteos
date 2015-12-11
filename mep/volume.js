@@ -16,28 +16,26 @@
 
 msos.provide("mep.volume");
 
-mep.volume.version = new msos.set_version(15, 11, 13);
+mep.volume.version = new msos.set_version(15, 12, 10);
 
 
 // Start by loading our volume.css stylesheet
 mep.volume.css = new msos.loader();
 mep.volume.css.load('mep_volume_css', msos.resource_url('mep', 'css/volume.css'));
 
-mep.volume.start = function () {
+mep.volume.start = function (me_player) {
 	"use strict";
 
 	jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
-			muteText: 'Mute Toggle',				// mejs.i18n.t('Mute Toggle'),
-			allyVolumeControlText: 'Use Up/Down Arrow keys to increase or decrease volume.',	// mejs.i18n.t('Use Up/Down Arrow keys to increase or decrease volume.'),
 			audioVolume: 'horizontal',
 			videoVolume: 'vertical'
 		}
 	);
 
 	jQuery.extend(
-		mep.player.controls,
+		me_player.controls,
 		{
 			buildvolume: function (ply_obj) {
 
@@ -45,10 +43,11 @@ mep.volume.start = function () {
 				if (msos.config.browser.mobile
 				 && msos.config.browser.touch) { return; }
 
-				var cfg = ply_obj.options,
+				var cfg = ply_obj.config,
 					mode = (ply_obj.isVideo) ? cfg.videoVolume : cfg.audioVolume,
 					button,
 					mute,
+					volumeAria = jQuery('<span class="visually_hidden">' + cfg.i18n.volume_up_down + '</span>'),
 					volumeSlider =	(mode === 'horizontal') ? jQuery('<div class="mejs-horizontal-volume-slider">')  : jQuery('<div class="mejs-volume-slider">'),
 					volumeTotal =	(mode === 'horizontal') ? jQuery('<div class="mejs-horizontal-volume-total">')   : jQuery('<div class="mejs-volume-total">'),
 					volumeCurrent =	(mode === 'horizontal') ? jQuery('<div class="mejs-horizontal-volume-current">') : jQuery('<div class="mejs-volume-current">'),
@@ -58,9 +57,17 @@ mep.volume.start = function () {
 					mouseIsDown = false,
 					mouseIsOver = false;
 
-				volumeSlider.append(volumeTotal, volumeCurrent, volumeHandle);
+				volumeSlider.attr({
+					'aria-label': ply_obj.config.i18n.volume_slide_control,
+					'aria-valuemin': 0,
+					'aria-valuemax': 100,
+					'role': 'slider',
+					'tabindex': 0
+				});
 
-				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.mute_toggle + '"><i class="fa fa-volume-up"></i><i class="fa fa-volume-off"></button>');
+				volumeSlider.append(volumeAria, volumeTotal, volumeCurrent, volumeHandle);
+
+				button = jQuery('<button type="button" aria-controls="' + ply_obj.id + '" title="' + cfg.i18n.mute_toggle + '" aria-label="' + cfg.i18n.mute_toggle + '"><i class="fa fa-volume-up"></i><i class="fa fa-volume-off"></button>');
 				mute =	jQuery('<div class="mejs-button mejs-volume-button mejs-mute"></div>');
 
 				mute.append(button);
@@ -89,10 +96,8 @@ mep.volume.start = function () {
 					// ajust mute button style
 					if (volume === 0) {
 						mute.removeClass('mejs-mute').addClass('mejs-unmute');
-//						mute.children('button').attr('title', mejs.i18n.t('Unmute')).attr('aria-label', mejs.i18n.t('Unmute'));
 					} else {
 						mute.removeClass('mejs-unmute').addClass('mejs-mute');
-//						mute.children('button').attr('title', mejs.i18n.t('Mute')).attr('aria-label', mejs.i18n.t('Mute'));
 					}
 
 					var totalWidth,
@@ -135,7 +140,7 @@ mep.volume.start = function () {
 						volumeHandle.css('left', Math.round(totalPosition.left + newLeft - (volumeHandle.width() / 2)));
 
 						// rezize the current part of the volume bar
-						volumeCurrent.width( Math.round(newLeft) );
+						volumeCurrent.width(Math.round(newLeft));
 					}
 				};
 
@@ -243,7 +248,7 @@ mep.volume.start = function () {
 							default:
 								return true;
 						}
-	
+
 						mouseIsDown = false;
 						positionVolumeHandle(volume);
 						ply_obj.media.setVolume(volume);
@@ -269,17 +274,12 @@ mep.volume.start = function () {
 					}
 				);
 
-				function updateVolumeSlider(e) {
+				function updateVolumeSlider() {
 					var volume = Math.floor(ply_obj.media.volume * 100);
 
 					volumeSlider.attr({
-						'aria-label': 'volume slide control',		// mejs.i18n.t('volumeSlider'),
-						'aria-valuemin': 0,
-						'aria-valuemax': 100,
 						'aria-valuenow': volume,
-						'aria-valuetext': volume + '%',
-						'role': 'slider',
-						'tabindex': 0
+						'aria-valuetext': volume + '%'
 					});
 				}
 
@@ -328,5 +328,3 @@ mep.volume.start = function () {
 	);
 };
 
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.volume.start);

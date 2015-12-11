@@ -7,7 +7,7 @@
 
 msos.provide("mep.speedselect");
 
-mep.speedselect.version = new msos.set_version(15, 11, 12);
+mep.speedselect.version = new msos.set_version(15, 12, 2);
 
 
 // Start by loading our tracks.css stylesheet
@@ -15,60 +15,49 @@ mep.speedselect.css = new msos.loader();
 mep.speedselect.css.load('mep_speedselect_css', msos.resource_url('mep', 'css/speedselect.css'));
 
 
-mep.speedselect.start = function () {
+mep.speedselect.start = function (me_player) {
 	"use strict";
 
 	// add extra default options 
     jQuery.extend(
-		mep.player.config,
+		me_player.config,
 		{
-			// Also supported => [{name: 'Slow', value: '0.75'}, {name: 'Normal', value: '1.00'}, ...]
-			speeds: ['2.00', '1.50', '1.25', '1.00', '0.75'],
-			defaultSpeed: '1.00',
+			speeds: ['200', '150', '125', '100', '75'],
+			defaultSpeed: '100',
 			speedChar: 'x'
 		}
 	);
 
-	jQuery.extend(mep.player.controls, {
+	jQuery.extend(me_player.controls, {
 
-		buildspeed: function (ply_obj) {
+		buildspeedselect: function (ply_obj) {
 
 			if (ply_obj.media.pluginType === 'native') {
 
-				var cfg = ply_obj.options,
-					speedButton = null,
-					speedSelector = null,
+				var temp_ss = 'mep.speedselect.buildspeedselect',
+					cfg = ply_obj.config,
+					radio_select = 'input[type=radio][name=' + ply_obj.id + '_speed]',
 					playbackSpeed = null,
 					inputId = null,
+					$li,
 					speeds = [],
 					defaultInArray = false,
 					i = 0,
 					s,
 					getSpeedNameFromValue,
-					button,
-					html;
+					button;
 
 				for (i = 0; i < cfg.speeds.length; i += 1) {
 
 					s = cfg.speeds[i];
-
-					if (typeof s === 'string'){
 	
-						speeds.push({
-							name: s + cfg.speedChar,
-							value: s
-						});
+					speeds.push({
+						name: parseFloat(s / 100) + cfg.speedChar,
+						value: s
+					});
 
-						if (s === cfg.defaultSpeed) {
-							defaultInArray = true;
-						}
-					} else {
-
-						speeds.push(s);
-
-						if (s.value === cfg.defaultSpeed) {
-							defaultInArray = true;
-						}
+					if (s === cfg.defaultSpeed) {
+						defaultInArray = true;
 					}
 				}
 
@@ -93,29 +82,33 @@ mep.speedselect.start = function () {
 							return speeds[i].name;
 						}
 					}
+
 					return 'unknown';
 				};
 
-				speedButton = '<div class="mejs-button mejs-speed-button"></div>';
-				button = '<button type="button">' + getSpeedNameFromValue(cfg.defaultSpeed) + '</button>';
+				ply_obj.speedButton = jQuery('<div class="mejs-button mejs-speed"></div>');
+				ply_obj.speedSelector = jQuery('<div class="mejs-speed-selector"><ul></ul></div>');
+ 
+				button = jQuery('<button type="button">' + getSpeedNameFromValue(cfg.defaultSpeed) + '</button>');
 
-				html = '<div class="mejs-speed-selector">' +
-							'<ul>';
+				ply_obj.speedButton.append(button);
 
 				for (i = 0; i < speeds.length; i += 1) {
 
 					inputId = ply_obj.id + '-speed-' + speeds[i].value;
-	
-						html += '<li>' + 
-									'<input type="radio" name="speed" value="' + speeds[i].value + '" id="' + inputId + '" ' + (speeds[i].value === cfg.defaultSpeed ? ' checked' : '') + ' />' +
-									'<label for="' + inputId + '" ' + (speeds[i].value === cfg.defaultSpeed ? ' class="mejs-speed-selected"' : '') + '>' + speeds[i].name + '</label>' +
-								'</li>';
-				}
-					html += '</ul></div>';
 
-				speedSelector = jQuery(html);
-				speedButton.append(button, speedSelector);
-				speedButton.appendTo(ply_obj.controls);
+					$li = jQuery(
+						'<li>' +
+							'<input type="radio" name="' + ply_obj.id + '_speed" value="' + speeds[i].value + '" id="' + inputId + '" />' +
+							'<label for="' + inputId + '">' + speeds[i].name + '</label>' +
+						'</li>'
+					);
+
+					ply_obj.speedSelector.find('ul').append($li);
+				}
+
+				ply_obj.speedButton.append(ply_obj.speedSelector);
+				ply_obj.speedButton.appendTo(ply_obj.controls);
 
 				playbackSpeed = cfg.defaultSpeed;
 
@@ -123,45 +116,52 @@ mep.speedselect.start = function () {
 					'loadedmetadata',
 					function () {
 						if (playbackSpeed) {
-							ply_obj.media.playbackRate = parseFloat(playbackSpeed);
+							ply_obj.media.playbackRate = parseFloat(playbackSpeed / 100);
 						}
 					},
 					true
 				);
 
-				speedSelector.on(
+				// Mobile
+				button.on(
 					'click',
-					'input[type="radio"]',
-					function (e) {
-						msos.do_nothing(e);
-
-						var newSpeed = jQuery(this).attr('value');
-
-						playbackSpeed = newSpeed;
-						ply_obj.media.playbackRate = parseFloat(newSpeed);
-
-						button.html(getSpeedNameFromValue(newSpeed));
-
-						speedButton.find('.mejs-speed-selected').removeClass('mejs-speed-selected');
-						speedButton.find('input[type="radio"]:checked').next().addClass('mejs-speed-selected');
+					function () {
+						ply_obj.speedSelector.css('visibility', 'visible');
+						ply_obj.speedSelector.find(radio_select + '[value=' + playbackSpeed + ']').prop('checked', true);
 					}
 				);
 
-				speedButton.one(
+				// hover or keyboard focus
+				ply_obj.speedButton.on(
 					'mouseenter focusin',
 					function () {
-						speedSelector
-							.height(
-								speedButton.find('.mejs-speed-selector ul').outerHeight(true)
-							).css(
-								'top', (-1 * speedSelector.height()) + 'px'
-							);
+						ply_obj.speedSelector.css('visibility', 'visible');
+						ply_obj.speedSelector.find(radio_select + '[value=' + playbackSpeed + ']').prop('checked', true);
+					}
+				).on(
+					'mouseleave focusout',
+					function () {
+						ply_obj.speedSelector.css('visibility', 'hidden');
+					}
+				);
+
+				ply_obj.speedSelector.on(
+					'click',	// change doesn't work in FF
+					radio_select,
+					function () {
+						var newSpeed = jQuery(this).attr('value'),
+							plybck_rate = parseFloat(newSpeed / 100);
+
+							msos.console.debug(temp_ss + ' - on.change -> fired, value: ' + newSpeed + ', parseFloat: ' + plybck_rate);
+
+							playbackSpeed = newSpeed;
+							ply_obj.media.playbackRate = plybck_rate;
+
+							button.html(getSpeedNameFromValue(newSpeed));
+							ply_obj.speedSelector.css('visibility', 'hidden');
 					}
 				);
 			}
 		}
 	});
 };
-
-// Load early, but after 'mep.player' has loaded
-msos.onload_func_start.push(mep.speedselect.start);

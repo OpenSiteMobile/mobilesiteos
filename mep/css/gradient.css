@@ -1,7 +1,8 @@
 @charset "utf-8";
 
 
-.mejs-container .mejs-controls {
+.mejs-container .mejs-controls,
+.mejs-container .mejs-audio {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgba(50,50,50,0.7)), to(rgba(0,0,0,0.7)));
 	background: -webkit-linear-gradient(top, rgba(50,50,50,0.7), rgba(0,0,0,0.7));
 	background: -moz-linear-gradient(top, rgba(50,50,50,0.7), rgba(0,0,0,0.7));
