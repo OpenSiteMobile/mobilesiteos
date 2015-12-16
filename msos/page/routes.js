@@ -20,7 +20,7 @@
 msos.provide("msos.page.routes");
 msos.require("msos.page");	// Already called, but here for ref.
 
-msos.page.routes.version = new msos.set_version(15, 11, 24);
+msos.page.routes.version = new msos.set_version(15, 12, 14);
 
 
 msos.page.routes.Router = Backbone.Router.extend({
@@ -87,7 +87,7 @@ msos.page.routes.Router = Backbone.Router.extend({
 		}
 
 		if (msos.config.verbose) {
-			msos.console.debug(this.br_name + 'page -> for name length: ' + name_lngth+ ', trac:', trac);
+			msos.console.debug(this.br_name + 'page -> for name length: ' + name_lngth + ', trac:', trac);
 		}
 
 		// If not yet defined, get to it.
@@ -127,6 +127,9 @@ msos.page.routes.Router = Backbone.Router.extend({
 
 				// If using "mobile console", hide it now.
 				if (msos.pyromane) { msos.pyromane.hide(); }
+
+				// Lock the page from user scrolling
+				msos.page.hold();
 
 				// FadeOut the main div (for aesthetics)
 				jQuery('#body').fadeOut('fast');

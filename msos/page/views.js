@@ -15,14 +15,15 @@
     msos: false,
     jQuery: false,
     _: false,
-    Backbone: false
+    Backbone: false,
+    VisualEvent: false
 */
 
 msos.provide("msos.page.views");
 msos.require("msos.page");
 msos.require("msos.stickup");
 
-msos.page.views.version = new msos.set_version(15, 11, 24);
+msos.page.views.version = new msos.set_version(15, 12, 14);
 
 
 // Helper functions
@@ -246,8 +247,16 @@ msos.page.views.BBViewContent = Backbone.View.extend({
 		// Update the #header and #footer
 		self.set_menu_active();
 
-		// Update all "stickup" elements (but after content loads)
+		// Make the loaded content visible
+		msos.onload_func_done.push(
+			function () { jQuery('#body').css('visibility', 'visible'); }
+		);
+
+		// Update all "stickup" elements
 		msos.onload_func_post.push(msos.stickup.update);
+
+		// Release the page to scrolling
+		msos.onload_func_post.push(msos.page.release);
 
         msos.run_onload();
 

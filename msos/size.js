@@ -22,6 +22,11 @@ msos.require("msos.i18n.common");
 
 msos.size.version = new msos.set_version(15, 10, 7);
 
+msos.size.page_ready = function () {
+	"use strict";
+	msos.console.debug('msos.size.page_ready -> first call does nothing.');
+};
+
 msos.size.evaluate = function (force_sizing) {
 	"use strict";
 
@@ -58,9 +63,9 @@ msos.size.set_display = function () {
 			var j = 0,
 				odc = msos.ondisplay_size_change;
 
-			jQuery('#body').show();
-
 			for (j = 0; j < odc.length; j += 1) { odc[j](); }
+
+			jQuery('#body').show();
 		};
 
 	msos.console.debug(temp_rd + 'start.');
@@ -96,7 +101,9 @@ msos.size.selection = function ($container) {
 
     // Build display size select input object
     for (size in msos.config.size_wide) {
-        select_display_sizes[size] = (msos.i18n.common.bundle[size] || size) + ': ' + msos.config.size_wide[size] + 'px';
+		if (msos.config.size_wide.hasOwnProperty(size)) {
+			select_display_sizes[size] = (msos.i18n.common.bundle[size] || size) + ': ' + msos.config.size_wide[size] + 'px';
+		}
     }
 
     // Generate display size menu
@@ -124,6 +131,7 @@ msos.size.set_onresize = function () {
 	// 'true' forces recalculation
 	msos.size.evaluate(true);
 };
+
 
 // Run immediately
 msos.size.set_display();
