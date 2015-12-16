@@ -14,11 +14,12 @@
 
 msos.provide("msos.stickup");
 
-msos.stickup.version = new msos.set_version(15, 4, 15);
+msos.stickup.version = new msos.set_version(15, 12, 14);
 
 msos.stickup.v_postion = jQuery(this).scrollTop();
 msos.stickup.on_change = [];
 msos.stickup.on_scroll = [];
+msos.stickup.throttle_speed = msos.config.mobile ? 25 : 50;
 
 msos.stickup.update = function () {
 	"use strict";
@@ -68,7 +69,6 @@ msos.stickup.create = function (sticky_elm) {
 	}
 
 	sticky_elm.addClass('msos_sticky');
-	
 
 	on_change = function () {
 		msos.console.debug(temp_st + ' - on_change -> called, for: ' + (sticky_elm.attr('id') || 'na'));
@@ -90,7 +90,9 @@ msos.stickup.create = function (sticky_elm) {
 		var elm_id = sticky_elm.attr('id') || 'na',
 			scroll_top =	parseInt(jQuery(window).scrollTop(), 10),
 			win_height =	parseInt(jQuery(window).innerHeight(), 10),
-			body_height =	parseInt(jQuery('body').height(), 10);
+			body_height =	parseInt(jQuery('body').height(), 10),
+			msos_sticky,
+			indx = 0;
 
 		if (msos.config.debug === 'stickup') {
 			msos.console.debug(temp_st + ' - on_scroll -> start, for: ' + elm_id);
@@ -111,8 +113,7 @@ msos.stickup.create = function (sticky_elm) {
 			elm_width =		parseInt(sticky_elm.outerWidth(), 10) || 0;
 			topMargin =		parseInt(sticky_elm.css('margin-top'), 10);
 
-			var msos_sticky = jQuery('.msos_sticky'),
-				indx = 0;
+			msos_sticky = jQuery('.msos_sticky');
 
 			// If elm_width === 0, then elm not ready (ref. display: none;)
 			if (elm_width > 0) {
@@ -168,7 +169,7 @@ msos.stickup.create = function (sticky_elm) {
 	// Decrement z-index so first in are higher (for dropdown menus)
 	elm_z_index = 999 - msos.stickup.on_change.length;
 
-	// We set z-index very late because fadeIn/fadeOut cause reset to 'auto'
+	// We set z-index very late because page fadeIn/fadeOut cause reset to 'auto'
 	setTimeout(function () { sticky_elm.css('z-index', elm_z_index); }, 2000);
 
 	msos.console.debug(temp_st + ' -> done!');
@@ -176,7 +177,7 @@ msos.stickup.create = function (sticky_elm) {
 
 jQuery(document).on(
 	'scroll',
-	_.throttle(msos.stickup.run, 100)
+	_.throttle(msos.stickup.run, msos.stickup.throttle_speed)
 );
 
 msos.ondisplay_size_change.push(msos.stickup.update);	// Absolutely necessary!

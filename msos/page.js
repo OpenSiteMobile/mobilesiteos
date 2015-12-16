@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				  page.js
-//			Copyright©2010-2013 - OpenSiteMobile
+//			Copyright©2010-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -42,7 +42,7 @@ msos.page = _.extend(
 			group: '',
 			name: ''
 		},
-		version: new msos.set_version(14, 3, 27),
+		version: new msos.set_version(15, 12, 15),
 		visualevent: null
 	}
 );
@@ -58,8 +58,8 @@ msos.page.auto_detect = function () {
 
 	// Commonly used Bootstrap adapted modules
 	if (jQuery('.table').length)					{ modules.push("bootstrap.table"); }
-	if (jQuery('[data-toggle="dropdown"]').length) 	{ modules.push("bootstrap.dropdown"); }
-	if (jQuery('[data-toggle="collapse"]').length) 	{ modules.push("bootstrap.collapse"); }
+	if (jQuery('[data-toggle="dropdown"]').length)	{ modules.push("bootstrap.dropdown"); }
+	if (jQuery('[data-toggle="collapse"]').length)	{ modules.push("bootstrap.collapse"); }
 
 	// Require our additional modules (based on page dom)
 	for (i = 0; i < modules.length; i += 1) { msos.require(modules[i]); }
@@ -113,6 +113,34 @@ msos.page.next_prev = function (cnt) {
 	pw.BBApp.router.navigate(avail_array[calc_index], { trigger: true });
 
 	msos.console.debug(temp_np + 'done, route: ' + avail_array[calc_index] + ', for index: ' + calc_index);
+};
+
+msos.page.hold = function () {
+	"use strict";
+
+	msos.console.debug('msos.page.hold -> called.');
+
+	// Clear to css specified defaults
+	jQuery('html').css({ 'overflow-x': '', 'overflow-y': '' });
+};
+
+msos.page.release = function () {
+	"use strict";
+
+	var port = msos.config.view_port,
+		overflow = {};
+
+	msos.console.debug('msos.page.release -> called.');
+
+	if (port.width < jQuery('#body').width()) {
+		// This only happens if a user selects a size greater than their display size
+		overflow = { 'overflow-x': 'scroll', 'overflow-y': 'scroll' };
+	} else {
+		overflow = { 'overflow-y': 'scroll' };
+	}
+
+	// Page is ready, so allow scrolling
+	jQuery('html').css(overflow);
 };
 
 msos.page.initiate = function (app_cfg) {
