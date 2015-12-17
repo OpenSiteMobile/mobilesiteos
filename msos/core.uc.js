@@ -514,7 +514,8 @@ msos.ajax_error = function (xhr, status, error) {
 msos.hide_mobile_url = function () {
 	"use strict";
 
-	var temp_mu = 'msos.hide_mobile_url -> ';
+	var temp_mu = 'msos.hide_mobile_url -> ',
+		scrollTop;
 
 	// If there's a hash, stop here
     if (!location.hash) {
@@ -522,7 +523,7 @@ msos.hide_mobile_url = function () {
 		// Order with msos.notify is important. We don't want scrolling and DOM manipulations to interact.
 		window.scrollTo(0, 1);
 
-		var scrollTop =
+		scrollTop =
 				window.pageYOffset
 			|| (window.document.compatMode === "CSS1Compat" && window.document.documentElement.scrollTop)
 			||  window.document.body.scrollTop

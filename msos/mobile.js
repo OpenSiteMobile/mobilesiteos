@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					mobile.js
-//			Copyright©2011-2013 - OpenSiteMobile
+//			Copyright©2011-2015 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -19,14 +19,13 @@
 msos.provide("msos.mobile");
 msos.require("jquery.ui.touch");
 
-msos.mobile.version = new msos.set_version(13, 12, 3);
+msos.mobile.version = new msos.set_version(15, 12, 15);
 
 if (navigator.platform.match(/iPad|iPhone|iPod/i)) {
 	msos.require("msos.mbp.ios");
 }
 
-if (!Modernizr.overflowscrolling || msos.config.run_overflowscroll) {
-	msos.config.run_overflowscroll = true;	// Update for msos.demo output
+if (msos.config.run_overflowscroll && !Modernizr.overflowscrolling) {
     msos.require("msos.overflowscroll");
 }
 

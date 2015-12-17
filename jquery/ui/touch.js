@@ -1,5 +1,5 @@
 /*!
- * jQuery UI Touch Punch 0.2.2
+ * jQuery UI Touch Punch 0.2.2, w/ updates from 0.2.3
  *
  * Copyright 2011, Dave Furfero
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -7,6 +7,7 @@
  * Depends:
  *  jquery.ui.widget.js
  *  jquery.ui.mouse.js
+ *
  */
 
 /*global
@@ -20,7 +21,7 @@
 
 msos.provide("jquery.ui.touch");
 
-jquery.ui.touch.version = new msos.set_version(13, 6, 14);
+jquery.ui.touch.version = new msos.set_version(15, 12, 15);
 
 
 (function ($) {
@@ -35,6 +36,7 @@ jquery.ui.touch.version = new msos.set_version(13, 6, 14);
     var temp_utv = 'jquery.ui.touch',
         mouseProto = $.ui.mouse.prototype,
         _mouseInit = mouseProto._mouseInit,
+		_mouseDestroy = mouseProto._mouseDestroy,
         dbug_txt = '',
         touchHandled;
 
@@ -145,14 +147,31 @@ jquery.ui.touch.version = new msos.set_version(13, 6, 14);
 
         var self = this;
 
-        // Delegate the touch handlers to the widget's element
-        self.element
-            .bind('touchstart', $.proxy(self, '_touchStart'))
-            .bind('touchmove',  $.proxy(self, '_touchMove'))
-            .bind('touchend',   $.proxy(self, '_touchEnd'));
+		// Delegate the touch handlers to the widget's element
+		self.element.bind({
+			touchstart: $.proxy(self, '_touchStart'),
+			touchmove: $.proxy(self, '_touchMove'),
+			touchend: $.proxy(self, '_touchEnd')
+		});
 
         // Call the original $.ui.mouse init method
         _mouseInit.call(self);
     };
+
+
+	mouseProto._mouseDestroy = function () {
+
+		var self = this;
+
+		// Delegate the touch handlers to the widget's element
+		self.element.unbind({
+			touchstart: $.proxy(self, '_touchStart'),
+			touchmove: $.proxy(self, '_touchMove'),
+			touchend: $.proxy(self, '_touchEnd')
+		});
+
+		// Call the original $.ui.mouse destroy method
+		_mouseDestroy.call(self);
+	};
 
 }(jQuery));
