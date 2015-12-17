@@ -514,18 +514,27 @@ msos.ajax_error = function (xhr, status, error) {
 msos.hide_mobile_url = function () {
 	"use strict";
 
-	// Order with msos.notify is important. We don't want scrolling and DOM manipulations to interact.
-	window.scrollTo(0, 1);
+	var temp_mu = 'msos.hide_mobile_url -> ',
+		scrollTop;
 
-	var scrollTop =
-			window.pageYOffset
-		|| (window.document.compatMode === "CSS1Compat" && window.document.documentElement.scrollTop)
-		||  window.document.body.scrollTop
-		||  0;
+	// If there's a hash, stop here
+    if (!location.hash) {
 
-	msos.console.debug('msos.hide_mobile_url -> called, scrollTop: ' + scrollTop);
+		// Order with msos.notify is important. We don't want scrolling and DOM manipulations to interact.
+		window.scrollTo(0, 1);
 
-	setTimeout(function () { window.scrollTo(0, scrollTop === 1 ? 0 : 1); }, 1);
+		scrollTop =
+				window.pageYOffset
+			|| (window.document.compatMode === "CSS1Compat" && window.document.documentElement.scrollTop)
+			||  window.document.body.scrollTop
+			||  0;
+
+		msos.console.debug(temp_mu + 'called, scrollTop: ' + scrollTop);
+
+		setTimeout(function () { window.scrollTo(0, scrollTop === 1 ? 0 : 1); }, 1);
+	} else {
+		msos.console.debug(temp_mu + 'skipped, for location.hash');
+	}
 };
 
 msos.notify = {
