@@ -432,7 +432,7 @@ msos.console.time('ng');
                 }
             );
 
-            message += '\nhttp://errors.angularjs.org/1.4.7/' +
+            message += '\nhttp://errors.angularjs.org/1.4.8/' +
                 (module ? module + '/' : '') + code;
 
             for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i += 1, paramPrefix = '&') {
@@ -9157,6 +9157,62 @@ msos.console.time('ng');
                 pending: []
             };
         }
+
+        extend(
+            Promise.prototype,
+            {
+                'catch': function (callback) {
+                    return this.then(null, callback);
+                },
+                'finally': function (callback, progressBack) {
+                    var f_count = 0;
+
+                    function makePromise(value, resolved, type) {
+                        f_count += 1;
+                        
+                        var result = new Deferred('finally_' + f_count + '_' + type);
+
+                        if (resolved)   { result.resolve(value); }
+                        else            { result.reject(value);  }
+
+                        return result.promise;
+                    }
+
+                    function handleCallback(value, isResolved, callback) {
+                        var callbackOutput = null;
+
+                        try {
+                            if (_.isFunction(callback)) { callbackOutput = callback(); }
+                        } catch (e) {
+                            return makePromise(e, false, 'catch_error');
+                        }
+
+                        if (isPromiseLike(callbackOutput)) {
+                            return callbackOutput.then(
+                                function () {
+                                    return makePromise(value, isResolved, 'promise_like_success');
+                                },
+                                function (error) {
+                                    return makePromise(error, false, 'promise_like_fail');
+                                }
+                            );
+                        } else {
+                            return makePromise(value, isResolved, 'resolved');
+                        }
+                    };
+
+                    return this.then(
+                        function (value) {
+                            return handleCallback(value, true, callback);
+                        },
+                        function (error) {
+                            return handleCallback(error, false, callback);
+                        },
+                        progressBack
+                    );
+                }
+            }
+        );
 
         function Deferred(type) {
 
