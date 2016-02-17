@@ -2709,6 +2709,7 @@ var $$AnimateRunnerFactory = ['$q', '$sniffer', '$$animateAsyncRun',
             status === false ? reject() : resolve();
           });
         });
+        this.promise.$$state.name += ':ng_animate_when_AnimateRunner';
       }
       return this.promise;
     },
