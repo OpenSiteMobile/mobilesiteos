@@ -4304,7 +4304,7 @@ msos.create_node = function (tag, atts_obj, win) {
 		at = '';
 
     if (msos.config.verbose) {
-		msos.console.debug('msos.create_node -> called for: ' + tag, atts_obj);
+		msos.console.debug('msos.create_node -> called for:\n     ' + tag, atts_obj);
     }
 
     for (at in atts_obj) {
