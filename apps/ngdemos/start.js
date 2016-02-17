@@ -236,6 +236,18 @@ msos.onload_functions.push(
 						icon: 'fa-external-link'
                     },
                     {
+                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Form',
+                        url: '',
+                        href: 'simple_form.html',
+						icon: 'fa-external-link'
+                    },
+                    {
+                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Carousel',
+                        url: '',
+                        href: 'simple_carousel.html',
+						icon: 'fa-external-link'
+                    },
+                    {
                         title: 'MSOS-AngularJS, Switchable Grid',
                         url: '',
                         href: 'switchable_grid.html',
@@ -257,6 +269,12 @@ msos.onload_functions.push(
                         title: 'MSOS-Mobile-AngularJS-UI, w/Lazy Loading Modules',
                         url: '',
                         href: '../angularjs_mobile/index.html',
+						icon: 'fa-external-link'
+                    },
+					{
+                        title: 'MSOS-AngularJS && Material Design',
+                        url: '',
+                        href: '../material_start/index.html',
 						icon: 'fa-external-link'
                     },
 					{
