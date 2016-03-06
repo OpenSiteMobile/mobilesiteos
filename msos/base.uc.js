@@ -88,7 +88,7 @@ var msos = {
     i18n_order: [],
     i18n_queue: 0,
 
-	log_methods: ['error', 'warn', 'info', 'debug', 'time', 'timeEnd', 'log'],
+	log_methods: ['error', 'warn', 'info', 'debug', 'time', 'timeEnd', 'log', 'assert', 'dir', 'clear', 'profile', 'profileEnd'],
 
 	onload_func_pre:	[],
     onload_func_start:	[],
@@ -645,7 +645,27 @@ msos.console = (function () {
 	var console_obj = { queue: [] },
 		console_win = window.console,
 		idx = msos.log_methods.length - 1,
-		aps = Array.prototype.slice;
+		aps = Array.prototype.slice,
+		methods = [
+			'assert', 'clear', 'count', 'debug', 'dir', 'dirxml',
+			'error', 'exception', 'group', 'groupCollapsed', 'groupEnd',
+			'info', 'log', 'markTimeline', 'profile', 'profiles',
+			'profileEnd', 'show', 'table', 'time', 'timeEnd', 'timeline',
+			'timelineEnd', 'timeStamp', 'trace', 'warn'
+		],
+		method = methods.pop();
+
+	// Normalize across browsers
+    if (!console_win.memory) { console_win.memory = {}; }
+
+    while (method) {
+		if (!console_win[method]) {
+			console_win[method] = function (key) {
+				return function () { console.warn('msos.console -> method: ' + key + ' is na!'); }
+			}(method);
+		}
+		method = methods.pop();
+	}
 
 	// From AngularJS
     function formatError(arg) {
