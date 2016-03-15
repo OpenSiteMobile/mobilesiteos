@@ -88,7 +88,7 @@ var msos = {
     i18n_order: [],
     i18n_queue: 0,
 
-	log_methods: ['error', 'warn', 'info', 'debug', 'time', 'timeEnd', 'log', 'assert', 'dir', 'clear', 'profile', 'profileEnd'],
+	log_methods: ['error', 'warn', 'info', 'debug', 'time', 'timeEnd', 'log', 'assert', 'dir', 'clear', 'profile', 'profileEnd', 'trace'],
 
 	onload_func_pre:	[],
     onload_func_start:	[],

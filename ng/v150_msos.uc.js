@@ -23,9 +23,9 @@ msos.console.time('ng');
 (function (window, document) {
     "use strict";
 
-    function noop() { return undefined; }
+    function noop() { msos.console.trace('ng - noop -> executed.'); return undefined; }
 
-    noop.$inject = [];
+    noop.prototype.$inject = [];
 
     function nullFormRenameControl(control, name) {
         control.$name = name;
@@ -41,6 +41,8 @@ msos.console.time('ng');
         },
         verbose = msos.config.verbose,
         msos_debug = msos.console.debug,
+        start_time = msos.new_time(),
+        end_time = 0,
         NODE_TYPE_ELEMENT = 1,
         NODE_TYPE_TEXT = 3,
         NODE_TYPE_COMMENT = 8,
@@ -183,6 +185,7 @@ msos.console.time('ng');
             return lowercase(element.nodeName || (element[0] && element[0].nodeName));
         },
         uid = 0,
+        browser_std_defer = 10,     // Experimental: original default is 0 (zero)
         bindJQueryFired = false,
         bindbootstrapFired = false,
         JQLitePrototype = {},
@@ -330,6 +333,33 @@ msos.console.time('ng');
 
     function isElement(node) {
         return !!(node && (node.nodeName || (node.prop && node.attr && node.find)));
+    }
+
+    function sliceArgs(args, startIndex) {
+        return slice.call(args, startIndex || 0);
+    }
+
+    function concat(array1, array2, index) {
+        return array1.concat(slice.call(array2, index));
+    }
+
+    function ng_bind(self, fn) {
+        var curryArgs = arguments.length > 2 ? sliceArgs(arguments, 2) : [];
+
+        if (_.isFunction(fn) && !(fn instanceof RegExp)) {
+            return curryArgs.length
+                ? function () {
+                    return arguments.length
+                        ? fn.apply(self, concat(curryArgs, arguments, 0))
+                        : fn.apply(self, curryArgs);
+                  }
+                : function () {
+                    return arguments.length
+                        ? fn.apply(self, arguments)
+                        : fn.call(self);
+                  };
+        }
+        return fn;
     }
 
     function toJsonReplacer(key, value) {
@@ -714,51 +744,6 @@ msos.console.time('ng');
         var stackSource = [],
             stackDest = [];
 
-        function copyType(source) {
-            var copied,
-                re;
-
-            switch (ngto_string.call(source)) {
-
-                case '[object Int8Array]':
-                case '[object Int16Array]':
-                case '[object Int32Array]':
-                case '[object Float32Array]':
-                case '[object Float64Array]':
-                case '[object Uint8Array]':
-                case '[object Uint8ClampedArray]':
-                case '[object Uint16Array]':
-                case '[object Uint32Array]':
-                    return new source.constructor(copyElement(source.buffer));
-
-                case '[object ArrayBuffer]':
-                    // Support: IE10
-                    if (!source.slice) {
-                        copied = new ArrayBuffer(source.byteLength);
-                        new Uint8Array(copied).set(new Uint8Array(source));
-                        return copied;
-                    }
-                    return source.slice(0);
-
-                case '[object Boolean]':
-                case '[object Number]':
-                case '[object String]':
-                case '[object Date]':
-                  return new source.constructor(source.valueOf());
-
-                case '[object RegExp]':
-                    re = new RegExp(source.source, source.toString().match(/[^\/]*$/)[0]);
-                    re.lastIndex = source.lastIndex;
-                    return re;
-            }
-
-            if (_.isFunction(source.cloneNode)) {
-                return source.cloneNode(true);
-            }
-
-            return undefined;
-        }
-
         function copyElement(source) {
             // Simple values
             if (!isObject(source)) { return source; }
@@ -824,6 +809,51 @@ msos.console.time('ng');
 
             setHashKey(destination, h);
             return destination;
+        }
+
+        function copyType(source) {
+            var copied,
+                re;
+
+            switch (ngto_string.call(source)) {
+
+                case '[object Int8Array]':
+                case '[object Int16Array]':
+                case '[object Int32Array]':
+                case '[object Float32Array]':
+                case '[object Float64Array]':
+                case '[object Uint8Array]':
+                case '[object Uint8ClampedArray]':
+                case '[object Uint16Array]':
+                case '[object Uint32Array]':
+                    return new source.constructor(copyElement(source.buffer));
+
+                case '[object ArrayBuffer]':
+                    // Support: IE10
+                    if (!source.slice) {
+                        copied = new ArrayBuffer(source.byteLength);
+                        new Uint8Array(copied).set(new Uint8Array(source));
+                        return copied;
+                    }
+                    return source.slice(0);
+
+                case '[object Boolean]':
+                case '[object Number]':
+                case '[object String]':
+                case '[object Date]':
+                  return new source.constructor(source.valueOf());
+
+                case '[object RegExp]':
+                    re = new RegExp(source.source, source.toString().match(/[^\/]*$/)[0]);
+                    re.lastIndex = source.lastIndex;
+                    return re;
+            }
+
+            if (_.isFunction(source.cloneNode)) {
+                return source.cloneNode(true);
+            }
+
+            return undefined;
         }
 
         if (destination) {
@@ -944,14 +974,6 @@ msos.console.time('ng');
             return true;
         }
         return false;
-    }
-
-    function concat(array1, array2, index) {
-        return array1.concat(slice.call(array2, index));
-    }
-
-    function sliceArgs(args, startIndex) {
-        return slice.call(args, startIndex || 0);
     }
 
     function startingTag(element) {
@@ -1088,10 +1110,15 @@ msos.console.time('ng');
     }
 
     function assertArg(arg, name, reason) {
+
         if (!arg) {
-            throw ngMinErr('assert_arg_req', "Argument '{0}' is {1}", (name || '?'), (reason || "required"));
+            throw ngMinErr(
+                'assert_arg_req',
+                "Argument '{0}' is {1}",
+                (name || '?'),
+                (reason || "required.")
+            );
         }
-        return arg;
     }
 
     function assertArgFn(arg, name, acceptArrayAnnotation) {
@@ -1105,15 +1132,17 @@ msos.console.time('ng');
         assertArg(
             _.isFunction(arg),
             name + ' (' + dbug + ')',
-            'not a function, is ' + (arg && typeof arg === 'object' ? arg.constructor.name || 'Object' : typeof arg)
+            'not a function.'
         );
-
-        return arg;
     }
 
     function assertNotHasOwnProperty(name, context) {
         if (name === 'hasOwnProperty') {
-            throw ngMinErr('badname', "hasOwnProperty is not a valid {0} name", context);
+            throw ngMinErr(
+                'badname',
+                "hasOwnProperty is not a valid {0} name",
+                context
+            );
         }
     }
 
@@ -1227,11 +1256,14 @@ msos.console.time('ng');
 
                     function invokeLater(provider, method, insertMethod, queue) {
                         if (!queue) { queue = invokeQueue; }
+
                         return function () {
                             if (verbose) {
                                 msos_debug(temp_sm + temp_em + ' -> invokeLater,\n     for: ' + m_name + '::' + method);
                             }
+
                             queue[insertMethod || 'push']([provider, method, arguments]);
+
                             return moduleInstance;
                         };
                     }
@@ -1241,8 +1273,13 @@ msos.console.time('ng');
                             if (verbose) {
                                 msos_debug(temp_sm + temp_em + ' -> invokeLaterAndSetModuleName,\n     for: ' + m_name + '::' + recipeName + '::' + method);
                             }
-                            if (factoryFunction && _.isFunction(factoryFunction)) { factoryFunction.$$moduleName = m_name; }
+                            if (factoryFunction
+                             && _.isFunction(factoryFunction)) {
+                                factoryFunction.$$moduleName = m_name;
+                            }
+
                             invokeQueue.push([provider, method, arguments]);
+
                             return moduleInstance;
                         };
                     }
@@ -1615,7 +1652,7 @@ msos.console.time('ng');
     function annotate(fn, strictDi, name) {
         var temp_a = 'ng - annotate -> ',
             debug = '',
-            $inject,
+            $inject_an,
             argDecl,
             last;
 
@@ -1625,9 +1662,10 @@ msos.console.time('ng');
 
         if (typeof fn === 'function') {
             debug = 'function';
-            $inject = fn.$inject;
-            if (!$inject) {
-                $inject = [];
+            $inject_an = fn.$inject;
+
+            if (!$inject_an) {
+                $inject_an = [];
                 if (fn.length) {
                     if (strictDi) {
                         if (!_.isString(name) || !name) {
@@ -1646,28 +1684,33 @@ msos.console.time('ng');
                             arg.replace(
                                 FN_ARG,
                                 function (all_na, underscore_na, name) {
-                                    $inject.push(name);
+                                    $inject_an.push(name);
                                 }
                             );
                         }
                     );
                 }
-                fn.$inject = $inject;
+                fn.$inject = $inject_an;
             }
+
         } else if (_.isArray(fn)) {
             debug = 'array';
             last = fn.length - 1;
-            assertArgFn(fn[last], 'fn');
-            $inject = fn.slice(0, last);
+            assertArgFn(fn[last], 'ng_annotate_fn');
+            $inject_an = fn.slice(0, last);
         } else {
-            debug = 'unknown';
-            assertArgFn(fn, 'fn', true);
+            throw $injectorMinErr(
+                'annotate',
+                '{0} has no $inject function',
+                name
+            );
         }
 
         if (verbose === 'injector') {
             msos_debug(temp_a + 'done, for ' + debug + (name ? ', name: ' + name : ''));
         }
-        return $inject;
+
+        return $inject_an;
     }
 
     function createInjector(modulesToLoad, strictDi) {
@@ -1847,13 +1890,12 @@ msos.console.time('ng');
 
             function injectionArgs(fn, locals, serviceName) {
                 var args = [],
-                    $inject = createInjector.$$annotate(fn, strictDi, serviceName),
+                    $inject_ia = createInjector.$$annotate(fn, strictDi, serviceName),
                     i = 0,
-                    length = $inject.length,
                     key;
 
-                for (i = 0; i < length; i += 1) {
-                    key = $inject[i];
+                for (i = 0; i < $inject_ia.length; i += 1) {
+                    key = $inject_ia[i];
 
                     if (typeof key !== 'string') {
                         throw $injectorMinErr(
@@ -1865,6 +1907,7 @@ msos.console.time('ng');
 
                     args.push(locals && locals.hasOwnProperty(key) ? locals[key] : getService(key, serviceName));
                 }
+
                 return args;
             }
 
@@ -1878,7 +1921,12 @@ msos.console.time('ng');
             function invoke(fn, self, locals, serviceName) {
                 var invoke_name = '',
                     args = [],
+                    fn_actual,
+                    invoke_output,
                     FProBA;
+
+                if (_.isArray(fn))  { fn_actual = fn[fn.length - 1]; }
+                else                { fn_actual = fn; }
 
                 if (locals && typeof locals === 'string') {
                     serviceName = locals;
@@ -1891,31 +1939,42 @@ msos.console.time('ng');
                     } else {
                         invoke_name = ', service: ' + serviceName;
                     }
+
                     msos_debug(temp_ci + temp_cii + ' - invoke -> start' + invoke_name);
+                }
+
+                // Nothing to do anyway...so skip the rest!
+                if (fn_actual === noop) {
+                    if (verbose === 'injector') {
+                        msos_debug(temp_ci + temp_cii + ' - invoke ->  done, for noop.');
+                    }
+                    return undefined;   // Same as noop return.
                 }
 
                 args = injectionArgs(fn, locals, serviceName);
 
-                if (_.isArray(fn)) { fn = fn[fn.length - 1]; }
+                if (!isClass(fn_actual)) {
 
-                if (!isClass(fn)) {
+                    invoke_name += ', no class support';
+
                     // http://jsperf.com/angularjs-invoke-apply-vs-switch, #5388
-                    if (verbose === 'injector') {
-                        msos_debug(temp_ci + temp_cii + ' - invoke ->  done, not class' + invoke_name);
-                    }
-                    return fn.apply(self, args);
-                }
+                    invoke_output = fn_actual.apply(self, args);
 
-                // Applying a constructor without immediate parentheses is the point here.
-                 args.unshift(null);
+                } else {
+
+                    invoke_name += ', class support';
+
+                    args.unshift(null);
+
+                    FProBA = Function.prototype.bind.apply(fn_actual, args);
+
+                    invoke_output = new FProBA();
+                }
 
                 if (verbose === 'injector') {
-                    msos_debug(temp_ci + temp_cii + ' - invoke ->  done, new class' + invoke_name);
+                    msos_debug(temp_ci + temp_cii + ' - invoke ->  done' + invoke_name, invoke_output);
                 }
-
-                FProBA = Function.prototype.bind.apply(fn, args);
-
-                return new FProBA();
+                return invoke_output;
             }
 
             function instantiate(Type, locals, serviceName) {
@@ -2192,6 +2251,16 @@ msos.console.time('ng');
 
         msos_debug(temp_b + ' 8==> done!');
         return bs_injector;
+    }
+
+    function bootstrap_deferred(element, modules, config) {
+        var bs_delay = end_time - start_time;   // Add some proportional amount of delay
+
+        // MSOS ver. of Angular much faster than Std. (this used to not be a problem)
+        if (verbose) { bs_delay *= 2; }
+
+        msos_debug('ng - bootstrap_deferred -> called, delay: ' + bs_delay);
+        _.delay(bootstrap, bs_delay, element, modules, config);
     }
 
     function $AnchorScrollProvider() {
@@ -2688,7 +2757,7 @@ msos.console.time('ng');
                                 function (resolve, reject) {
                                     self.done(
                                         function (status) {
-                                            if (status === false)   { reject(); }
+                                            if (status === false)   { reject();  }
                                             else                    { resolve(); }
                                         }
                                     );
@@ -2810,8 +2879,7 @@ msos.console.time('ng');
             setTimeout = window.setTimeout,
             clearTimeout = window.clearTimeout,
             pendingDeferIds = {},
-            outstandingRequestCount = 0,
-            outstandingRequestCallbacks = [],
+            request_cnt = 0,
             lastBrowserUrl = location.href,
             urlChangeListeners = [],
             urlChangeInit = false,
@@ -2824,22 +2892,20 @@ msos.console.time('ng');
 
         self.isMock = false;
 
-        function completeOutstandingRequest(fn) {
+        function complete_request(fn) {
+            var temp_co = 'ng - Browser - complete_request -> ';
+
+            if (verbose) { msos_debug(temp_co + 'start, of: ' + request_cnt); }
+
             try {
                 fn.apply(null, sliceArgs(arguments, 1));
+            } catch (e) {
+                msos.console.error(temp_co + 'error:', e);
             } finally {
-                outstandingRequestCount -= 1;
-                if (outstandingRequestCallbacks
-                 && outstandingRequestCount === 0) {
-                    while (outstandingRequestCallbacks.length) {
-                        try {
-                            outstandingRequestCallbacks.pop()();
-                        } catch (e) {
-                            msos.console.error('ng - Browser - completeOutstandingRequest -> error:', e);
-                        }
-                    }
-                }
+                request_cnt -= 1;
             }
+
+            if (verbose) { msos_debug(temp_co + 'done!'); }
         }
 
         function getHash(url) {
@@ -2848,19 +2914,7 @@ msos.console.time('ng');
             return index === -1 ? '' : url.substr(index);
         }
 
-        self.$$completeOutstandingRequest = completeOutstandingRequest;
-        self.$$incOutstandingRequestCount = function () {
-            outstandingRequestCount += 1;
-        };
-
-        self.notifyWhenNoOutstandingRequests = function (callback) {
-
-            if (outstandingRequestCount === 0) {
-                callback();
-            } else {
-                outstandingRequestCallbacks.push(callback);
-            }
-        };
+        self.$$increment_request = function () { request_cnt += 1; };
 
         //////////////////////////////////////////////////////////////
         // URL API
@@ -3012,23 +3066,23 @@ msos.console.time('ng');
         self.defer = function (fn, delay) {
             var timeoutId;
 
-            delay = delay || 0;
+            delay = delay || browser_std_defer;
 
             msos_debug(temp_br + ' - defer -> start, delay: ' + delay);
 
-            outstandingRequestCount += 1;
+            request_cnt += 1;
 
             timeoutId = setTimeout(
                 function () {
                     delete pendingDeferIds[timeoutId];
-                    completeOutstandingRequest(fn);
+                    complete_request(fn);
                 },
                 delay
             );
 
             pendingDeferIds[timeoutId] = true;
 
-            msos_debug(temp_br + ' - defer -> done, outstanding requests: ' + outstandingRequestCount);
+            msos_debug(temp_br + ' - defer -> done, outstanding requests: ' + request_cnt);
 
             return timeoutId;
         };
@@ -3037,7 +3091,7 @@ msos.console.time('ng');
             if (pendingDeferIds[deferId]) {
                 delete pendingDeferIds[deferId];
                 clearTimeout(deferId);
-                completeOutstandingRequest(noop);
+                request_cnt -= 1;   // dercrement request queue (was complete_request(noop);)
                 return true;
             }
             return false;
@@ -3867,7 +3921,7 @@ msos.console.time('ng');
 
             function createBoundTranscludeFn(scope, transcludeFn, previousBoundTranscludeFn) {
 
-                var boundTranscludeFn = function (transcludedScope, cloneFn, controllers, futureParentElement, containingScope) {
+                var boundTranscludeFn = function (transcludedScope, cloneFn, controllers_bT, futureParentElement, containingScope) {
 
                         if (!transcludedScope) {
                             transcludedScope = scope.$new(false, containingScope);
@@ -3879,7 +3933,7 @@ msos.console.time('ng');
                             cloneFn,
                             {
                                 parentBoundTranscludeFn: previousBoundTranscludeFn,
-                                transcludeControllers: controllers,
+                                transcludeControllers: controllers_bT,
                                 futureParentElement: futureParentElement
                             }
                         );
@@ -4450,9 +4504,9 @@ msos.console.time('ng');
             }
 
             function groupElementsLinkFnWrapper(linkFn, attrStart, attrEnd) {
-                return function (scope, element, attrs, controllers, transcludeFn) {
+                return function (scope, element, attrs, controllers_gE, transcludeFn) {
                     element = groupScan(element[0], attrStart, attrEnd);
-                    return linkFn(scope, element, attrs, controllers, transcludeFn);
+                    return linkFn(scope, element, attrs, controllers_gE, transcludeFn);
                 };
             }
 
@@ -4565,9 +4619,9 @@ msos.console.time('ng');
                 }
             }
 
-            function invokeLinkFn(linkFn, scope, $element, attrs, controllers, transcludeFn, pre_post) {
+            function invokeLinkFn(linkFn, scope, $element, attrs, controllers_iL, transcludeFn, pre_post) {
                 try {
-                    linkFn(scope, $element, attrs, controllers, transcludeFn);
+                    linkFn(scope, $element, attrs, controllers_iL, transcludeFn);
                 } catch (e) {
                     msos.console.error(temp_cp + ' - $get - invokeLinkFn -> ' + pre_post + ' failed, tag: ' + startingTag($element), e);
                 }
@@ -5193,8 +5247,14 @@ msos.console.time('ng');
                                 }
 
                                 parentSet = parentGet.assign || function () {
-                                    // reset the change, or we will throw this exception on every $digest
-                                    lastValue = destination[scopeName] = parentGet(scope);
+                                    var exception = '';
+
+                                    // Experimental
+                                    if (parentGet === noop) {
+                                        lastValue = destination[scopeName] = undefined;
+                                    } else {
+                                        lastValue = destination[scopeName] = parentGet(scope);
+                                    }
 
                                     throw $compileMinErr(
                                         'nonassign',
@@ -5205,7 +5265,12 @@ msos.console.time('ng');
                                     );
                                 };
 
-                                lastValue = destination[scopeName] = parentGet(scope);
+                                // Experimental
+                                if (parentGet === noop) {
+                                    lastValue = destination[scopeName] = undefined;
+                                } else {
+                                    lastValue = destination[scopeName] = parentGet(scope);
+                                }
 
                                 parentValueWatch = function parentValueWatch (parentValue) {
                                     if (!compare(parentValue, destination[scopeName])) {
@@ -5237,14 +5302,20 @@ msos.console.time('ng');
 
                             case '<':
                                 if (!hasOwnProperty.call(attrs, attrName)) {
-                                    if (optional) break;
+                                    if (optional) { break; }
                                     attrs[attrName] = void 0;
                                 }
 
                                 if (optional && !attrs[attrName]) { break; }
 
                                 parentGet = $parse(attrs[attrName]);
-                                destination[scopeName] = parentGet(scope);
+
+                                // Experimental
+                                if (parentGet === noop) {
+                                    destination[scopeName] = undefined;
+                                } else {
+                                    destination[scopeName] = parentGet(scope);
+                                }
 
                                 removeWatch = scope.$watch(
                                     parentGet,
@@ -5264,9 +5335,15 @@ msos.console.time('ng');
                                 // Don't assign noop to destination if expression is not valid
                                 if (parentGet === noop && optional) { break; }
 
-                                destination[scopeName] = function (locals) {
-                                    return parentGet(scope, locals);
-                                };
+                                // Experimental
+                                if (parentGet === noop) {
+                                    destination[scopeName] = noop;
+                                } else {
+                                    destination[scopeName] = function (locals) {
+                                        return parentGet(scope, locals);
+                                    };
+                                }
+
                             break;
                         }
                     });
@@ -5481,7 +5558,8 @@ msos.console.time('ng');
                                 $element,
                                 elementControllers
                             ),
-                            transcludeFn_nLF
+                            transcludeFn_nLF,
+                            'prelinking'
                         );
                     }
 
@@ -5507,8 +5585,14 @@ msos.console.time('ng');
                             linkFn_nLF.isolateScope ? isolateScope : scope,
                             $element,
                             attrs,
-                            linkFn_nLF.require && getControllers(linkFn_nLF.directiveName, linkFn_nLF.require, $element, elementControllers),
-                            transcludeFn_nLF
+                            linkFn_nLF.require && getControllers(
+                                linkFn_nLF.directiveName,
+                                linkFn_nLF.require,
+                                $element,
+                                elementControllers
+                            ),
+                            transcludeFn_nLF,
+                            'post linking'
                         );
                     }
                 }
@@ -5971,7 +6055,7 @@ msos.console.time('ng');
                             wrapTemplate(namespace, jqLite('<div>').append($compileNodes).html())
                         );
 
-                    } else if (cloneConnectFn) {
+                    } else if (cloneConnectFn && cloneConnectFn !== noop) {     // Experimental
                         // important!!: we must call our jqLite.clone() since the jQuery one is trying to be smart
                         // and sometimes changes the structure of the DOM.
                         $linkNode = JQLitePrototype.clone.call($compileNodes);
@@ -5987,7 +6071,9 @@ msos.console.time('ng');
 
                     compile.$$addScopeInfo($linkNode, scope);
 
-                    if (cloneConnectFn) { cloneConnectFn($linkNode, scope); }
+                    if (cloneConnectFn && cloneConnectFn !== noop) {        // Experimental
+                        cloneConnectFn($linkNode, scope);
+                    }
                     if (compositeLinkFn_cpl) { compositeLinkFn_cpl(scope, $linkNode, $linkNode, parentBoundTranscludeFn); }
 
                     return $linkNode;
@@ -6039,8 +6125,7 @@ msos.console.time('ng');
 
     function $ControllerProvider() {
         var temp_cp = 'ng - $ControllerProvider',
-            controllers = {},
-            globals = false;
+            controllers = {};
 
         this.register = function (name, constructor) {
             assertNotHasOwnProperty(name, 'controller');
@@ -6049,10 +6134,6 @@ msos.console.time('ng');
             } else {
                 controllers[name] = constructor;
             }
-        };
-
-        this.allowGlobals = function () {
-            globals = true;
         };
 
         this.$get = ['$injector', '$window', function ($injector, $window) {
@@ -6073,7 +6154,7 @@ msos.console.time('ng');
                 locals.$scope[identifier] = instance;
             }
 
-            return function (expression, locals, later, ident) {
+            return function get_instance(expression, locals, later, ident) {
                 var instance,
                     match,
                     constructor,
@@ -6103,25 +6184,28 @@ msos.console.time('ng');
                     identifier = identifier || match[3];
 
                     msos_debug(
-                        temp_cp + ' - $get -> start, "' + expression + '"'
+                        temp_cp + ' - $get -> start: "' + expression + '" as string'
                       + (constructor ? ', constructor: ' + constructor : '')
                       + (identifier  ? ', identifier: '  + identifier  : '')
-                      + ', later flag: ' + later
+                      + (later       ? ', run later: '   + later       : '')
                     );
 
-                    expression = controllers.hasOwnProperty(constructor)
-                        ? controllers[constructor]
-                        : getter(locals.$scope, constructor, true)
-                            || (globals ? getter($window, constructor, true) : undefined);
+                    if (controllers.hasOwnProperty(constructor)) {
+                        expression = controllers[constructor];
+                    } else {
+                        expression = getter(locals.$scope, constructor, true) || undefined;
+                    }
 
                     assertArgFn(expression, constructor, true);
 
                 } else {
-                    msos_debug(temp_cp + ' - $get -> start, for expression object, later flag: ' + later);
+                    msos_debug(
+                        temp_cp + ' - $get -> start: "' + expression.name + '", as object'
+                      + (later ? ', run later: ' + later : '')
+                    );
                 }
 
                 if (later) {
-
                     controllerPrototype = (
                         _.isArray(expression)
                             ? expression[expression.length - 1]
@@ -6625,7 +6709,7 @@ msos.console.time('ng');
                                     db_done = 'resolveHttpPromise' + db_done;
                                     resolveHttpPromise();
 
-                                    if (!$rootScope.$$phase) { $rootScope.$apply(); }
+                                    if (!$rootScope.$$phase && $rootScope.$apply !== noop) { $rootScope.$apply(); }
                                 }
                                 // Its done...done!
                                 msos.console.info(temp_hp + temp_sr + ' - done ->  done,\n     url: ' + url + ',\n     by: ' + db_done);
@@ -6862,7 +6946,8 @@ msos.console.time('ng');
 
             msos_debug(temp_ch + ' returned function -> start.');
 
-            $browser.$$incOutstandingRequestCount();
+            $browser.$$increment_request();
+
             url = url || $browser.url();
 
             function timeoutRequest() {
@@ -6884,8 +6969,6 @@ msos.console.time('ng');
                     headersString,
                     statusText
                 );
-
-                $browser.$$completeOutstandingRequest(noop);
             }
 
             if (lowercase(method) === 'jsonp') {
@@ -7266,7 +7349,7 @@ msos.console.time('ng');
                         if (skipApply) {
                             $browser.defer(callback);
                         } else {
-                            $rootScope.$evalAsync(callback);
+                            $rootScope.$evalAsync(callback, { directive_name: '$IntervalProvider_tick' });
                         }
 
                         deferred.notify(iteration);
@@ -7278,7 +7361,7 @@ msos.console.time('ng');
                             delete intervals[promise.$$intervalId];
                         }
 
-                        if (!skipApply) { $rootScope.$apply(); }
+                        if (!skipApply && $rootScope.$apply !== noop) { $rootScope.$apply(); }
 
                         msos_debug(temp_ipg + temp_in + ' - tick ->  done' + debug_out);
                     },
@@ -7717,14 +7800,15 @@ msos.console.time('ng');
 
         search: function (srch, paramValue) {
             var temp_sr = 'ng - locationPrototype - search -> ',
+                arg_length = arguments.length,
                 checked_srch;
 
-            msos_debug(temp_sr + 'start, srch: ' + srch + (paramValue ? ', paramValue: ' + paramValue : ''));
+            msos_debug(temp_sr + 'start, case: ' + arg_length + (paramValue ? ', paramValue: ' + paramValue : ''));
 
-            switch (arguments.length) {
+            switch (arg_length) {
 
                 case 0:
-                    msos_debug(temp_sr + ' done, srch: ' + srch + ', case: 0', this.$$search);
+                    msos_debug(temp_sr + ' done, case: 0', this.$$search);
                     return this.$$search;
 
                 case 1:
@@ -7762,7 +7846,7 @@ msos.console.time('ng');
 
             this.$$compose();
 
-            msos_debug(temp_sr + ' done, srch: ' + srch + ', case: ' + arguments.length + ', $$search: ', this.$$search);
+            msos_debug(temp_sr + ' done, case: ' + arg_length + ', $$search: ', this.$$search);
             return this;
         },
 
@@ -7983,7 +8067,9 @@ msos.console.time('ng');
                             // update location manually
                             if ($location_LP.absUrl() !== $browser.url()) {
                                 debug_txt = ', updating location manually';
-                                $rootScope.$apply();
+                                if ($rootScope.$apply !== noop) {
+                                    $rootScope.$apply();
+                                }
                             }
                         }
                     }
@@ -9693,15 +9779,14 @@ msos.console.time('ng');
             }
 
             function addInterceptor(parsedExpression, interceptorFn) {
-
-                if (!interceptorFn) { return parsedExpression; }
-
                 var watchDelegate = parsedExpression.$$watchDelegate,
                     useInputs = false,
                     regularWatch = watchDelegate !== oneTimeLiteralWatchDelegate && watchDelegate !== oneTimeWatchDelegate,
                     fn = regularWatch
                         ? function regularInterceptedExpression(scope, locals, assign, inputs) {
-                            var value = useInputs && inputs ? inputs[0] : parsedExpression(scope, locals, assign, inputs);
+                            var value = useInputs && inputs
+                                    ? inputs[0]
+                                    : parsedExpression(scope, locals, assign, inputs);
 
                             return interceptorFn(value, scope, locals);
                         }
@@ -9724,6 +9809,25 @@ msos.console.time('ng');
                     fn.$$watchDelegate = inputsWatchDelegate;
                     useInputs = !parsedExpression.inputs;
                     fn.inputs = parsedExpression.inputs || [parsedExpression];
+                }
+
+                return fn;
+            }
+
+            function addInterceptorNoop(interceptorFn) {
+                var useInputs = false,
+                    fn = function regularInterceptedExpression(scope, locals, assign, inputs) {
+                            var value = useInputs && inputs
+                                    ? inputs[0]
+                                    : undefined;
+
+                            return interceptorFn(value, scope, locals);
+                        };
+
+                if (!interceptorFn.$stateful) {
+                    fn.$$watchDelegate = inputsWatchDelegate;
+                    useInputs = true;
+                    fn.inputs = [noop];
                 }
 
                 return fn;
@@ -9760,13 +9864,14 @@ msos.console.time('ng');
                 return expensiveCheckFn;
             }
 
-            function $parse(exp, interceptorFn) {
-                var parsedExpression,
+            function $parse_Pp(exp, interceptorFn) {
+                var parsed_ex,
                     oneTime,
                     cacheKey,
                     cache,
                     lexer,
-                    parser;
+                    parser,
+                    parser_output;
 
                 switch (typeof exp) {
 
@@ -9775,9 +9880,9 @@ msos.console.time('ng');
                         cacheKey = exp;
 
                         cache = cacheExpensive;
-                        parsedExpression = cache[cacheKey];
+                        parsed_ex = cache[cacheKey];
 
-                        if (!parsedExpression) {
+                        if (!parsed_ex) {
                             if (exp.charAt(0) === ':' && exp.charAt(1) === ':') {
                                 oneTime = true;
                                 exp = exp.substring(2);
@@ -9786,36 +9891,43 @@ msos.console.time('ng');
                             lexer = new Lexer();
                             parser = new Parser(lexer, $filter);
 
-                            parsedExpression = parser.parse(exp);
+                            parsed_ex = parser.parse(exp);
 
-                            if (parsedExpression.constant) {
-                                parsedExpression.$$watchDelegate = constantWatchDelegatePP;
+                            if (parsed_ex.constant) {
+                                parsed_ex.$$watchDelegate = constantWatchDelegatePP;
                             } else if (oneTime) {
-                                parsedExpression.$$watchDelegate = parsedExpression.literal
+                                parsed_ex.$$watchDelegate = parsed_ex.literal
                                     ? oneTimeLiteralWatchDelegate
                                     : oneTimeWatchDelegate;
-                            } else if (parsedExpression.inputs) {
-                                parsedExpression.$$watchDelegate = inputsWatchDelegate;
+                            } else if (parsed_ex.inputs) {
+                                parsed_ex.$$watchDelegate = inputsWatchDelegate;
                             }
 
                             // Add v1.5.0, expensiveChecksInterceptor()
-                            parsedExpression = expensiveChecksInterceptor(parsedExpression);
-                            cache[cacheKey] = parsedExpression;
+                            parsed_ex = expensiveChecksInterceptor(parsed_ex);
+                            cache[cacheKey] = parsed_ex;
                         }
 
-                        return addInterceptor(parsedExpression, interceptorFn);
-
+                        if (!interceptorFn)     { parser_output = parsed_ex; }
+                        else                    { parser_output = addInterceptor(parsed_ex, interceptorFn); }
+                    break;
                     case 'function':
-                        return addInterceptor(exp, interceptorFn);
-
+                        if (!interceptorFn)     { parser_output = exp; }
+                        else if (exp === noop)  { parser_output = addInterceptorNoop(interceptorFn); }
+                        else                    { parser_output = addInterceptor(exp, interceptorFn); }
+                    break;
                     default:
-                        return addInterceptor(noop, interceptorFn);
+                        if (!interceptorFn)     { parser_output = noop; }
+                        else                    { parser_output = addInterceptorNoop(interceptorFn); }
+                    break;
                 }
+
+                return parser_output;
             }
 
-            $parse.$$runningExpensiveChecks = function () { return true; };
+            $parse_Pp.$$runningExpensiveChecks = function () { return true; };
 
-            return $parse;
+            return $parse_Pp;
         }];
     }
 
@@ -9857,10 +9969,10 @@ msos.console.time('ng');
                         pq_debug += 'for a function';
                         deferred_pq.resolve(fn(state.value));
                     } else if (state.status === 1) {
-                        pq_debug += 'for status: 1';
+                        pq_debug += 'for status: resolve (1)';
                         deferred_pq.resolve(state.value);
                     } else {
-                        pq_debug += 'for status: ' + state.status;
+                        pq_debug += 'for status: reject (' + state.status + ')';
                         deferred_pq.reject(state.value);
                     }
 
@@ -9897,25 +10009,31 @@ msos.console.time('ng');
             msos_debug(temp_sp + ' ->  done' + debug_out + ' nextTick called!');
         }
 
-        function Promise(type) {
+        function Promise(org) {
 
             count += 1;
+            org = org || 'ng_Promise';      // Highlights missing origin
 
             this.$$state = {
                 status: 0,
-                name: type + ':' + count,
+                name: org + ':' + count,
                 processScheduled: false,
                 pending: []
             };
+
+            msos_debug(temp_qf + ' - Promise ++++> created: ' + this.$$state.name);
         }
 
-        function Deferred(type) {
-            this.promise = new Promise(type);
+        function Deferred(org) {
+            org = org || 'ng_Deferred';      // Highlights missing origin
+
+            this.promise = new Promise(org);
         }
 
         extend(
             Promise.prototype,
             {
+                set: false,
                 then: function (onFulfilled, onRejected, progressBack) {
                     var temp_t = ' - Promise.then -> ',
                         t_name = this.$$state.name,
@@ -9926,12 +10044,13 @@ msos.console.time('ng');
                     if (_.isUndefined(onFulfilled)
                      && _.isUndefined(onRejected)
                      && _.isUndefined(progressBack)) {
-                        msos_debug(temp_qf + temp_t + 'done, no inputs: ' + t_name);
+                        msos_debug(temp_qf + temp_t + ' done: ' + t_name + ', no inputs!');
                         return this;
                     }
 
-                    result = new Deferred(t_name);
+                    result = defer_qf(t_name + '_then');
 
+                    this.set = true;
                     this.$$state.pending.push([result, onFulfilled, onRejected, progressBack]);
 
                     if (this.$$state.status > 0) {
@@ -9949,7 +10068,7 @@ msos.console.time('ng');
 
                     function makePromise(value, resolved, type) {
 
-                        var result = new Deferred('ng_Promise_finally_' + type);
+                        var result = defer_qf('ng_Promise_finally_' + type);
 
                         if (resolved)   { result.resolve(value); }
                         else            { result.reject(value);  }
@@ -10057,12 +10176,17 @@ msos.console.time('ng');
 
                     if (_.isFunction(then)) {
                         ps.status = -1;
+
                         then.call(val, resolvePromise, rejectPromise, _.bind(self.notify, self));
+
                         r_dbug = 'status: -1, then.call';
                     } else {
                         ps.value = val;
                         ps.status = 1;
-                        if (ps.pending.length) { scheduleProcessQueue(ps); }
+
+                        if (ps.pending.length && self.promise.set) {    // If not set, there is no "then" then ;)
+                            scheduleProcessQueue(ps);
+                        }
 
                         r_dbug = 'status: 1, pending: ' + ps.pending.length;
                     }
@@ -10175,11 +10299,13 @@ msos.console.time('ng');
         };
 
         when_qf = function (d, value, callback, errback, progressBack) {
+            var d_prom_out;
+
             if (verbose) { msos_debug(temp_qf + ' - when_qf -> start.'); }
 
             d.resolve(value);
 
-            var d_prom_out = d.promise.then(callback, errback, progressBack);
+            d_prom_out = d.promise.then(callback, errback, progressBack);
 
             if (verbose) { msos_debug(temp_qf + ' - when_qf -> done!'); }
             return d_prom_out;
@@ -10187,18 +10313,20 @@ msos.console.time('ng');
 
         resolve_qf = when_qf;
 
-        all_qf = function (d, promises) {
+        all_qf = function (d, values) {
             var counter = 0,
-                results = _.isArray(promises) ? [] : {};
+                results = _.isArray(values) ? [] : {};
 
-            msos_debug(temp_qf + ' - all_qf -> start, promises: ' + promises.length);
+            msos_debug(temp_qf + ' - all_qf -> start.');
 
             forEach(
-                promises,
-                function (promise, key) {
+                values,
+                function (current, key) {
+                    var new_name = 'ng_all_qFactory_' + key;
+
                     counter += 1;
 
-                    when_qf(defer_qf('ng_all_when_qFactory_' + key), promise).then(
+                    when_qf(defer_qf(new_name), current).then(
                         function (value) {
                             if (results.hasOwnProperty(key)) { return; }
                             results[key] = value;
@@ -10223,6 +10351,8 @@ msos.console.time('ng');
 
         $Q = function Q(q_resolver) {
 
+            msos_debug(temp_qf + ' - $Q -> start.');
+
             if (!_.isFunction(q_resolver)) {
                 throw $qMinErr(
                     'norslvr',
@@ -10231,7 +10361,7 @@ msos.console.time('ng');
                 );
             }
 
-            var deferred_Q = new Deferred('ng_$Q');
+            var deferred_Q = defer_qf('ng_$Q');
 
             function resolveFn_Q(value) { deferred_Q.resolve(value); }
 
@@ -10239,6 +10369,7 @@ msos.console.time('ng');
 
             q_resolver(resolveFn_Q, rejectFn_Q);
 
+            msos_debug(temp_qf + ' - $Q ->  done: ' + deferred_Q.promise.$$state.name);
             return deferred_Q.promise;
         };
 
@@ -10262,17 +10393,17 @@ msos.console.time('ng');
 
         this.$get = ['$rootScope', function ($rootScope) {
             return qFactory(
-                    function (callback, state_name) {
-                        var temp_rs = ' - $rootScope.$evalAsync -> ';
+                    function $Q_nextTick(callback, state_name) {
+                        var temp_rs = ' - $Q_nextTick -> ';
 
-                        if (verbose) { msos_debug(temp_qp + temp_rs + 'start, state name: ' + state_name); }
+                        if (verbose) { msos_debug(temp_qp + temp_rs + 'start: ' + state_name); }
     
                         $rootScope.$evalAsync(
                             callback,
                             { directive_name: '$Q_' + state_name }
                         );
 
-                        if (verbose) { msos_debug(temp_qp + temp_rs + ' done, state name: ' + state_name); }
+                        if (verbose) { msos_debug(temp_qp + temp_rs + ' done: ' + state_name); }
                     },
                     '$q'
                 );
@@ -10289,15 +10420,17 @@ msos.console.time('ng');
 
         this.$get = ['$browser', function ($browser) {
             return qFactory(
-                    function (callback) {
+                    function $$Q_nextTick(callback, state_name) {
+                        var temp_bd = ' - $$Q_nextTick -> ';
+
                         if (verbose) {
-                            msos_debug(temp_qqp + ' - $browser.defer -> start.');
+                            msos_debug(temp_qqp + temp_bd + 'start: ' + state_name);
                         }
 
                         $browser.defer(callback);
 
                         if (verbose) {
-                            msos_debug(temp_qqp + ' - $browser.defer -> done!');
+                            msos_debug(temp_qqp + temp_bd + ' done: ' + state_name);
                         }
                     },
                     '$$q'
@@ -10450,7 +10583,9 @@ msos.console.time('ng');
                 if (applyAsyncId === null) {
                     applyAsyncId = $browser.defer(
                         function () {
-                            $rootScope_P.$apply(flushApplyAsync);
+                            if ($rootScope_P.$apply !== noop) {
+                                $rootScope_P.$apply(flushApplyAsync);
+                            }
                         }
                     );
                 }
@@ -10859,25 +10994,38 @@ msos.console.time('ng');
                         traverseScopesLoop: do {
                             watchers = current.$$watchers;
                             if (watchers) {
-                                // process our watches
+                                // Process our watches
                                 length = watchers.length;
 
                                 while (length) {
                                     length -= 1;
+
                                     try {
                                         watch = watchers[length];
-                                        // Most common watches are on primitives, in which case we can short
-                                        // circuit it with === operator, only when === fails do we use .equals
+
                                         if (watch) {
+
                                             get = watch.get;
-                                            if (
-                                                (value = get(current)) !== (last = watch.last)
-                                             && !(watch.eq ? equals(value, last) : (typeof value === 'number' && typeof last === 'number' && isNaN(value) && isNaN(last)))
-                                            ) {
+                                            fn = watch.fn;
+                                            last = watch.last;
+                                            value = get(current);
+
+                                            if (value !== last
+                                             && !(
+                                                   watch.eq
+                                                       ? equals(value, last)
+                                                       : (
+                                                           typeof value === 'number'
+                                                        && typeof last === 'number'
+                                                        && isNaN(value) && isNaN(last)
+                                                       )
+                                                )
+                                             && fn !== noop) {
+
                                                 dirty = true;
                                                 lastDirtyWatch = watch;
                                                 watch.last = watch.eq ? copy(value, null) : value;
-                                                fn = watch.fn;
+
                                                 fn(value, ((last === initWatchVal) ? value : last), current);
 
                                                 if (ttl < 5) {
@@ -10897,8 +11045,8 @@ msos.console.time('ng');
                                                 }
 
                                             } else if (watch === lastDirtyWatch) {
-                                                // If the most recently dirty watcher is now clean, short circuit since the remaining watchers
-                                                // have already been tested.
+                                                // If the most recently dirty watcher is now clean, short circuit
+                                                // since the remaining watchers have already been tested.
                                                 dirty = false;
                                                 break traverseScopesLoop;
                                             }
@@ -11005,7 +11153,24 @@ msos.console.time('ng');
                 },
 
                 $eval: function (expr, locals) {
-                    return $parse(expr)(this, locals);
+                    var temp_ev = '$get - Scope - $eval -> ',
+                        type_of = typeof expr,
+                        parsed_expr;
+
+                    // Quick short-circuit (ie: $parse(expr) returns noop)
+                    if (expr === undefined || expr === null) { return undefined; }
+
+                    if (verbose) {
+                        msos_debug(temp_rsp + temp_ev + 'start, for: ' + type_of + (type_of === 'string' ? '\n     expression: ' + expr : ''));
+                    }
+
+                    var parsed_expr = $parse(expr)(this, locals);
+
+                    if (verbose) {
+                        msos_debug(temp_rsp + temp_ev + ' done!');
+                    }
+
+                    return parsed_expr;
                 },
 
                 $evalAsync: function (expr, locals) {
@@ -11013,33 +11178,29 @@ msos.console.time('ng');
                         queue_obj = {};
 
                     if (verbose) {
-                        msos_debug(temp_rsp + temp_sy + 'start, asyncQueue: ' + asyncQueue.length);
+                        msos_debug(temp_rsp + temp_sy + 'start, asyncQueue: ' + asyncQueue.length + ', $$phase: ' + $rootScope_P.$$phase);
                     }
 
-                    // if we are outside of an $digest loop and this is the first time we are scheduling async
-                    // task also schedule async auto-flush
-                    if (!$rootScope_P.$$phase && !asyncQueue.length) {
-                        $browser.defer(
-                            function () {
-                                msos_debug(temp_rsp + temp_sy + '$browser.defer -> called, asyncQueue: ' + asyncQueue.length);
-
-                                if (asyncQueue.length) {
-                                    $rootScope_P.$digest();
-                                }
-                            }
-                        );
-                    }
-
+                    // Experimental: start (for better consistancy...but may not work)
                     queue_obj = {
                         scope: this,
                         expression: $parse(expr),
-                        locals: locals
+                        locals: locals || { directive_name: 'unknown' }
                     };
 
                     asyncQueue.push(queue_obj);
 
+                    if (!$rootScope_P.$$phase) {
+                        $browser.defer(
+                            function () {
+                                if (asyncQueue.length) { $rootScope_P.$digest(); }
+                            }
+                        );
+                    }
+                    // Experimental: end
+
                     if (verbose) {
-                        msos_debug(temp_rsp + temp_sy + ' done, asyncQueue: ' + asyncQueue.length + ', added: ' + (queue_obj.locals.directive_name || 'na'));
+                        msos_debug(temp_rsp + temp_sy + ' done, asyncQueue: ' + asyncQueue.length + ', added: ' + queue_obj.locals.directive_name);
                     }
                 },
 
@@ -11049,7 +11210,8 @@ msos.console.time('ng');
 
                 $apply: function (expr) {
                     var temp_ap = '$get - Scope - $apply #==> ',
-                        dbug_app = ', for phase: ';
+                        dbug_app = ', for phase: ',
+                        evaled_expression = undefined;
 
                     if (!$rootScope_P.$$phase) {
                         $rootScope_P.$$phase = '$apply';
@@ -11058,34 +11220,33 @@ msos.console.time('ng');
 
                     dbug_app += $rootScope_P.$$phase;
 
-                    if (expr) {
-                        dbug_app += ', with input ' + typeof expr;
+                    msos.console.info(temp_rsp + temp_ap + 'start.');
+
+                    if (isDefined(expr)) {
+                        try {
+                            evaled_expression = this.$eval(expr);
+                        } catch (e) {
+                            msos.console.error(temp_rsp + temp_ap + 'error' + dbug_app, e);
+                        }
                     }
 
-                    msos.console.info(temp_rsp + temp_ap + 'start' + dbug_app);
+                    // ClearPhase
+                    $rootScope_P.$$phase = null;
 
-                    try {
-
-                        return this.$eval(expr);
-
-                    } catch (ignore) {
-
-                        msos.console.error(temp_rsp + temp_ap + 'error' + dbug_app, ignore);
-
-                    } finally {
-
-                        // clearPhase
-                        $rootScope_P.$$phase = null;
+                    // Run, if $digest is set
+                    if ($rootScope_P.$digest !== noop) {
                         $rootScope_P.$digest();
-
-                        msos.console.info(temp_rsp + temp_ap + ' done' + dbug_app);
                     }
 
-                    return undefined;
+                    msos.console.info(temp_rsp + temp_ap + ' done' + dbug_app);
+                    return evaled_expression;
                 },
 
                 $applyAsync: function (expr) {
-                    var scope = this;
+                    var temp_aa = '$get - Scope - $applyAsync -> ',
+                        scope = this;
+
+                    msos_debug(temp_rsp + temp_aa + 'start.');
 
                     function $applyAsyncExpression() {
                         scope.$eval(expr);
@@ -11097,6 +11258,8 @@ msos.console.time('ng');
 
                     expr = $parse(expr);
                     scheduleApplyAsync();
+
+                    msos_debug(temp_rsp + temp_aa + ' done!');
                 },
 
                 $on: function (name, listener) {
@@ -11667,13 +11830,6 @@ msos.console.time('ng');
                 var deferreds = {};
 
                 function timeout(fn_to, delay_to, invokeApply_to) {
-
-                    if (!_.isFunction(fn_to)) {
-                        invokeApply_to = delay_to;
-                        delay_to = fn_to;
-                        fn_to = noop;
-                    }
-
                     var temp_to = ' - $get - timeout -> ',
                         args = sliceArgs(arguments, 3),
                         skipApply = (isDefined(invokeApply_to) && !invokeApply_to),
@@ -11683,25 +11839,30 @@ msos.console.time('ng');
 
                     msos_debug(temp_tp + temp_to + 'start, name: ' + promise.$$state.name + ', delay: ' + delay_to + ', invoke apply:', invokeApply_to);
 
-                    timeoutId = $browser.defer(
-                        function () {
-                            try {
-                                deferred.resolve(fn_to.apply(null, args));
-                            } catch (e) {
-                                msos.console.error(temp_tp + temp_to + 'failed:', e);
-                                deferred.reject(e);
-                            }
-                            finally {
-                                delete deferreds[promise.$$timeoutId];
-                            }
-    
-                            if (!skipApply) { $rootScope.$apply(); }
-                        },
-                        delay_to
-                    );
+                    if (_.isFunction(fn_to)) {
 
-                    promise.$$timeoutId = timeoutId;
-                    deferreds[timeoutId] = deferred;
+                        timeoutId = $browser.defer(
+                            function () {
+                                try {
+                                    deferred.resolve(fn_to.apply(null, args));
+                                } catch (e) {
+                                    msos.console.error(temp_tp + temp_to + 'failed:', e);
+                                    deferred.reject(e);
+                                } finally {
+                                    delete deferreds[promise.$$timeoutId];
+                                }
+        
+                                if (!skipApply && $rootScope.$apply !== noop) { $rootScope.$apply(); }
+                            },
+                            delay_to
+                        );
+    
+                        promise.$$timeoutId = timeoutId;
+                        deferreds[timeoutId] = deferred;
+
+                    } else {
+                        msos.console.error(temp_tp + temp_to + 'error: no longer compatible with those inputs.');
+                    }
 
                     msos_debug(temp_tp + temp_to + ' done, name: ' + promise.$$state.name);
                     return promise;
@@ -12535,6 +12696,7 @@ msos.console.time('ng');
             }
             return $provide.factory(name + suffix, factory);
         }
+
         this.register = register;
 
         this.$get = ['$injector', function ($injector) {
@@ -12797,7 +12959,10 @@ msos.console.time('ng');
             }
 
             toggleValidationCss(validationErrorKey, combinedState);
-            ctrl.$$parentForm.$setValidity(validationErrorKey, combinedState, ctrl);
+
+            if (ctrl.$$parentForm.$setValidity !== noop) {
+                ctrl.$$parentForm.$setValidity(validationErrorKey, combinedState, ctrl);
+            }
         }
 
         classCache[VALID_CLASS] = $element.hasClass(VALID_CLASS);
@@ -13014,20 +13179,28 @@ msos.console.time('ng');
                             }
 
                             parentFormCtrl = ctrls[1] || controller.$$parentForm;
-                            parentFormCtrl.$addControl(controller);
+
+                            if (parentFormCtrl.$addControl !== noop) {
+                                parentFormCtrl.$addControl(controller);
+                            }
 
                             setter = nameAttr ? getSetter(controller.$name) : noop;
 
                             if (nameAttr) {
 
-                                setter(scope, controller);
+                                if (setter !== noop) {      // If getSetter returns noop
+                                    setter(scope, controller);
+                                }
 
                                 attr.$observe(
                                     nameAttr,
                                     function (newValue) {
                                         if (controller.$name === newValue) { return; }
 
-                                        setter(scope, undefined);
+                                        if (setter !== noop) {
+                                            setter(scope, undefined);
+                                        }
+
                                         controller.$$parentForm.$$renameControl(controller, newValue);
                                         setter = getSetter(controller.$name);
                                         setter(scope, controller);
@@ -13038,8 +13211,13 @@ msos.console.time('ng');
                             formElement.on(
                                 '$destroy',
                                 function () {
-                                    controller.$$parentForm.$removeControl(controller);
-                                    setter(scope, undefined);
+                                    if (controller.$$parentForm.$removeControl !== noop) {
+                                        controller.$$parentForm.$removeControl(controller);
+                                    }
+                                    if (setter !== noop) {
+                                        setter(scope, undefined);
+                                    }
+
                                     extend(controller, nullFormCtrl);   // Stop propagating child destruction handlers upwards
                                 }
                             );
@@ -13647,7 +13825,9 @@ msos.console.time('ng');
             ctrl.$pristine = false;
             $animate.removeClass($element, PRISTINE_CLASS);
             $animate.addClass($element, DIRTY_CLASS);
-            ctrl.$$parentForm.$setDirty();
+            if (ctrl.$$parentForm.$setDirty !== noop) {
+                ctrl.$$parentForm.$setDirty();
+            }
         };
 
         this.$setUntouched = function () {
@@ -13707,6 +13887,8 @@ msos.console.time('ng');
             currentValidationRunId += 1;
 
             var localValidationRunId = currentValidationRunId;
+
+            msos_debug(temp_nmc + ' - $$runValidators -> start, model: ' + modelValue + ', view: ' + viewValue);
 
             function validationDone(allValid) {
                 if (localValidationRunId === currentValidationRunId) {
@@ -13769,7 +13951,8 @@ msos.console.time('ng');
 
             function processAsyncValidators() {
                 var validatorPromises = [],
-                    allValid = true;
+                    allValid = true,
+                    pav_q_all;
 
                 forEach(
                     ctrl.$asyncValidators,
@@ -13810,29 +13993,37 @@ msos.console.time('ng');
                 );
 
                 if (!validatorPromises.length) {
-                    validationDone(true);
+                    // Is there a done cb?
+                    if (doneCallback !== noop) { validationDone(true); }
                 } else {
-                    $q.all($q.defer('ng_all_processAsyncValidators'), validatorPromises).then(
-                        function () {
-                            validationDone(allValid);
-                        },
-                        noop
-                    );
+                    pav_q_all = $q.all($q.defer('ng_all_processAsyncValidators'), validatorPromises);
+
+                    // Is there a done cb?
+                    if (doneCallback !== noop) {
+                        pav_q_all.then(
+                            function () { validationDone(allValid); },
+                            noop
+                        );
+                    }
                 }
             }
 
-            // check parser error
+            // Check parser error
             if (!processParseErrors()) {
-                validationDone(false);
+                // Is there a done cb?
+                if (doneCallback !== noop) { validationDone(false); }
                 return;
             }
 
             if (!processSyncValidators()) {
-                validationDone(false);
+                // Is there a done cb?
+                if (doneCallback !== noop) { validationDone(false); }
                 return;
             }
 
             processAsyncValidators();
+
+            msos_debug(temp_nmc + ' - $$runValidators ->  done!');
         };
 
         this.$commitViewValue = function () {
@@ -13963,7 +14154,8 @@ msos.console.time('ng');
                     function () {
                         ctrl.$commitViewValue();
                     },
-                    debounceDelay
+                    debounceDelay,
+                    false
                 );
                 deb_db = 'pending commit view';
             } else if ($rootScope.$$phase) {
@@ -14058,8 +14250,10 @@ msos.console.time('ng');
 
                         modelCtrl.$$setOptions(ctrls[2] && ctrls[2].$options);
 
-                        // notify others, especially parent forms
-                        formCtrl.$addControl(modelCtrl);
+                        // Notify others, especially parent forms
+                        if (formCtrl.$addControl !== noop) {
+                            formCtrl.$addControl(modelCtrl);
+                        }
 
                         attr.$observe(
                             'name',
@@ -14070,12 +14264,15 @@ msos.console.time('ng');
                             }
                         );
 
-                        scope.$on(
-                            '$destroy',
-                            function () {
-                                modelCtrl.$$parentForm.$removeControl(modelCtrl);
-                            }
-                        );
+                        // Experimental
+                        if (modelCtrl.$$parentForm.$removeControl !== noop) {
+                            scope.$on(
+                                '$destroy',
+                                function () {
+                                    modelCtrl.$$parentForm.$removeControl(modelCtrl);
+                                }
+                            );
+                        }
                     },
                     post: function ngModelPostLink(scope, element, attr_na, ctrls) {
                         var temp_pt = temp_cp + ' - post - ngModelPostLink',
@@ -14105,7 +14302,7 @@ msos.console.time('ng');
                                 if ($rootScope.$$phase) {
                                     scope.$evalAsync(
                                         modelCtrl.$setTouched,
-                                        { directive_name: 'ngModelDirective' }
+                                        { directive_name: 'ngModelDirective_blur' }
                                     );
                                 } else {
                                     scope.$apply(modelCtrl.$setTouched);
@@ -14580,7 +14777,7 @@ msos.console.time('ng');
                                     if (forceAsyncEvents[eventName] && $rootScope.$$phase) {
                                         scope.$evalAsync(
                                             callback,
-                                            { directive_name: directiveName }
+                                            { directive_name: 'ngEventDirectives_' + directiveName }
                                         );
                                     } else {
                                         scope.$apply(callback);
@@ -15701,7 +15898,9 @@ msos.console.time('ng');
 
                 jqLite(currentElement).remove();
 
-                ngModelCtrl.$render();
+                if (ngModelCtrl.$render !== noop) {
+                    ngModelCtrl.$render();
+                }
 
                 // Check to see if the value has changed due to the update to the options
                 if (!ngModelCtrl.$isEmpty(previousValue)) {
@@ -15920,7 +16119,9 @@ msos.console.time('ng');
                     self.removeUnknownOption();
                     $element.val('');
                 } else {
-                    self.renderUnknownOption(value);
+                    if (self.renderUnknownOption !== noop) {
+                        self.renderUnknownOption(value);
+                    }
                 }
             }
         };
@@ -15940,7 +16141,9 @@ msos.console.time('ng');
 
             count = optionsMap.get(value) || 0;
             optionsMap.put(value, count + 1);
-            self.ngModelCtrl.$render();
+
+            if (self.ngModelCtrl.$render !== noop) { self.ngModelCtrl.$render(); }
+
             chromeHack(element);
         };
 
@@ -16026,9 +16229,11 @@ msos.console.time('ng');
             element.on(
                 'change',
                 function () {
-                    scope.$apply(
-                        function () { ngModelCtrl.$setViewValue(selectCtrl.readValue()); }
-                    );
+                    if (scope.$apply !== noop) {
+                        scope.$apply(
+                            function () { ngModelCtrl.$setViewValue(selectCtrl.readValue()); }
+                        );
+                    }
                 }
             );
 
@@ -16157,7 +16362,7 @@ msos.console.time('ng');
         msos_debug(temp_pe + ' ~~~> start.');
 
         extend(angular, {
-            'bootstrap': bootstrap,
+            'bootstrap': msos.config.debug ? bootstrap_deferred : bootstrap,  // debug console is very slow, so make sure Ng is ready
             'copy': copy,
             'extend': extend,
             'merge': merge,
@@ -16166,7 +16371,7 @@ msos.console.time('ng');
             'forEach': forEach,
             'injector': createInjector,
             'noop': noop,
-            'bind': _.bind,
+            'bind': ng_bind,
             'toJson': toJson,
             'fromJson': fromJson,
             'identity': identity,
@@ -16178,6 +16383,8 @@ msos.console.time('ng');
             'isNumber': _.isNumber,
             'isElement': isElement,
             'isArray': _.isArray,
+            'baseHref': baseHref,           // replaces $browser.baseHref(), w/o function
+            'inherit': inherit,
             'version': version,
             'isDate': _.isDate,
             'lowercase': lowercase,
@@ -16310,6 +16517,9 @@ msos.console.time('ng');
     bindJQuery();
 
     publishExternalAPI(angular);
+
+    // Determine how long to load basic functions
+    end_time = msos.new_time();
 
 }(window, document));
 

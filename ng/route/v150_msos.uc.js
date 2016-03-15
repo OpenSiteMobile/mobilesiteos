@@ -193,7 +193,7 @@ msos.console.time('route');
                                     {
                                         params: w_angular.extend(
                                             {},
-                                            $location.search(),
+                                            $location.$$search,      // Eperimental, was $location.search()
                                             params
                                         ),
                                         pathParams: params
@@ -248,7 +248,11 @@ msos.console.time('route');
                             if (w_angular.isString(nextRoute.redirectTo)) {
                                 $location.path(interpolate(nextRoute.redirectTo, nextRoute.params)).search(nextRoute.params).replace();
                             } else {
-                                $location.url(nextRoute.redirectTo(nextRoute.pathParams, $location.path(), $location.search())).replace();
+                                $location.url(nextRoute.redirectTo(
+                                    nextRoute.pathParams,
+                                    $location.path(),
+                                    $location.$$search      // Eperimental, was $location.search()
+                                )).replace();
                             }
                         }
                     }
@@ -293,6 +297,8 @@ msos.console.time('route');
                                 if (w_angular.isDefined(template)) {
                                     locals.$template = template;
                                 }
+
+                                w_msos.console.debug(temp_rt + temp_cr + 'returning $q.all');
                                 return $q.all($q.defer('ng_route_all_commitRoute'), locals);
                             }
                             return undefined;

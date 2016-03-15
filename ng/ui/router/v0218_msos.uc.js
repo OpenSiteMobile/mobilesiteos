@@ -1407,7 +1407,14 @@
                     }
                     return extend(
                         function ($injector, $location) {
-                            return handleIfMatch($injector, handler, what.exec($location.path(), $location.search()));
+                            return handleIfMatch(
+                                $injector,
+                                handler,
+                                what.exec(
+                                    $location.path(),
+                                    $location.$$search      // Eperimental, was $location.search()
+                                )
+                            );
                         },
                         { prefix: _.isString(what.prefix) ? what.prefix : '' }
                     );

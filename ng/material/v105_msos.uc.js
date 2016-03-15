@@ -12532,7 +12532,6 @@
                 animators.push(animator.start());
             });
 
-            //return $q.all(animators);
             return $q.all($q.defer('ng_md_all_showInputMessages'), animators);
         }
 
@@ -12547,7 +12546,6 @@
                 animators.push(animator.start());
             });
 
-            //return $q.all(animators);
             return $q.all($q.defer('ng_md_all_hideInputMessages'), animators);
         }
 
@@ -15640,8 +15638,9 @@
                     var promise = $q.all($q.defer('ng_md_all_updateIsOpen'), [
                             isOpen ? $animate.enter(backdrop, parent) : $animate.leave(backdrop),
                             $animate[isOpen ? 'removeClass' : 'addClass'](element, 'md-closed')
-                        ])
-                        .then(function() {
+                        ]);
+
+                        promise.then(function() {
                             // Perform focus when animations are ALL done...
                             if (scope.isOpen) {
                                 focusEl && focusEl.focus();
@@ -17819,18 +17818,14 @@
                 }
 
                 function hideTooltip() {
-                    var promises = [];
+                    var current = [];
                     angular.forEach([element, content], function(it) {
                         if (it.parent() && it.hasClass('md-show')) {
-                            promises.push($animate.removeClass(it, 'md-show'));
+                            current.push($animate.removeClass(it, 'md-show'));
                         }
                     });
 
-//                    $q.all(promises)
-//                        .then(function() {
-//                            if (!scope.visible) element.detach();
-//                        });
-                    $q.all($q.defer('ng_md_all_hideTooltip'), promises)
+                    $q.all($q.defer('ng_md_all_hideTooltip'), current)
                         .then(function() {
                             if (!scope.visible) element.detach();
                         });
