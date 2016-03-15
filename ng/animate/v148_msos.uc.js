@@ -3,7 +3,7 @@
  * (c) 2010-2015 Google, Inc. http://angularjs.org
  * License: MIT
  */
-(function(window, angular, undefined) {
+(function (window, angular, undefined) {
     'use strict';
 
     /* jshint ignore:start */
@@ -74,7 +74,7 @@
     var TRANSITION_DELAY_PROP = TRANSITION_PROP + DELAY_KEY;
     var TRANSITION_DURATION_PROP = TRANSITION_PROP + DURATION_KEY;
 
-    var isPromiseLike = function(p) {
+    var isPromiseLike = function (p) {
         return p && p.then ? true : false;
     };
 
@@ -106,7 +106,7 @@
     function pendClasses(classes, fix, isPrefix) {
         var className = '';
         classes = isArray(classes) ? classes : classes && isString(classes) && classes.length ? classes.split(/\s+/) : [];
-        forEach(classes, function(klass, i) {
+        forEach(classes, function (klass, i) {
             if (klass && klass.length > 0) {
                 className += (i > 0) ? ' ' : '';
                 className += isPrefix ? fix + klass : klass + fix;
@@ -160,7 +160,7 @@
     }
 
     function applyAnimationClassesFactory() {
-        return function(element, options) {
+        return function (element, options) {
             if (options.addClass) {
                 jQuery(element).addClass(options.addClass);
                 options.addClass = null;
@@ -176,10 +176,13 @@
         options = options || {};
         if (!options.$$prepared) {
             var domOperation = options.domOperation || noop;
-            options.domOperation = function() {
+            options.domOperation = function () {
                 options.$$domOperationFired = true;
-                domOperation();
-                domOperation = noop;
+
+                if (domOperation !== noop) {
+                    domOperation();
+                    domOperation = noop;
+                }
             };
             options.$$prepared = true;
         }
@@ -248,12 +251,12 @@
         existing = splitClassesToLookup(existing);
 
         toAdd = splitClassesToLookup(toAdd);
-        forEach(toAdd, function(value, key) {
+        forEach(toAdd, function (value, key) {
             flags[key] = ADD_CLASS;
         });
 
         toRemove = splitClassesToLookup(toRemove);
-        forEach(toRemove, function(value, key) {
+        forEach(toRemove, function (value, key) {
             flags[key] = flags[key] === ADD_CLASS ? null : REMOVE_CLASS;
         });
 
@@ -262,7 +265,7 @@
             removeClass: ''
         };
 
-        forEach(flags, function(val, klass) {
+        forEach(flags, function (val, klass) {
             var prop, allow;
             if (val === ADD_CLASS) {
                 prop = 'addClass';
@@ -285,7 +288,7 @@
             }
 
             var obj = {};
-            forEach(classes, function(klass) {
+            forEach(classes, function (klass) {
                 // sometimes the split leaves empty string values
                 // incase extra spaces were applied to the options
                 if (klass.length) {
@@ -358,7 +361,7 @@
         return a + ' ' + b;
     }
 
-    var $$rAFSchedulerFactory = ['$$rAF', function($$rAF) {
+    var $$rAFSchedulerFactory = ['$$rAF', function ($$rAF) {
         var queue, cancelFn;
 
         function scheduler(tasks) {
@@ -379,10 +382,10 @@
          * before the next wave runs. This allows for certain DOM properties such as classes to
          * be resolved in time for the next animation to run.
          */
-        scheduler.waitUntilQuiet = function(fn) {
+        scheduler.waitUntilQuiet = function (fn) {
             if (cancelFn) cancelFn();
 
-            cancelFn = $$rAF(function() {
+            cancelFn = $$rAF(function () {
                 cancelFn = null;
                 fn();
                 nextTick();
@@ -400,20 +403,20 @@
             }
 
             if (!cancelFn) {
-                $$rAF(function() {
+                $$rAF(function () {
                     if (!cancelFn) nextTick();
                 });
             }
         }
     }];
 
-    var $$AnimateChildrenDirective = [function() {
-        return function(scope, element, attrs) {
+    var $$AnimateChildrenDirective = [function () {
+        return function (scope, element, attrs) {
             var val = attrs.ngAnimateChildren;
             if (angular.isString(val) && val.length === 0) { //empty attribute
                 element.data(NG_ANIMATE_CHILDREN_DATA, true);
             } else {
-                attrs.$observe('ngAnimateChildren', function(value) {
+                attrs.$observe('ngAnimateChildren', function (value) {
                     value = value === 'on' || value === 'true';
                     element.data(NG_ANIMATE_CHILDREN_DATA, value);
                 });
@@ -456,7 +459,7 @@
     function computeCssStyles($window, element, properties) {
         var styles = Object.create(null);
         var detectedStyles = $window.getComputedStyle(element) || {};
-        forEach(properties, function(formalStyleName, actualStyleName) {
+        forEach(properties, function (formalStyleName, actualStyleName) {
             var val = detectedStyles[formalStyleName];
             if (val) {
                 var c = val.charAt(0);
@@ -482,7 +485,7 @@
     function parseMaxTime(str) {
         var maxValue = 0;
         var values = str.split(/\s*,\s*/);
-        forEach(values, function(value) {
+        forEach(values, function (value) {
             // it's always safe to consider only second values and omit `ms` values since
             // getComputedStyle will always handle the conversion for us
             if (value.charAt(value.length - 1) == 's') {
@@ -512,21 +515,21 @@
     function createLocalCacheLookup() {
         var cache = Object.create(null);
         return {
-            flush: function() {
+            flush: function () {
                 cache = Object.create(null);
             },
 
-            count: function(key) {
+            count: function (key) {
                 var entry = cache[key];
                 return entry ? entry.total : 0;
             },
 
-            get: function(key) {
+            get: function (key) {
                 var entry = cache[key];
                 return entry && entry.value;
             },
 
-            put: function(key, value) {
+            put: function (key, value) {
                 if (!cache[key]) {
                     cache[key] = {
                         total: 1,
@@ -549,18 +552,18 @@
     // is to be removed at the end of the animation). If we had a simple
     // "OR" statement then it would not be enough to catch that.
     function registerRestorableStyles(backup, node, properties) {
-        forEach(properties, function(prop) {
+        forEach(properties, function (prop) {
             backup[prop] = isDefined(backup[prop]) ? backup[prop] : node.style.getPropertyValue(prop);
         });
     }
 
-    var $AnimateCssProvider = ['$animateProvider', function($animateProvider) {
+    var $AnimateCssProvider = ['$animateProvider', function ($animateProvider) {
         var gcsLookup = createLocalCacheLookup();
         var gcsStaggerLookup = createLocalCacheLookup();
 
         this.$get = ['$window', '$$AnimateRunner', '$timeout',
             '$$forceReflow', '$$rAFScheduler', '$animate',
-            function($window, $$AnimateRunner, $timeout,
+            function ($window, $$AnimateRunner, $timeout,
                 $$forceReflow, $$rAFScheduler, $animate) {
 
                 var applyAnimationClasses = applyAnimationClassesFactory();
@@ -624,7 +627,7 @@
 
                 function waitUntilQuiet(callback) {
                     rafWaitQueue.push(callback);
-                    $$rAFScheduler.waitUntilQuiet(function() {
+                    $$rAFScheduler.waitUntilQuiet(function () {
                         gcsLookup.flush();
                         gcsStaggerLookup.flush();
 
@@ -862,7 +865,7 @@
                     return {
                         $$willAnimate: true,
                         end: endFn,
-                        start: function() {
+                        start: function () {
                             if (animationClosed) return;
 
                             runnerHost = {
@@ -907,7 +910,7 @@
                         blockKeyframeAnimations(node, false);
                         blockTransitions(node, false);
 
-                        forEach(temporaryStyles, function(entry) {
+                        forEach(temporaryStyles, function (entry) {
                             // There is only one way to remove inline style properties entirely from elements.
                             // By using `removeProperty` this works, but we need to convert camel-cased CSS
                             // styles down to hyphenated values.
@@ -918,7 +921,7 @@
                         applyAnimationStyles(element, options);
 
                         if (Object.keys(restoreStyles).length) {
-                            forEach(restoreStyles, function(value, prop) {
+                            forEach(restoreStyles, function (value, prop) {
                                 value ? node.style.setProperty(prop, value) : node.style.removeProperty(prop);
                             });
                         }
@@ -960,7 +963,7 @@
 
                         return {
                             $$willAnimate: false,
-                            start: function() {
+                            start: function () {
                                 return runner;
                             },
                             end: endFn
@@ -980,7 +983,7 @@
                         // will still happen when transitions are used. Only the transition will
                         // not be paused since that is not possible. If the animation ends when
                         // paused then it will not complete until unpaused or cancelled.
-                        var playPause = function(playAnimation) {
+                        var playPause = function (playAnimation) {
                             if (!animationCompleted) {
                                 animationPaused = !playAnimation;
                                 if (timings.animationDuration) {
@@ -1008,11 +1011,11 @@
                         }
 
                         // this will decorate the existing promise runner with pause/resume methods
-                        runnerHost.resume = function() {
+                        runnerHost.resume = function () {
                             playPause(true);
                         };
 
-                        runnerHost.pause = function() {
+                        runnerHost.pause = function () {
                             playPause(false);
                         };
 
@@ -1023,7 +1026,7 @@
 
                             applyBlocking(false);
 
-                            forEach(temporaryStyles, function(entry) {
+                            forEach(temporaryStyles, function (entry) {
                                 var key = entry[0];
                                 var value = entry[1];
                                 node.style[key] = value;
@@ -1163,7 +1166,7 @@
         ];
     }];
 
-    var $$AnimateCssDriverProvider = ['$$animationProvider', function($$animationProvider) {
+    var $$AnimateCssDriverProvider = ['$$animationProvider', function ($$animationProvider) {
         $$animationProvider.drivers.push('$$animateCssDriver');
 
         var NG_ANIMATE_SHIM_CLASS_NAME = 'ng-animate-shim';
@@ -1177,7 +1180,7 @@
         }
 
         this.$get = ['$animateCss', '$rootScope', '$$AnimateRunner', '$rootElement', '$document',
-            function($animateCss, $rootScope, $$AnimateRunner, $rootElement, $document) {
+            function ($animateCss, $rootScope, $$AnimateRunner, $rootElement, $document) {
 
                 // only browsers that support these properties can render animations
                 if (!Modernizr.animations && !Modernizr.transitions) return noop;
@@ -1209,7 +1212,7 @@
                 function getUniqueValues(a, b) {
                     if (isString(a)) a = a.split(' ');
                     if (isString(b)) b = b.split(' ');
-                    return a.filter(function(val) {
+                    return a.filter(function (val) {
                         return b.indexOf(val) === -1;
                     }).join(' ');
                 }
@@ -1241,17 +1244,17 @@
                     var startingAnimator = animatorOut || animatorIn;
 
                     return {
-                        start: function() {
+                        start: function () {
                             var runner;
 
                             var currentAnimation = startingAnimator.start();
-                            currentAnimation.done(function() {
+                            currentAnimation.done(function () {
                                 currentAnimation = null;
                                 if (!animatorIn) {
                                     animatorIn = prepareInAnimation();
                                     if (animatorIn) {
                                         currentAnimation = animatorIn.start();
-                                        currentAnimation.done(function() {
+                                        currentAnimation.done(function () {
                                             currentAnimation = null;
                                             end();
                                             runner.complete();
@@ -1286,7 +1289,7 @@
 
                         // we iterate directly since safari messes up and doesn't return
                         // all the keys for the coods object when iterated
-                        forEach(['width', 'height', 'top', 'left'], function(key) {
+                        forEach(['width', 'height', 'top', 'left'], function (key) {
                             var value = coords[key];
                             switch (key) {
                                 case 'top':
@@ -1346,7 +1349,7 @@
                     var toAnimation = prepareRegularAnimation(to, noop);
 
                     var anchorAnimations = [];
-                    forEach(anchors, function(anchor) {
+                    forEach(anchors, function (anchor) {
                         var outElement = anchor['out'];
                         var inElement = anchor['in'];
                         var animator = prepareAnchoredAnimation(classes, outElement, inElement);
@@ -1359,7 +1362,7 @@
                     if (!fromAnimation && !toAnimation && anchorAnimations.length === 0) return;
 
                     return {
-                        start: function() {
+                        start: function () {
                             var animationRunners = [];
 
                             if (fromAnimation) {
@@ -1370,7 +1373,7 @@
                                 animationRunners.push(toAnimation.start());
                             }
 
-                            forEach(anchorAnimations, function(animation) {
+                            forEach(anchorAnimations, function (animation) {
                                 animationRunners.push(animation.start());
                             });
 
@@ -1379,14 +1382,14 @@
                                 cancel: endFn // CSS-driven animations cannot be cancelled, only ended
                             });
 
-                            $$AnimateRunner.all(animationRunners, function(status) {
+                            $$AnimateRunner.all(animationRunners, function (status) {
                                 runner.complete(status);
                             });
 
                             return runner;
 
                             function endFn() {
-                                forEach(animationRunners, function(runner) {
+                                forEach(animationRunners, function (runner) {
                                     runner.end();
                                 });
                             }
@@ -1434,13 +1437,13 @@
     // TODO(matsko): add documentation
     //  by the time...
 
-    var $$AnimateJsProvider = ['$animateProvider', function($animateProvider) {
+    var $$AnimateJsProvider = ['$animateProvider', function ($animateProvider) {
         this.$get = ['$injector', '$$AnimateRunner',
-            function($injector, $$AnimateRunner) {
+            function ($injector, $$AnimateRunner) {
 
                 var applyAnimationClasses = applyAnimationClassesFactory();
                 // $animateJs(element, 'enter');
-                return function(element, event, classes, options) {
+                return function (element, event, classes, options) {
                     // the `classes` argument is optional and if it is not used
                     // then the classes will be resolved from the element's className
                     // property as well as options.addClass/options.removeClass.
@@ -1494,18 +1497,18 @@
                     }
 
                     return {
-                        start: function() {
+                        start: function () {
                             var closeActiveAnimations;
                             var chain = [];
 
                             if (before) {
-                                chain.push(function(fn) {
+                                chain.push(function (fn) {
                                     closeActiveAnimations = before(fn);
                                 });
                             }
 
                             if (chain.length) {
-                                chain.push(function(fn) {
+                                chain.push(function (fn) {
                                     applyOptions();
                                     fn(true);
                                 });
@@ -1514,17 +1517,17 @@
                             }
 
                             if (after) {
-                                chain.push(function(fn) {
+                                chain.push(function (fn) {
                                     closeActiveAnimations = after(fn);
                                 });
                             }
 
                             var animationClosed = false;
                             var runner = new $$AnimateRunner({
-                                end: function() {
+                                end: function () {
                                     endAnimations();
                                 },
-                                cancel: function() {
+                                cancel: function () {
                                     endAnimations(true);
                                 }
                             });
@@ -1593,17 +1596,17 @@
 
                     function groupEventedAnimations(element, event, options, animations, fnName) {
                         var operations = [];
-                        forEach(animations, function(ani) {
+                        forEach(animations, function (ani) {
                             var animation = ani[fnName];
                             if (!animation) return;
 
                             // note that all of these animations will run in parallel
-                            operations.push(function() {
+                            operations.push(function () {
                                 var runner;
                                 var endProgressCb;
 
                                 var resolved = false;
-                                var onAnimationComplete = function(rejected) {
+                                var onAnimationComplete = function (rejected) {
                                     if (!resolved) {
                                         resolved = true;
                                         (endProgressCb || noop)(rejected);
@@ -1612,15 +1615,15 @@
                                 };
 
                                 runner = new $$AnimateRunner({
-                                    end: function() {
+                                    end: function () {
                                         onAnimationComplete();
                                     },
-                                    cancel: function() {
+                                    cancel: function () {
                                         onAnimationComplete(true);
                                     }
                                 });
 
-                                endProgressCb = executeAnimationFn(animation, element, event, options, function(result) {
+                                endProgressCb = executeAnimationFn(animation, element, event, options, function (result) {
                                     var cancelled = result === false;
                                     onAnimationComplete(cancelled);
                                 });
@@ -1658,7 +1661,7 @@
                         return function startAnimation(callback) {
                             var runners = [];
                             if (operations.length) {
-                                forEach(operations, function(animateFn) {
+                                forEach(operations, function (animateFn) {
                                     runners.push(animateFn());
                                 });
                             }
@@ -1666,7 +1669,7 @@
                             runners.length ? $$AnimateRunner.all(runners, callback) : callback();
 
                             return function endFn(reject) {
-                                forEach(runners, function(runner) {
+                                forEach(runners, function (runner) {
                                     reject ? runner.cancel() : runner.end();
                                 });
                             };
@@ -1692,9 +1695,9 @@
         ];
     }];
 
-    var $$AnimateJsDriverProvider = ['$$animationProvider', function($$animationProvider) {
+    var $$AnimateJsDriverProvider = ['$$animationProvider', function ($$animationProvider) {
         $$animationProvider.drivers.push('$$animateJsDriver');
-        this.$get = ['$$animateJs', '$$AnimateRunner', function($$animateJs, $$AnimateRunner) {
+        this.$get = ['$$animateJs', '$$AnimateRunner', function ($$animateJs, $$AnimateRunner) {
             return function initDriverFn(animationDetails) {
                 if (animationDetails.from && animationDetails.to) {
                     var fromAnimation = prepareAnimation(animationDetails.from);
@@ -1702,7 +1705,7 @@
                     if (!fromAnimation && !toAnimation) return;
 
                     return {
-                        start: function() {
+                        start: function () {
                             var animationRunners = [];
 
                             if (fromAnimation) {
@@ -1723,8 +1726,8 @@
                             return runner;
 
                             function endFnFactory() {
-                                return function() {
-                                    forEach(animationRunners, function(runner) {
+                                return function () {
+                                    forEach(animationRunners, function (runner) {
                                         // at this point we cannot cancel animations for groups just yet. 1.5+
                                         runner.end();
                                     });
@@ -1754,7 +1757,7 @@
 
     var NG_ANIMATE_ATTR_NAME = 'data-ng-animate';
     var NG_ANIMATE_PIN_DATA = '$ngAnimatePin';
-    var $$AnimateQueueProvider = ['$animateProvider', function($animateProvider) {
+    var $$AnimateQueueProvider = ['$animateProvider', function ($animateProvider) {
         var PRE_DIGEST_STATE = 1;
         var RUNNING_STATE = 2;
 
@@ -1765,7 +1768,7 @@
         };
 
         function isAllowed(ruleType, element, currentAnimation, previousAnimation) {
-            return rules[ruleType].some(function(fn) {
+            return rules[ruleType].some(function (fn) {
                 return fn(element, currentAnimation, previousAnimation);
             });
         }
@@ -1777,40 +1780,40 @@
             return and ? a && b : a || b;
         }
 
-        rules.join.push(function(element, newAnimation, currentAnimation) {
+        rules.join.push(function (element, newAnimation, currentAnimation) {
             // if the new animation is class-based then we can just tack that on
             return !newAnimation.structural && hasAnimationClasses(newAnimation.options);
         });
 
-        rules.skip.push(function(element, newAnimation, currentAnimation) {
+        rules.skip.push(function (element, newAnimation, currentAnimation) {
             // there is no need to animate anything if no classes are being added and
             // there is no structural animation that will be triggered
             return !newAnimation.structural && !hasAnimationClasses(newAnimation.options);
         });
 
-        rules.skip.push(function(element, newAnimation, currentAnimation) {
+        rules.skip.push(function (element, newAnimation, currentAnimation) {
             // why should we trigger a new structural animation if the element will
             // be removed from the DOM anyway?
             return currentAnimation.event == 'leave' && newAnimation.structural;
         });
 
-        rules.skip.push(function(element, newAnimation, currentAnimation) {
+        rules.skip.push(function (element, newAnimation, currentAnimation) {
             // if there is an ongoing current animation then don't even bother running the class-based animation
             return currentAnimation.structural && currentAnimation.state === RUNNING_STATE && !newAnimation.structural;
         });
 
-        rules.cancel.push(function(element, newAnimation, currentAnimation) {
+        rules.cancel.push(function (element, newAnimation, currentAnimation) {
             // there can never be two structural animations running at the same time
             return currentAnimation.structural && newAnimation.structural;
         });
 
-        rules.cancel.push(function(element, newAnimation, currentAnimation) {
+        rules.cancel.push(function (element, newAnimation, currentAnimation) {
             // if the previous animation is already running, but the new animation will
             // be triggered, but the new animation is structural
             return currentAnimation.state === RUNNING_STATE && newAnimation.structural;
         });
 
-        rules.cancel.push(function(element, newAnimation, currentAnimation) {
+        rules.cancel.push(function (element, newAnimation, currentAnimation) {
             var nO = newAnimation.options;
             var cO = currentAnimation.options;
 
@@ -1820,7 +1823,7 @@
 
         this.$get = ['$$rAF', '$rootScope', '$rootElement', '$document', '$$HashMap',
             '$$animation', '$$AnimateRunner', '$templateRequest', '$$forceReflow',
-            function($$rAF, $rootScope, $rootElement, $document, $$HashMap,
+            function ($$rAF, $rootScope, $rootElement, $document, $$HashMap,
                 $$animation, $$AnimateRunner, $templateRequest, $$forceReflow) {
 
                 var activeAnimationsLookup = new $$HashMap();
@@ -1829,7 +1832,7 @@
 
                 function postDigestTaskFactory() {
                     var postDigestCalled = false;
-                    return function(fn) {
+                    return function (fn) {
                         // we only issue a call to postDigest before
                         // it has first passed. This prevents any callbacks
                         // from not firing once the animation has completed
@@ -1837,7 +1840,7 @@
                         if (postDigestCalled) {
                             fn();
                         } else {
-                            $rootScope.$$postDigest(function() {
+                            $rootScope.$$postDigest(function () {
                                 postDigestCalled = true;
                                 fn();
                             });
@@ -1850,10 +1853,10 @@
                 // all of the remote templates being currently downloaded. If there are no
                 // templates currently downloading then the watcher will still fire anyway.
                 var deregisterWatch = $rootScope.$watch(
-                    function() {
+                    function () {
                         return $templateRequest.totalPendingRequests === 0;
                     },
-                    function(isEmpty) {
+                    function (isEmpty) {
                         if (!isEmpty) return;
                         deregisterWatch();
 
@@ -1864,8 +1867,8 @@
                         // use $postDigest, it's important that the code below executes at the end.
                         // This basically means that the page is fully downloaded and compiled before
                         // any animations are triggered.
-                        $rootScope.$$postDigest(function() {
-                            $rootScope.$$postDigest(function() {
+                        $rootScope.$$postDigest(function () {
+                            $rootScope.$$postDigest(function () {
                                 // we check for null directly in the event that the application already called
                                 // .enabled() with whatever arguments that it provided it with
                                 if (animationsEnabled === null) {
@@ -1881,9 +1884,9 @@
                 // remember that the classNameFilter is set during the provider/config
                 // stage therefore we can optimize here and setup a helper function
                 var classNameFilter = $animateProvider.classNameFilter();
-                var isAnimatableClassName = !classNameFilter ? function() {
+                var isAnimatableClassName = !classNameFilter ? function () {
                     return true;
-                } : function(className) {
+                } : function (className) {
                     return classNameFilter.test(className);
                 };
 
@@ -1900,7 +1903,7 @@
                     var matches = [];
                     var entries = callbackRegistry[event];
                     if (entries) {
-                        forEach(entries, function(entry) {
+                        forEach(entries, function (entry) {
                             if (entry.node.contains(targetNode)) {
                                 matches.push(entry.callback);
                             } else if (event === 'leave' && entry.node.contains(targetParentNode)) {
@@ -1913,7 +1916,7 @@
                 }
 
                 return {
-                    on: function(event, container, callback) {
+                    on: function (event, container, callback) {
                         var node = extractElementNode(container);
                         callbackRegistry[event] = callbackRegistry[event] || [];
                         callbackRegistry[event].push({
@@ -1922,7 +1925,7 @@
                         });
                     },
 
-                    off: function(event, container, callback) {
+                    off: function (event, container, callback) {
                         var entries = callbackRegistry[event];
                         if (!entries) return;
 
@@ -1930,7 +1933,7 @@
 
                         function filterFromRegistry(list, matchContainer, matchCallback) {
                             var containerNode = extractElementNode(matchContainer);
-                            return list.filter(function(entry) {
+                            return list.filter(function (entry) {
                                 var isMatch = entry.node === containerNode &&
                                     (!matchCallback || entry.callback === matchCallback);
                                 return !isMatch;
@@ -1938,13 +1941,13 @@
                         }
                     },
 
-                    pin: function(element, parentElement) {
+                    pin: function (element, parentElement) {
                         assertArg(isElement(element), 'element', 'not an element');
                         assertArg(isElement(parentElement), 'parentElement', 'not an element');
                         element.data(NG_ANIMATE_PIN_DATA, parentElement);
                     },
 
-                    push: function(element, event, options, domOperation) {
+                    push: function (element, event, options, domOperation) {
                         options = options || {};
                         options.domOperation = domOperation;
                         return queueAnimation(element, event, options);
@@ -1955,7 +1958,7 @@
                     //  (bool) - global setter
                     //  (element) - element getter
                     //  (element, bool) - element setter<F37>
-                    enabled: function(element, bool) {
+                    enabled: function (element, bool) {
                         var argCount = arguments.length;
 
                         if (argCount === 0) {
@@ -2154,7 +2157,7 @@
 
                     markElementAnimationState(element, PRE_DIGEST_STATE, newAnimation);
 
-                    $rootScope.$$postDigest(function() {
+                    $rootScope.$$postDigest(function () {
                         var animationDetails = activeAnimationsLookup.get(node);
                         var animationCancelled = !animationDetails;
                         animationDetails = animationDetails || {};
@@ -2203,7 +2206,7 @@
                         markElementAnimationState(element, RUNNING_STATE);
                         var realRunner = $$animation(element, event, animationDetails.options);
 
-                        realRunner.done(function(status) {
+                        realRunner.done(function (status) {
                             close(!status);
                             var animationDetails = activeAnimationsLookup.get(node);
                             if (animationDetails && animationDetails.counter === counter) {
@@ -2221,21 +2224,24 @@
                     return runner;
 
                     function notifyProgress(runner, event, phase, data) {
-                        runInNextPostDigestOrNow(function() {
+                        runInNextPostDigestOrNow(function () {
                             var callbacks = findCallbacks(parent, element, event);
                             if (callbacks.length) {
                                 // do not optimize this call here to RAF because
                                 // we don't know how heavy the callback code here will
                                 // be and if this code is buffered then this can
                                 // lead to a performance regression.
-                                $$rAF(function() {
-                                    forEach(callbacks, function(callback) {
+                                $$rAF(function () {
+                                    forEach(callbacks, function (callback) {
                                         callback(element, phase, data);
                                     });
                                 });
                             }
                         });
-                        runner.progress(event, phase, data);
+
+                        if (runner.progress !== noop) {
+                            runner.progress(event, phase, data);
+                        }
                     }
 
                     function close(reject) { // jshint ignore:line
@@ -2250,7 +2256,7 @@
                 function closeChildAnimations(element) {
                     var node = getDomNode(element);
                     var children = node.querySelectorAll('[' + NG_ANIMATE_ATTR_NAME + ']');
-                    forEach(children, function(child) {
+                    forEach(children, function (child) {
                         var state = parseInt(child.getAttribute(NG_ANIMATE_ATTR_NAME));
                         var animationDetails = activeAnimationsLookup.get(child);
                         switch (state) {
@@ -2359,13 +2365,13 @@
         ];
     }];
 
-    var $$AnimateAsyncRunFactory = ['$$rAF', function($$rAF) {
+    var $$AnimateAsyncRunFactory = ['$$rAF', function ($$rAF) {
         var waitQueue = [];
 
         function waitForTick(fn) {
             waitQueue.push(fn);
             if (waitQueue.length > 1) return;
-            $$rAF(function() {
+            $$rAF(function () {
                 for (var i = 0; i < waitQueue.length; i++) {
                     waitQueue[i]();
                 }
@@ -2373,25 +2379,25 @@
             });
         }
 
-        return function() {
+        return function () {
             var passed = false;
-            waitForTick(function() {
+            waitForTick(function () {
                 passed = true;
             });
-            return function(callback) {
+            return function (callback) {
                 passed ? callback() : waitForTick(callback);
             };
         };
     }];
 
     var $$AnimateRunnerFactory = ['$q', '$$animateAsyncRun',
-        function($q, $$animateAsyncRun) {
+        function ($q, $$animateAsyncRun) {
 
             var INITIAL_STATE = 0;
             var DONE_PENDING_STATE = 1;
             var DONE_COMPLETE_STATE = 2;
 
-            AnimateRunner.chain = function(chain, callback) {
+            AnimateRunner.chain = function (chain, callback) {
                 var index = 0;
 
                 next();
@@ -2402,7 +2408,7 @@
                         return;
                     }
 
-                    chain[index](function(response) {
+                    chain[index](function (response) {
                         if (response === false) {
                             callback(false);
                             return;
@@ -2413,10 +2419,11 @@
                 }
             };
 
-            AnimateRunner.all = function(runners, callback) {
+            AnimateRunner.all = function (runners, callback) {
                 var count = 0;
                 var status = true;
-                forEach(runners, function(runner) {
+
+                forEach(runners, function (runner) {
                     runner.done(onProgress);
                 });
 
@@ -2438,11 +2445,12 @@
             }
 
             AnimateRunner.prototype = {
-                setHost: function(host) {
+
+                setHost: function (host) {
                     this.host = host || {};
                 },
 
-                done: function(fn) {
+                done: function (fn) {
                     if (this._state === DONE_COMPLETE_STATE) {
                         fn();
                     } else {
@@ -2452,69 +2460,80 @@
 
                 progress: noop,
 
-                getPromise: function() {
-                    if (!this.promise) {
-                        var self = this;
-                        this.promise = $q.when($q.defer('ng_animate_when_AnimateRunner'), function(resolve, reject) {
-                            self.done(function(status) {
+                getPromise: function () {
+                    var temp_gp = 'ng/animate - AnimateRunner -> ',
+                        self = this;
+
+                    if (msos.config.verbose) {
+                        msos.console.debug(temp_gp + 'start.');
+                    }
+
+                    if (!self.promise) {
+                        self.promise = $q.when($q.defer('ng_animate_when_AnimateRunner'), function (resolve, reject) {
+                            self.done(function (status) {
                                 status === false ? reject() : resolve();
                             });
                         });
                     }
-                    return this.promise;
+
+                    if (msos.config.verbose) {
+                        msos.console.debug(temp_gp + ' done, state:', self.promise.$$state);
+                    }
+
+                    return self.promise;
                 },
 
-                then: function(resolveHandler, rejectHandler) {
+                then: function (resolveHandler, rejectHandler) {
                     return this.getPromise().then(resolveHandler, rejectHandler);
                 },
 
-                'catch': function(handler) {
+                'catch': function (handler) {
                     return this.getPromise()['catch'](handler);
                 },
 
-                'finally': function(handler) {
+                'finally': function (handler) {
                     return this.getPromise()['finally'](handler);
                 },
 
-                pause: function() {
+                pause: function () {
                     if (this.host.pause) {
                         this.host.pause();
                     }
                 },
 
-                resume: function() {
+                resume: function () {
                     if (this.host.resume) {
                         this.host.resume();
                     }
                 },
 
-                end: function() {
+                end: function () {
                     if (this.host.end) {
                         this.host.end();
                     }
                     this._resolve(true);
                 },
 
-                cancel: function() {
+                cancel: function () {
                     if (this.host.cancel) {
                         this.host.cancel();
                     }
                     this._resolve(false);
                 },
 
-                complete: function(response) {
+                complete: function (response) {
                     var self = this;
                     if (self._state === INITIAL_STATE) {
                         self._state = DONE_PENDING_STATE;
-                        self._runInAnimationFrame(function() {
+                        self._runInAnimationFrame(function () {
                             self._resolve(response);
                         });
                     }
                 },
 
-                _resolve: function(response) {
+                _resolve: function (response) {
                     if (this._state !== DONE_COMPLETE_STATE) {
-                        forEach(this._doneCallbacks, function(fn) {
+                        forEach(this._doneCallbacks, function (fn) {
                             fn(response);
                         });
                         this._doneCallbacks.length = 0;
@@ -2527,7 +2546,7 @@
         }
     ];
 
-    var $$AnimationProvider = ['$animateProvider', function($animateProvider) {
+    var $$AnimationProvider = ['$animateProvider', function ($animateProvider) {
         var NG_ANIMATE_REF_ATTR = 'ng-animate-ref';
 
         var drivers = this.drivers = [];
@@ -2547,7 +2566,7 @@
         }
 
         this.$get = ['$rootScope', '$injector', '$$AnimateRunner', '$$HashMap', '$$rAFScheduler',
-            function($rootScope, $injector, $$AnimateRunner, $$HashMap, $$rAFScheduler) {
+            function ($rootScope, $injector, $$AnimateRunner, $$HashMap, $$rAFScheduler) {
 
                 var animationQueue = [];
                 var applyAnimationClasses = applyAnimationClassesFactory();
@@ -2621,7 +2640,7 @@
                                 row = [];
                             }
                             row.push(entry.fn);
-                            entry.children.forEach(function(childEntry) {
+                            entry.children.forEach(function (childEntry) {
                                 nextLevelEntries++;
                                 queue.push(childEntry);
                             });
@@ -2637,7 +2656,7 @@
                 }
 
                 // TODO(matsko): document the signature in a better way
-                return function(element, event, options) {
+                return function (element, event, options) {
                     options = prepareAnimationOptions(options);
                     var isStructural = ['enter', 'move', 'leave'].indexOf(event) >= 0;
 
@@ -2646,10 +2665,10 @@
                     // methods leading into the driver's end/cancel methods
                     // for now they just stop the animation from starting
                     var runner = new $$AnimateRunner({
-                        end: function() {
+                        end: function () {
                             close();
                         },
-                        cancel: function() {
+                        cancel: function () {
                             close(true);
                         }
                     });
@@ -2687,9 +2706,9 @@
                     // were apart of the same postDigest flush call.
                     if (animationQueue.length > 1) return runner;
 
-                    $rootScope.$$postDigest(function() {
+                    $rootScope.$$postDigest(function () {
                         var animations = [];
-                        forEach(animationQueue, function(entry) {
+                        forEach(animationQueue, function (entry) {
                             // the element was destroyed early on which removed the runner
                             // form its storage. This means we can't animate this element
                             // at all and it already has been closed due to destruction.
@@ -2706,7 +2725,7 @@
                         var groupedAnimations = groupAnimations(animations);
                         var toBeSortedAnimations = [];
 
-                        forEach(groupedAnimations, function(animationEntry) {
+                        forEach(groupedAnimations, function (animationEntry) {
                             toBeSortedAnimations.push({
                                 domNode: getDomNode(animationEntry.from ? animationEntry.from.element : animationEntry.element),
                                 fn: function triggerAnimationStart() {
@@ -2732,7 +2751,7 @@
                                         closeFn();
                                     } else {
                                         var animationRunner = startAnimationFn();
-                                        animationRunner.done(function(status) {
+                                        animationRunner.done(function (status) {
                                             closeFn(!status);
                                         });
                                         updateAnimationRunners(animationEntry, animationRunner);
@@ -2754,7 +2773,7 @@
                         var SELECTOR = '[' + NG_ANIMATE_REF_ATTR + ']';
                         var items = node.hasAttribute(NG_ANIMATE_REF_ATTR) ? [node] : node.querySelectorAll(SELECTOR);
                         var anchors = [];
-                        forEach(items, function(node) {
+                        forEach(items, function (node) {
                             var attr = node.getAttribute(NG_ANIMATE_REF_ATTR);
                             if (attr && attr.length) {
                                 anchors.push(node);
@@ -2766,7 +2785,7 @@
                     function groupAnimations(animations) {
                         var preparedAnimations = [];
                         var refLookup = {};
-                        forEach(animations, function(animation, index) {
+                        forEach(animations, function (animation, index) {
                             var element = animation.element;
                             var node = getDomNode(element);
                             var event = animation.event;
@@ -2776,7 +2795,7 @@
                             if (anchorNodes.length) {
                                 var direction = enterOrMove ? 'to' : 'from';
 
-                                forEach(anchorNodes, function(anchor) {
+                                forEach(anchorNodes, function (anchor) {
                                     var key = anchor.getAttribute(NG_ANIMATE_REF_ATTR);
                                     refLookup[key] = refLookup[key] || {};
                                     refLookup[key][direction] = {
@@ -2791,7 +2810,7 @@
 
                         var usedIndicesLookup = {};
                         var anchorGroups = {};
-                        forEach(refLookup, function(operations, key) {
+                        forEach(refLookup, function (operations, key) {
                             var from = operations.from;
                             var to = operations.to;
 
@@ -2813,11 +2832,11 @@
                             if (!anchorGroups[lookupKey]) {
                                 var group = anchorGroups[lookupKey] = {
                                     structural: true,
-                                    beforeStart: function() {
+                                    beforeStart: function () {
                                         fromAnimation.beforeStart();
                                         toAnimation.beforeStart();
                                     },
-                                    close: function() {
+                                    close: function () {
                                         fromAnimation.close();
                                         toAnimation.close();
                                     },
@@ -2868,18 +2887,25 @@
                     }
 
                     function invokeFirstDriver(animationDetails) {
-                        // we loop in reverse order since the more general drivers (like CSS and JS)
-                        // may attempt more elements, but custom drivers are more particular
-                        for (var i = drivers.length - 1; i >= 0; i--) {
-                            var driverName = drivers[i];
-                            if (!$injector.has(driverName)) continue; // TODO(matsko): remove this check
+                        var i = 0,
+                            driverName,
+                            factory,
+                            driver = undefined;
 
-                            var factory = $injector.get(driverName);
-                            var driver = factory(animationDetails);
-                            if (driver) {
-                                return driver;
+                        for (i = drivers.length - 1; i >= 0; i -= 1) {
+                            driverName = drivers[i];
+                            if (!$injector.has(driverName)) { continue; }   // TODO(matsko): remove this check
+
+                            factory = $injector.get(driverName);
+
+                            if (factory !== noop) {
+                                driver = factory(animationDetails);
                             }
+
+                            if (driver) { return driver; }
                         }
+
+                        return undefined;
                     }
 
                     function beforeStart() {
