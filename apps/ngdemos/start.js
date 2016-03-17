@@ -100,7 +100,7 @@ msos.onload_functions.push(
 			"get_script",
 			function ($rootScope, $q, get_template) {
 
-				var deferred = $q.defer();
+				var deferred = $q.defer('apps_ngdemos_start_factory');
 
 				function load_script(scpe, pge) {
 
