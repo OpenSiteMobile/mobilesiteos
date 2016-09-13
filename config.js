@@ -42,8 +42,8 @@ if (msos.config.verbose) {
 if (msos.config.debug_css) {
 
 	msos.deferred_css = [
+		msos.resource_url('fonts', 'css/fontawesome.uc.css'),
 		msos.resource_url('css', 'normalize.uc.css'),
-		msos.resource_url('css', 'font_awesome.uc.css'),
 		msos.resource_url('css', 'msos.css'),
 		msos.resource_url('css', 'msos_bs.css'),
 		msos.resource_url('css', 'msos_theme.css'),
@@ -53,8 +53,8 @@ if (msos.config.debug_css) {
 } else {
 
 	msos.deferred_css = [
+		msos.resource_url('fonts', 'css/fontawesome.min.css'),
 		msos.resource_url('css', 'normalize.min.css'),
-		msos.resource_url('css', 'font_awesome.min.css'),
 		msos.resource_url('css', 'msos.css'),
 		msos.resource_url('css', 'msos_bs.css'),
 		msos.resource_url('css', 'msos_theme.css'),
@@ -72,26 +72,26 @@ if (msos.config.debug_script) {
 
 	// Debug full scripts (line no's mean something)
     msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v214.uc.js'),
-		msos.resource_url('jquery', 'ui/v1114.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
+		msos.resource_url('jquery', 'v310_msos.uc.js'),
+		msos.resource_url('jquery', 'ui/v1120.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.uc.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.uc.js'),
 		msos.resource_url('gmap3', 'v600.uc.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'core.uc.js')
+		msos.resource_url('msos', 'v15518.uc.js')
 	];
 
 } else {
 
 	// Standard site provided (including ext. bundles) scripts
         msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v214.min.js'),
-		msos.resource_url('jquery', 'ui/v1114.min.js'),		// All UI Core + Draggable Interaction + Effects Core
+		msos.resource_url('jquery', 'v310_msos.min.js'),
+		msos.resource_url('jquery', 'ui/v1120.min.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.min.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.min.js'),
 		msos.resource_url('gmap3', 'v600.min.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'core.min.js')
+		msos.resource_url('msos', 'v15518.min.js')
 	];
 }
 
