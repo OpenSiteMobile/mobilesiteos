@@ -16,9 +16,11 @@
     jQuery: false
 */
 
+// Not working in -> jQuery v310_msos.uc.js
+
 msos.provide("msos.iframe");
 
-msos.iframe.version = new msos.set_version(14, 3, 17);
+msos.iframe.version = new msos.set_version(16, 9, 13);
 
 
 // --------------------------
@@ -91,7 +93,12 @@ msos.iframe.set_event = function (tool_obj, iframe_array, add_event, add_functio
 
         reg_iframe = jQuery(iframe_array[i]);
 
-        if (msos.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.load(iframe_onload); }
+        if (msos.config.verbose) {
+            msos.console.debug(temp_set + 'load iframe:', reg_iframe);
+        }
+
+        // This isn't working any longer ...was reg_iframe.load(iframe_onload) which errors in jQuery v310;
+        if (msos.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.load(reg_iframe.attr('src'), {}, iframe_onload); }
     }
 
     msos.console.debug(temp_set + 'done!');
