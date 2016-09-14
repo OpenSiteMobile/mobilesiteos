@@ -19,7 +19,7 @@ msos.onload_functions.push(
 		// The basic technique below was derived from the example at:
 		// http://www.bennadel.com/blog/2554-loading-angularjs-components-with-requirejs-after-application-bootstrap.htm
 		apps.ngdemos.start.config(
-			function($controllerProvider, $provide, $compileProvider) {
+			['$controllerProvider', '$provide', '$compileProvider', function($controllerProvider, $provide, $compileProvider) {
  
 				var app = apps.ngdemos.start;
 
@@ -59,12 +59,12 @@ msos.onload_functions.push(
 					$compileProvider.directive( name, factory );
 					return (this);
 				};
-			}
+			}]
 		);
 
 		apps.ngdemos.start.factory(
 			"get_template",
-			function ($templateCache, $http) {
+			['$templateCache', '$http', function ($templateCache, $http) {
 
 				function load_template(scpe, pge) {
 
@@ -93,12 +93,12 @@ msos.onload_functions.push(
 				}
 
 				return load_template;
-			}
+			}]
 		);
 
 		apps.ngdemos.start.factory(
 			"get_script",
-			function ($rootScope, $q, get_template) {
+			['$rootScope', '$q', 'get_template', function ($rootScope, $q, get_template) {
 
 				var deferred = $q.defer('apps_ngdemos_start_factory');
 
@@ -138,12 +138,12 @@ msos.onload_functions.push(
 				};
 
 				return load_script;
-			}
+			}]
 		);
 
         apps.ngdemos.start.controller(
             'samplesController',
-            function ($scope, get_template, get_script) {
+            ['$scope', 'get_template', 'get_script', function ($scope, get_template, get_script) {
 
 				var res_url = msos.resource_url;
 
@@ -206,73 +206,73 @@ msos.onload_functions.push(
 						icon: 'fa-chevron-right'
                     },
                     {
-                        title: 'MSOS-AngularJS, Ultra Simple',
+                        title: 'NgM, Ultra Simple',
                         url: '',
                         href: 'simple.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, Simple Routing',
+                        title: 'NgM, Simple Routing',
                         url: '',
                         href: 'route.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, Simple Script Injection',
+                        title: 'NgM, Simple Script Injection',
                         url: '',
                         href: 'script.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, w/Std. Bootstrap-UI Dropdown',
+                        title: 'NgM, w/Std. Bootstrap-UI Dropdown',
                         url: '',
                         href: 'dropdown.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Dropdown',
+                        title: 'NgM, w/Modular Bootstrap-UI Dropdown',
                         url: '',
                         href: 'dropdown2.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Form',
+                        title: 'NgM, w/Modular Bootstrap-UI Form',
                         url: '',
                         href: 'simple_form.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, w/Modular Bootstrap-UI Carousel',
+                        title: 'NgM, w/Modular Bootstrap-UI Carousel',
                         url: '',
                         href: 'simple_carousel.html',
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'MSOS-AngularJS, Switchable Grid',
+                        title: 'NgM, Switchable Grid',
                         url: '',
                         href: 'switchable_grid.html',
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'MSOS-AngularJS w/Std. Bootstrap-UI',
+                        title: 'NgM w/Std. Bootstrap-UI',
                         url: '',
                         href: 'bootstrap.html',
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'MSOS-AngularJS, w/Lazy Loading Modular Bootstrap-UI',
+                        title: 'NgM, w/Lazy Loading Modular Bootstrap-UI',
                         url: '',
                         href: 'bootstrap2.html',
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'MSOS-Mobile-AngularJS-UI, w/Lazy Loading Modules',
+                        title: 'NgM Mobile-AngularJS-UI, w/Lazy Loading Modules',
                         url: '',
                         href: '../angularjs_mobile/index.html',
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'MSOS-AngularJS && Material Design',
+                        title: 'NgM && Material Design',
                         url: '',
                         href: '../material_start/index.html',
 						icon: 'fa-external-link'
@@ -284,7 +284,7 @@ msos.onload_functions.push(
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'MobileSiteOS Culture Loading',
+                        title: 'Culture Loading',
                         url: '',
                         href: 'culture.html',
 						icon: 'fa-external-link'
@@ -296,13 +296,13 @@ msos.onload_functions.push(
 						icon: 'fa-external-link'
                     },
                     {
-                        title: 'Customer Management App',
+                        title: 'Customer Manager App',
                         url: '',
                         href: 'customer.html',
 						icon: 'fa-external-link'
                     },
 					{
-                        title: 'Advanced Customer Mgt. App',
+                        title: 'Advanced Customer Mgr. App',
                         url: '',
                         href: 'customer2.html',
 						icon: 'fa-external-link'
@@ -324,7 +324,7 @@ msos.onload_functions.push(
 					if (page.script)	{ get_script($scope, page); }
 					else				{ get_template($scope, page); }
                 }
-            }
+            }]
         );
 
 		msos.console.debug(temp_sd + ' -> done!');

@@ -1,7 +1,7 @@
 
 apps.ngdemos.start.controller(
     'AlbumListController',
-    function ($scope) {
+    ['$scope', function ($scope) {
 
         $scope.new_album = {};
         $scope.add_error_text = '';
@@ -35,12 +35,12 @@ apps.ngdemos.start.controller(
                 }
             }
         };
-    }
+    }]
 );
 
 apps.ngdemos.start.controller(
     'UserController',
-    function ($scope) {
+    ['$scope', function ($scope) {
         $scope.user = { username: "Marcwan" };
-    }
+    }]
 );

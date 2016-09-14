@@ -1,7 +1,7 @@
 
 apps.ngdemos.start.controller(
 	'SimpleController2',
-	function ($scope) {
+	['$scope',function ($scope) {
 
 		$scope.customers = [
 			{ name: 'Dave Jones',	city: 'Phoenix' },
@@ -15,5 +15,5 @@ apps.ngdemos.start.controller(
 				{ name: $scope.inputData.name, city: $scope.inputData.city }
 			);
 		}
-	}
+	}]
 );
