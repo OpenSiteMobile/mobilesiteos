@@ -9090,7 +9090,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
               $template = removeComments(wrapTemplate(directive.templateNamespace, trim(directiveValue)));
             }
             compileNode = $template[0];
-//console.log('$templateRequest (then) -> $template:', $template);
+
             if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
               throw $compileMinErr('tplrt',
                   "Template for directive '{0}' must have exactly one root element. {1}",
