@@ -374,7 +374,21 @@ msos.console.time('route');
     ngRouteModule.provider('$routeParams', $RouteParamsProvider);
 
 
-    function ngViewFactory($route, $anchorScroll, $animate) {
+    function $RouteScrollProvider() {
+
+        this.$get = ['$timeout', function ($timeout) {
+
+            return function ($element) {
+                return $timeout(function () {
+                    $element[0].scrollIntoView();
+                }, 0, false);
+            };
+        }];
+    }
+
+    ngRouteModule.provider('$routeViewScroll', $RouteScrollProvider);
+
+    function ngViewFactory($route, $animate, $routeViewScroll) {
         var temp_vf = 'ng/route - ngViewFactory - link';
 
         return {
@@ -437,7 +451,7 @@ msos.console.time('route');
                                         function onNgViewEnter() {
                                             if (w_angular.isDefined(autoScrollExp)
                                              && (!autoScrollExp || scope.$eval(autoScrollExp))) {
-                                                $anchorScroll();
+                                                $routeViewScroll();
                                             }
                                         }
                                     );
@@ -449,7 +463,11 @@ msos.console.time('route');
                         currentElement = clone;
                         currentScope = current.scope = newScope;
                         currentScope.$emit('$viewContentLoaded');
-                        currentScope.$eval(onloadExp);
+
+                        // MSOS: don't bother with noop
+                        if (onloadExp && onloadExp !== angular.noop) {
+                            currentScope.$eval(onloadExp);
+                        }
 
                     } else {
                         cleanupLastView();
@@ -466,7 +484,7 @@ msos.console.time('route');
         };
     }
 
-    ngViewFactory.$inject = ['$route', '$anchorScroll', '$animate'];
+    ngViewFactory.$inject = ['$route', '$animate', '$routeViewScroll'];
 
 
     function ngViewControllerFactory($compile, $controller, $route) {
@@ -491,11 +509,11 @@ msos.console.time('route');
                     msos.console.debug(temp_nc + 'has current controller: ' + current.controller);
 
                     locals.$scope = scope;
-                    controller = $controller(current.controller, locals);
+                    controller = $controller(current.controller, locals, true, current);
 
-                    if (current.controllerAs) {
-                        scope[current.controllerAs] = controller;
-                    }
+//                    if (current.controllerAs) {
+//                        scope[current.controllerAs] = controller;
+//                    }
 
                     $element.data('$ngControllerController', controller);
                     $element.children().data('$ngControllerController', controller);
