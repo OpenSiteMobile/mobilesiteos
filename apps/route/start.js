@@ -17,20 +17,20 @@ msos.onload_func_done.push(
 				$routeProvider
 					// route for the home page
 					.when('/', {
-						templateUrl : msos.resource_url('apps','route/pages/home.html'),
-						controller  : 'mainController'
+						templateUrl: msos.resource_url('apps','route/pages/home.html'),
+						controller: 'mainController'
 					})
 	
 					// route for the about page
 					.when('/about', {
-						templateUrl : msos.resource_url('apps','route/pages/about.html'),
-						controller  : 'aboutController'
+						templateUrl: msos.resource_url('apps','route/pages/about.html'),
+						controller: 'aboutController'
 					})
 	
 					// route for the contact page
 					.when('/contact', {
-						templateUrl : msos.resource_url('apps','route/pages/contact.html'),
-						controller  : 'contactController'
+						templateUrl: msos.resource_url('apps','route/pages/contact.html'),
+						controller: 'contactController'
 					})
 	
 					.otherwise({

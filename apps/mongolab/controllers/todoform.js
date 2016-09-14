@@ -2,7 +2,7 @@
 msos.provide('apps.mongolab.controllers.todoform');
 
 
-apps.mongolab.controllers.todoform = function ($scope, $location, project) {
+apps.mongolab.controllers.todoform = ['$scope', '$location', 'project', function ($scope, $location, project) {
     "use strict";
 
     var projectCopy = angular.copy(project),
@@ -26,4 +26,4 @@ apps.mongolab.controllers.todoform = function ($scope, $location, project) {
     $scope.hasChanges = function () {
         return !angular.equals($scope.project, projectCopy);
     };
-};
+}];

@@ -28,7 +28,7 @@ msos.onload_func_done.push(
 		// create the controller and inject Angular's $scope
 		apps.invoicing.start.controller(
 			'InvoiceController',
-			function($scope) {
+			['$scope', function($scope) {
 
 				msos.console.debug(temp_sd + 'InvoiceController called!');
 
@@ -120,7 +120,7 @@ msos.onload_func_done.push(
                         $scope.invoice = sample_invoice;
                     }
                 }
-            }
+            }]
         );
 
         // Create our directive

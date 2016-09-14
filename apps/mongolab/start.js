@@ -17,7 +17,7 @@ msos.onload_functions.push(
 		app = angular.module('apps.mongolab.start', ['ngRoute', 'ng.resource.mongolab']);
 
         app.config(
-            function($routeProvider) {
+            ['$routeProvider', function ($routeProvider) {
 
                 $routeProvider
                     .when(
@@ -50,7 +50,7 @@ msos.onload_functions.push(
                 ).otherwise(
                     { redirectTo: '/list' }
                 );
-            }
+            }]
         ).constant(
             'MONGOLAB_CONFIG',
             {
