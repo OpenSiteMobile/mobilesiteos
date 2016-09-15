@@ -97,8 +97,7 @@ msos.iframe.set_event = function (tool_obj, iframe_array, add_event, add_functio
             msos.console.debug(temp_set + 'load iframe:', reg_iframe);
         }
 
-        // This isn't working any longer ...was reg_iframe.load(iframe_onload) which errors in jQuery v310;
-        if (msos.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.load(reg_iframe.attr('src'), {}, iframe_onload); }
+        if (msos.valid_jq_node(reg_iframe, 'iframe')) { reg_iframe.on('load', iframe_onload); }
     }
 
     msos.console.debug(temp_set + 'done!');
