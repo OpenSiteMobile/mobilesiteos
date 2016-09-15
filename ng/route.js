@@ -14,8 +14,8 @@
     _: false
 */
 
-msos.console.info('ng/route/v150_msos -> start.');
-msos.console.time('route');
+msos.provide("ng.route");
+
 
 (function (w_angular, w_msos) {
     'use strict';
@@ -179,8 +179,13 @@ msos.console.time('route');
 
             function parseRoute() {
                 // Match a route
-                var params,
+                var temp_pa = ' - $get - parseRoute -> ',
+                    params,
                     match;
+
+                if (w_msos.config.verbose) {
+                    w_msos.console.debug(temp_rt + temp_pa + 'start.');
+                }
 
                 w_angular.forEach(
                     routes,
@@ -205,6 +210,9 @@ msos.console.time('route');
                     }
                 );
 
+                if (w_msos.config.verbose) {
+                    w_msos.console.debug(temp_rt + temp_pa + ' done!');
+                }
                 // No route matched; fallback to "otherwise" route
                 return match || (routes[null] && inherit(routes[null], { params: {}, pathParams: {} }));
             }
@@ -245,6 +253,7 @@ msos.console.time('route');
                     $route.current = nextRoute;
                     if (nextRoute) {
                         if (nextRoute.redirectTo) {
+                            w_msos.console.debug(temp_rt + temp_cr + 'redirect.');
                             if (w_angular.isString(nextRoute.redirectTo)) {
                                 $location.path(interpolate(nextRoute.redirectTo, nextRoute.params)).search(nextRoute.params).replace();
                             } else {
@@ -344,6 +353,9 @@ msos.console.time('route');
                     },
 
                     updateParams: function (newParams) {
+
+                        w_msos.console.debug(temp_rt + ' - $get - $route - updateParams -> start.');
+
                         if (this.current && this.current.$$route) {
                             newParams = w_angular.extend({}, this.current.params, newParams);
 
@@ -356,6 +368,7 @@ msos.console.time('route');
                                 'Tried updating route when with no current route'
                             );
                         }
+                         w_msos.console.debug(temp_rt + ' - $get - $route - updateParams ->  done!');
                     }
                 };
 
@@ -372,7 +385,6 @@ msos.console.time('route');
 
     ngRouteModule = w_angular.module('ngRoute', ['ng']).provider('$route', $RouteProvider);
     ngRouteModule.provider('$routeParams', $RouteParamsProvider);
-
 
     function $RouteScrollProvider() {
 
@@ -509,11 +521,7 @@ msos.console.time('route');
                     msos.console.debug(temp_nc + 'has current controller: ' + current.controller);
 
                     locals.$scope = scope;
-                    controller = $controller(current.controller, locals, true, current);
-
-//                    if (current.controllerAs) {
-//                        scope[current.controllerAs] = controller;
-//                    }
+                    controller = $controller(current.controller, locals, false, current);
 
                     $element.data('$ngControllerController', controller);
                     $element.children().data('$ngControllerController', controller);
@@ -533,7 +541,3 @@ msos.console.time('route');
     ngRouteModule.directive('ngView', ngViewControllerFactory);
 
 }(window.angular, window.msos));
-
-
-msos.console.info('ng/route/v150_msos -> done!');
-msos.console.timeEnd('route');

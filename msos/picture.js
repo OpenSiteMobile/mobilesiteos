@@ -255,12 +255,12 @@ msos.picture.get_pixel_ratio = function ($elm) {
 				if ($element.data('zoom')
 				 && $element.data('zoom') === 'zoom')	{
 
-					$clone.load(onload_add_zoom);
+					$clone.on('load', onload_add_zoom);
 
 				// or just add the cloned, sized image and then add 'fitImgs' div image fitting
 				} else {
 
-					$clone.load(function () { $clone.fitImgs(); });
+					$clone.on('load', function () { $clone.fitImgs(); });
 				}
 
 				$clone.appendTo($element);
