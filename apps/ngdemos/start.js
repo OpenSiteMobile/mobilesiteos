@@ -1,5 +1,15 @@
 
+/*global
+    msos: false,
+    jQuery: false,
+    Modernizr: false,
+    _: false,
+    angular: false,
+    apps: false
+*/
+
 msos.provide('apps.ngdemos.start');
+msos.require('ng.route');
 
 apps.ngdemos.start.css = new msos.loader();
 
@@ -9,6 +19,7 @@ apps.ngdemos.start.css.load('apps_ngdemos_css_demo', msos.resource_url('apps', '
 
 msos.onload_functions.push(
 	function () {
+		"use strict";
 
 		var temp_sd = 'apps.ngdemos.start';
 
@@ -19,8 +30,8 @@ msos.onload_functions.push(
 		// The basic technique below was derived from the example at:
 		// http://www.bennadel.com/blog/2554-loading-angularjs-components-with-requirejs-after-application-bootstrap.htm
 		apps.ngdemos.start.config(
-			['$controllerProvider', '$provide', '$compileProvider', function($controllerProvider, $provide, $compileProvider) {
- 
+			['$controllerProvider', '$provide', '$compileProvider', function ($controllerProvider, $provide, $compileProvider) {
+
 				var app = apps.ngdemos.start;
 
 				// Let's keep the older references.
@@ -29,34 +40,34 @@ msos.onload_functions.push(
 				app._factory = app.factory;
 				app._value = app.value;
 				app._directive = app.directive;
- 
+
 				// Provider-based controller.
 				app.controller = function (name, constructor) {
-					$controllerProvider.register( name, constructor );
+					$controllerProvider.register(name, constructor);
 					return (this);
 				};
- 
+
 				// Provider-based service.
 				app.service = function (name, constructor) {
 					$provide.service(name, constructor);
 					return (this);
 				};
- 
+
 				// Provider-based factory.
 				app.factory = function (name, factory) {
-					$provide.factory( name, factory );
+					$provide.factory(name, factory);
 					return (this);
 				};
- 
+
 				// Provider-based value.
 				app.value = function (name, value) {
 					$provide.value(name, value);
 					return (this);
 				};
- 
+
 				// Provider-based directive.
 				app.directive = function (name, factory) {
-					$compileProvider.directive( name, factory );
+					$compileProvider.directive(name, factory);
 					return (this);
 				};
 			}]
@@ -84,7 +95,7 @@ msos.onload_functions.push(
 							var html_in = response.data;
 
 							scpe.html = html_in;
-							$('textarea').text(html_in);	// Had to go with this due to IE
+							jQuery('textarea').text(html_in);	// Had to go with this due to IE
 						},
 						function (response) {
 							scpe.html = 'Unable to load code: ' + response.status;
@@ -125,7 +136,7 @@ msos.onload_functions.push(
 							);
 						}
 					).fail(
-						function (jqxhr, settings, e) {
+						function (jqxhr_na, settings_na, e) {
 							msos.console.debug(temp_sd + ' - get_script -> error: ', e);
 
 							$rootScope.$apply(
@@ -135,7 +146,7 @@ msos.onload_functions.push(
 							);
 						}
 					);
-				};
+				}
 
 				return load_script;
 			}]
@@ -323,7 +334,7 @@ msos.onload_functions.push(
 
 					if (page.script)	{ get_script($scope, page); }
 					else				{ get_template($scope, page); }
-                }
+                };
             }]
         );
 
@@ -333,6 +344,8 @@ msos.onload_functions.push(
 
 msos.onload_func_done.push(
 	function () {
+		"use strict";
+
 		angular.bootstrap('body', ['apps.ngdemos.start']);
 	}
 );

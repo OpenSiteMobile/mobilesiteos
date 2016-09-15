@@ -1,9 +1,20 @@
 
+/*global
+    msos: false,
+    jQuery: false,
+    Modernizr: false,
+    _: false,
+    angular: false,
+    apps: false
+*/
+
 msos.provide('apps.route.start');
-msos.require("ng.util.anchorscroll");
+msos.require("ng.route");
+
 
 msos.onload_func_done.push(
 	function () {
+		"use strict";
 
 		var temp_sd = 'apps.route.start';
 
@@ -17,22 +28,22 @@ msos.onload_func_done.push(
 				$routeProvider
 					// route for the home page
 					.when('/', {
-						templateUrl: msos.resource_url('apps','route/pages/home.html'),
+						templateUrl: msos.resource_url('apps', 'route/pages/home.html'),
 						controller: 'mainController'
 					})
-	
+
 					// route for the about page
 					.when('/about', {
-						templateUrl: msos.resource_url('apps','route/pages/about.html'),
+						templateUrl: msos.resource_url('apps', 'route/pages/about.html'),
 						controller: 'aboutController'
 					})
-	
+
 					// route for the contact page
 					.when('/contact', {
-						templateUrl: msos.resource_url('apps','route/pages/contact.html'),
+						templateUrl: msos.resource_url('apps', 'route/pages/contact.html'),
 						controller: 'contactController'
 					})
-	
+
 					.otherwise({
 						redirectTo: '/'
 					});

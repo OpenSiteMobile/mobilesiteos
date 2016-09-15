@@ -28,22 +28,26 @@ textarea {
   margin-right: 10px;
 }
 
-div#album_list {
+#demo_output {
+  border: 1px solid #CCC;
+}
+
+#album_list {
   padding: 50px;
 }
 
-div#top_bar {
+#top_bar {
   text-align: left;
   background-color: #f2f2f2;
   border-bottom: 1px solid #ddd;
   height: 60px;
 }
 
-div#top_bar a {
+#top_bar a {
   text-decoration: none;
 }
 
-div#top_bar .fa {
+#top_bar .fa {
   float: left;
   font-size: 400%;
   padding-left: 20px;
@@ -53,7 +57,7 @@ div#top_bar .fa {
   color: #666;
 }
 
-div#top_bar div#title {
+#top_bar #title {
   border-left: 1px solid #ccc;
   font-family: Helvetica;
   font-size: 28px;
@@ -65,73 +69,33 @@ div#top_bar div#title {
   color: #666;
 }
 
-div.album div.title,
-div.album_input div.title {
+.section1 {
+  background-color: #efefef;
+  padding: 10px;
+}
+
+.page_link:hover {
+  cursor: pointer;
+}
+
+.album .title,
+.album_input .title {
   float: right;
 }
 
-div.album .panel-heading a,
-div.album_input .panel-heading a {
+.album .panel-heading a,
+.album_input .panel-heading a {
   text-decoration: none;
   color: white;
 }
 
-div.album .panel-heading a:hover,
-div.album_input .panel-heading a:hover {
+.album .panel-heading a:hover,
+.album_input .panel-heading a:hover {
   text-decoration: underline;
   color: white;
 }
 
-div.album div.description,
-div.album_input div.description{
+.album .description,
+.album_input .description{
   padding: 5px;
-}
-
-
-/* MobileSiteOS Notify popup CSS */
-#notify_container {
-	position: absolute;
-	width: 18em;
-	z-index: 9999;
-}
-.notify {
-	background-color: #111;
-	border-radius: 0.4em;
-	margin-bottom: 1em;
-	opacity: 0.9;
-	padding: 1.2em;
-}
-.notify:hover {
-	opacity: 1;
-}
-.notify_title {
-	font-weight: bold;
-}
-.notify_title,
-.notify_msg {
-	color: #FFF;
-	font-size: larger;
-	margin-bottom: 0.4em;
-	padding: 0 0.4em;
-}
-.notify > i {
-	float: left;
-}
-.notify_display > button {
-	float: right;
-}
-.notify > i.info {
-	color: blue;
-}
-.notify > i.warning {
-	color: yellow;
-}
-.notify > i.error {
-	color: red;
-}
-.notify > i.success {
-	color: green;
-}
-.notify > i.loading {
-	color: orange;
 }
