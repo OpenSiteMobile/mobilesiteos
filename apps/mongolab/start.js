@@ -1,5 +1,6 @@
 
 msos.provide('apps.mongolab.start');
+msos.require('ng.route');
 msos.require('ng.resource.mongolab');
 msos.require('apps.mongolab.services.project');
 msos.require('apps.mongolab.controllers.todoform');
@@ -26,7 +27,7 @@ msos.onload_functions.push(
                             templateUrl: msos.resource_url('apps', 'mongolab/partials/list.html'),
                             controller: 'TodoListCtrl',
                             resolve: {
-                                projects: function (Project) { return Project.all(); }
+                                projects: ['Project', function (Project) { return Project.all(); }]
                             }
                         }
                     ).when(
@@ -35,7 +36,7 @@ msos.onload_functions.push(
                             templateUrl: msos.resource_url('apps', 'mongolab/partials/form.html'),
                             controller: 'TodoFormCtrl',
                             resolve: {
-                                project: function (Project, $route) { return Project.getById($route.current.params.id); } 
+                                project: ['Project', '$route', function (Project, $route) { return Project.getById($route.current.params.id); }]
                             }
                         }
                     ).when(
@@ -44,7 +45,7 @@ msos.onload_functions.push(
 							templateUrl: msos.resource_url('apps', 'mongolab/partials/form.html'),
 							controller: 'TodoFormCtrl',
 							resolve: {
-								project: function (Project) { return new Project(); }
+								project: ['Project', function (Project) { return new Project(); }]
 							}
 						}
                 ).otherwise(

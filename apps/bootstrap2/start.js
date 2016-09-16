@@ -1,7 +1,7 @@
 
 msos.provide('apps.bootstrap2.start');
 msos.require("ng.bootstrap.ui.modal");
-msos.require("ng.util.postloader");
+msos.require("ng.route");
 msos.require("ng.util.smoothscroll");
 
 
@@ -30,9 +30,9 @@ msos.onload_functions.push(
 			'apps.bootstrap2.start',
 			[
 				'ngRoute',
+				'ngPostloader',
 				'ng.bootstrap.ui',
-				'ng.bootstrap.ui.modal',
-				'ng.util.postloader'
+				'ng.bootstrap.ui.modal'
 			]
 		).run(['$location', '$timeout', function ($location, $timeout) {
 				// Special case: MSOS module(s) won't have time to load for initial hashtag.
@@ -58,45 +58,27 @@ msos.onload_functions.push(
 			'$routeProvider',
             function ($routeProvider) {
 
-				var load_specific_module = function ($q, $rootScope, specific_name) {
+				function gen_routing_object(ui_name) {
+					return {
+						templateUrl : msos.resource_url('apps','bootstrap2/tmpl/' + ui_name + '.html'),
+						resolve: {
+							load: ['$postload', function ($postload) {
 
-						var defer = $q.defer(),
-							module_name = 'apps.bootstrap2.controllers.' + specific_name;
+								// Request specific apps module
+								msos.require('apps.bootstrap2.controllers.' + ui_name);
 
-						// Request specific module
-						msos.require(module_name);
+								msos.onload_func_done.push(
+									function () {
+										ng.util.smoothscroll.fn(ui_name, 1000);
+									}
+								);
 
-						// Resolve deferred module loading
-						msos.onload_func_done.push(
-							function () {
-
-								// Register any just loaded AngularJS modules
-								apps.bootstrap2.start.postloader.run_registration();
-
-								// Let AngularJS do it's thing
-								defer.resolve();
-								$rootScope.$apply();
-
-								ng.util.smoothscroll.fn(specific_name, 1000);
-							}
-						);
-
-						// Run specific MobileSiteOS module code, plus MSOS dependencies, plus register AngularJS dependencies
-						msos.run_onload();
-
-						return defer.promise;
-					},
-					gen_routing_object = function (ui_name) {
-						return {
-							templateUrl : msos.resource_url('apps','bootstrap2/tmpl/' + ui_name + '.html'),
-							controller  : 'apps.bootstrap2.controllers.' + ui_name + '.ctrl',
-							resolve: {
-								load: ['$q', '$rootScope', function ($q, $rootScope) {
-									return load_specific_module($q, $rootScope, ui_name);
-								}]
-							}
-						};
+								// Start AngularJS module registration process
+								return $postload.run_registration();
+							}]
+						}
 					};
+				}
 
 				// Generate our applications routings
 				$routeProvider.when(

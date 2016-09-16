@@ -10,6 +10,7 @@
 
 
 msos.provide('apps.customer.start');
+msos.require('ng.route');
 msos.require('apps.customer.controllers');
 msos.require('apps.customer.directives');
 msos.require('apps.customer.services');
