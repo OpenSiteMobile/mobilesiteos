@@ -306,16 +306,10 @@ msos.onload_functions.push(
                         href: 'invoicing.html',
 						icon: 'fa-external-link'
                     },
-                    {
-                        title: 'Customer Manager App',
+					{
+                        title: 'Customer Mgr. App',
                         url: '',
                         href: 'customer.html',
-						icon: 'fa-external-link'
-                    },
-					{
-                        title: 'Advanced Customer Mgr. App',
-                        url: '',
-                        href: 'customer2.html',
 						icon: 'fa-external-link'
                     },
                     {
