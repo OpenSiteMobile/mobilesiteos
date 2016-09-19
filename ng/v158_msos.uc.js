@@ -1312,23 +1312,30 @@ msos.console.time('ng');
         }
     }
 
-    function assertArgFn(arg, name, accept_array) {
-        var dbug = typeof arg;
+    function assertArgFn(input, name, accept_array, reason) {
+        var tpo = typeof input;
 
         if (msos_verbose) {
             msos_debug('ng - assertArgFn -> called, name: ' + name + ', accept_array: ' + (accept_array ? 'true' : 'false'));
         }
 
-        if (accept_array && _.isArray(arg)) {
-            arg = arg[arg.length - 1];
-            dbug = 'array';
+        if (accept_array && _.isArray(input)) {
+            input = input[input.length - 1];
         }
 
-        assertArg(
-            _.isFunction(arg),
-            name,
-            'not a function, typeof: ' + dbug + (dbug === 'string' ? ' -> ' + arg : '')
-        );
+        if (!input) {
+            assertArg(
+                isDefined(input),
+                name ,
+                'missing definition code, or did not load. Ref: ' + reason
+            );
+        } else {
+            assertArg(
+                _.isFunction(input),
+                name,
+                'typeof: ' + tpo + (tpo === 'string' ? ' -> ' + input : '') + ', ' + reason
+            );
+        }
     }
 
     function assertNotHasOwnProperty(name, context) {
@@ -1865,8 +1872,6 @@ msos.console.time('ng');
             msos_debug(temp_a + 'start.');
         }
 
-        assertArgFn(input, 'ng_getAnnotation', true);
-
         if (_.isArray(input)) {
 
             type = 'array';
@@ -1909,6 +1914,8 @@ msos.console.time('ng');
         }
 
         if (!_.isString(name)) { name = fn.name || fn.ng_name || anonFn(fn); }
+
+        assertArgFn(fn, name, false, 'failed in getAnnotation.');
 
         if (flag) {
             msos.console.warn(temp_a + $injectorMinErr('strictdi', '{0} is not using explicit injector annotation.', name));
@@ -2040,7 +2047,7 @@ msos.console.time('ng');
                         );
                     } else {
                         debug_note.push('as arg function');
-                        assertArgFn(module, 'module');
+                        assertArgFn(module, 'module', false, 'failed in loadModules.');
                     }
 
                 } else {
@@ -6593,7 +6600,7 @@ msos.console.time('ng');
                     msos.console.warn(temp_cp + temp_ci + ' -> annonymous controllers are hard to debug.', express_fn);
                 }
 
-                assertArgFn(express_fn, cnstr);
+                assertArgFn(express_fn, cnstr, false, 'failed in controller_inst, ' + debug_ci + '.');
 
                 if (express_fn === noop) {
                     msos.console.warn(temp_cp + temp_ci + ' -> noop, ' + debug_ci, directive || {});
