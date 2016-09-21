@@ -1631,7 +1631,7 @@
                     if (angular.isString(value)) {
                         resolve[key] = $injector.get(value);
                     } else {
-                        resolve[key] = $injector.invoke(value);
+                        resolve[key] = $injector.invoke(value, undefined, undefined, '$mdCompiler');
                     }
                 });
                 //Add the locals, which are just straight values to inject
@@ -1669,7 +1669,7 @@
 
                             //Instantiate controller if it exists, because we have scope
                             if (controller) {
-                                var invokeCtrl = $controller(controller, locals, true);
+                                var invokeCtrl = $controller(controller, locals, true, options);
                                 if (bindToController) {
                                     angular.extend(invokeCtrl.instance, locals);
                                 }
@@ -1678,9 +1678,9 @@
                                 element.data('$ngControllerController', ctrl);
                                 element.children().data('$ngControllerController', ctrl);
 
-                                if (controllerAs) {
-                                    scope[controllerAs] = ctrl;
-                                }
+//                                if (controllerAs) {
+//                                    scope[controllerAs] = ctrl;
+//                                }
 
                                 // Publish reference to this controller
                                 compiledData.controller = ctrl;
@@ -2655,9 +2655,12 @@
                     function invokeFactory(factory, defaultVal) {
                         var locals = {};
                         locals[interimFactoryName] = publicService;
-                        return $injector.invoke(factory || function() {
-                            return defaultVal;
-                        }, {}, locals);
+                        return $injector.invoke(
+                                factory || function () { return defaultVal; },
+                                {},
+                                locals,
+                                'InterimElementProvider'
+                            );
                     }
 
                 }
@@ -3987,11 +3990,15 @@
 
             function attach(scope, element, options) {
                 if (element.controller('mdNoInk')) return angular.noop;
-                return $injector.instantiate(InkRippleCtrl, {
-                    $scope: scope,
-                    $element: element,
-                    rippleOptions: options
-                });
+                return $injector.instantiate(
+                        InkRippleCtrl,
+                        {
+                            $scope: scope,
+                            $element: element,
+                            rippleOptions: options
+                        },
+                        'InkRippleService'
+                    );
             }
         }
         InkRippleService.$inject = ["$injector"];
