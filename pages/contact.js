@@ -18,7 +18,7 @@ msos.onload_functions.push(
 		var contact_map = function () {
 
 			var geo_error = function (msg) {
-					msg = typeof msg === 'string' ? msg : "Mapping failed!"
+					msg = typeof msg === 'string' ? msg : "Mapping failed!";
 					msos.console.warn('Content: contact.html, mapping problem: ' + msg);
 				},
 				geo_locate = function (position) {
@@ -38,13 +38,13 @@ msos.onload_functions.push(
 						marker = new google.maps.Marker({
 							position: latlng,
 							map: map,
-							title: "Beautiful Hanahan, SC!"
+							title: "Beautiful Charleston, SC!"
 						});
 
 					msos.console.debug('Content: contact.html - geo_locate -> done!');
 				};
 	
-			geo_locate({ coords: { latitude: 32.9169, longitude: -79.9958 } });
+			geo_locate({ coords: { latitude: 32.7846, longitude: -79.9409 } });
 		};
 
 		msos.console.debug('Content: contact.html done!');
