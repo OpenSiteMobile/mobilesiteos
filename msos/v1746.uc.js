@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					core.js
-//			Copyright©2010-2015 - OpenSiteMobile
+//			Copyright©2010-2017 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -9,16 +9,15 @@
 //			Author: Dwight Vietzke
 //			Email:  dwight_vietzke@yahoo.com
 //
-// OpenSiteMobile base MobileSiteOS™ framework functions
+// OpenSiteMobile base MobileSiteOS framework functions
 
 /*global
     msos: false,
     jQuery: false,
-    Modernizr: false,
     _: false
 */
 
-msos.version = new msos.set_version(16, 10, 19);
+msos.version = new msos.set_version(17, 4, 6);
 
 msos.console.info('msos/core -> start, ' + msos.version);
 msos.console.time('core');
@@ -65,9 +64,7 @@ msos.valid_jq_node = function ($node, type) {
 msos.in_dom_jq_node = function ($node) {
 	"use strict";
 
-	if ($node
-	 && $node.length
-	 && $node[0].parentNode) {
+	if ($node && $node.length && $node[0].parentNode) {
 		return true;
 	}
 
@@ -449,7 +446,7 @@ msos.ajax_request = function (ajax_uri, data_type, on_success_func, on_complete_
 			}
 
 			if (msos.config.verbose) {
-				msos.console.debug(req_text + 'status: ' + status + ', data length: ' + (data.length || 0));
+				msos.console.debug(req_text + 'status: ' + status + ', data length: ' + (data && data.length || 0));
 			}
 
 			if (_.isFunction(on_success_func)) { on_success_func(data, status, xhr); }
@@ -466,6 +463,9 @@ msos.ajax_request = function (ajax_uri, data_type, on_success_func, on_complete_
     jQuery.ajax(
 		{
 			url: ajax_uri,
+			type: 'GET',
+			xhrFields: { withCredentials: true },
+			crossDomain: true,
 			dataType: data_type,
 			cache: msos.config.cache,
 			success: on_success_request,
@@ -483,9 +483,7 @@ msos.ajax_error = function (xhr, status, error) {
 		i18n = {};
 
     // Timing of i18n common loading is a factor
-    if (msos.i18n
-     && msos.i18n.common
-     && msos.i18n.common.bundle) {
+    if (msos.i18n && msos.i18n.common && msos.i18n.common.bundle) {
 		i18n = msos.i18n.common.bundle;
     }
 
@@ -523,11 +521,7 @@ msos.hide_mobile_url = function () {
 		// Order with msos.notify is important. We don't want scrolling and DOM manipulations to interact.
 		window.scrollTo(0, 1);
 
-		scrollTop =
-				window.pageYOffset
-			|| (window.document.compatMode === "CSS1Compat" && window.document.documentElement.scrollTop)
-			||  window.document.body.scrollTop
-			||  0;
+		scrollTop = window.pageYOffset || (window.document.compatMode === "CSS1Compat" && window.document.documentElement.scrollTop) ||  window.document.body.scrollTop ||  0;
 
 		msos.console.debug(temp_mu + 'called, scrollTop: ' + scrollTop);
 
@@ -572,9 +566,7 @@ msos.notify = {
 		var self = msos.notify;
 
 		// Errors and warnings are a special case, (we always show them to completion)
-		if (self.current !== null
-		 && self.current.type !== 'warning'
-		 && self.current.type !== 'error') {
+		if (self.current !== null && self.current.type !== 'warning' && self.current.type !== 'error') {
 
 			msos.console.debug('msos.notify.clear_current -> called, on type: ' + self.current.type);
 
@@ -763,9 +755,7 @@ window.onerror = function (msg, url, line, col, er) {
 	msos.console.error('window.onerror -> fired, line: ' + line + ', url: ' + url + ', error: ' + msg, er);
 
 	// Timing and availability of i18n common loading is a factor (so isolate)
-	if (msos.i18n
-	 && msos.i18n.common
-	 && msos.i18n.common.bundle) {
+	if (msos.i18n && msos.i18n.common && msos.i18n.common.bundle) {
 		error_txt = msos.i18n.common.bundle.error || error_txt;
 	}
 
@@ -848,8 +838,7 @@ msos.check_resources = function () {
 
     // Check our document.write injected scripts for loading (Google API's, etc.)
     for (i = 0; i < scripts.length; i += 1) {
-		if (scripts[i].readyState
-		&& (scripts[i].readyState !== "loaded" || scripts[i].readyState !== "complete")) {
+		if (scripts[i].readyState && (scripts[i].readyState !== "loaded" || scripts[i].readyState !== "complete")) {
 			src = scripts[i].getAttribute("src") || '';
 			if (src) {
 				msos.console.error(temp_chk + 'file failed to load: ' + src);
@@ -860,9 +849,7 @@ msos.check_resources = function () {
 
     if (count_module > 0 || count_file > 0) {
 		// Timing of i18n common loading is a factor
-		if (msos.i18n
-		 && msos.i18n.common
-		 && msos.i18n.common.bundle) {
+		if (msos.i18n && msos.i18n.common && msos.i18n.common.bundle) {
 			for (key in i18n) {
 				if (i18n.hasOwnProperty(key)) {
 					if (msos.i18n.common.bundle[key]) {
@@ -990,15 +977,7 @@ msos.connection = function () {
 
 	// On a relative scale (not actual kbps - ref. see msos.ajax_request)
 	if (con_type === 'na') {
-		con_type = between(con_bwidth, 1, 50)
-					? "slow"
-					: between(con_bwidth, 51, 150)				// actual is approx. 100-150kbps
-						? "2g"
-						: between(con_bwidth, 151, 600)			// actual is approx. 600-1400kbps
-							? "3g"
-							: between(con_bwidth, 601, 1000)	// actual is approx. 3000-6000kbps 
-								? "4g"
-								: "fast";
+		con_type = between(con_bwidth, 1, 50) ? "slow": between(con_bwidth, 51, 150) ? "2g" : between(con_bwidth, 151, 600) ? "3g" : between(con_bwidth, 601, 1000) ? "4g" : "fast";
 	}
 
 	// Record our findings
