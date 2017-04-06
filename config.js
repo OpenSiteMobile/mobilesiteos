@@ -68,7 +68,7 @@ if (msos.config.debug_script) {
 		msos.resource_url('backbone', 'v123.uc.js'),
 		msos.resource_url('gmap3', 'v600.uc.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'v161019.uc.js')
+		msos.resource_url('msos', 'v1746.uc.js')
 	];
 
 } else {
@@ -81,7 +81,7 @@ if (msos.config.debug_script) {
 		msos.resource_url('backbone', 'v123.min.js'),
 		msos.resource_url('gmap3', 'v600.min.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'v161019.min.js')
+		msos.resource_url('msos', 'v1746.min.js')
 	];
 }
 
