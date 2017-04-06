@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				    popdiv.js
-//			Copyright©2008-2013 - OpenSiteMobile
+//			Copyright©2008-2016 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -21,7 +21,7 @@ msos.provide("msos.popdiv");
 msos.require("msos.i18n.popdiv");
 msos.require("msos.common");
 
-msos.popdiv.version = new msos.set_version(14, 5, 17);
+msos.popdiv.version = new msos.set_version(16, 10, 27);
 
 
 msos.popdiv.count = 0;

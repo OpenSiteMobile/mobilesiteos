@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					base.js
-//			Copyright©2012-2015 - OpenSiteMobile
+//			Copyright©2012-2017 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensitemobile.com
@@ -14,6 +14,12 @@
 	Use as the installation base for all your MobileSiteOS web apps.
 
 	This file includes: Underscore.js, Modernizr.js, Purl.js, Verge.js, Basil.js
+*/
+
+/*global
+    msos: true,
+    Modernizr: true,
+    _: true
 */
 
 if (console && console.info) { console.info('msos/base -> start.'); }
@@ -101,6 +107,7 @@ var msos = {
 	onorientationchange_functions: [],
     onresize_functions: [],
 
+	pending_file_loads: [],
     record_times: {},
 
     registered_files: {
@@ -159,7 +166,10 @@ msos.config = {
         direction: '',
         editable: false,
         mobile: false,
-        touch: false
+        touch: false,
+		nativeoverflow: false,
+		fastclick: false,
+		scalable: false
     },
 
     // jQuery.ajax, 'cache' required scripts/templates (static files), false for testing
@@ -280,10 +290,15 @@ msos.config = {
         return (typeof el.ongesturestart === 'function' ? true : false);
     }()),
 
-	onerror_uri: 'http://' + window.location.hostname + '/onerror.html',
+	onerror_uri: 'http://' + window.location.hostname + '/ngm/onerror.html',
 
 	orientation: (typeof window.orientation === 'number' ? true : false),
     orientation_change: ('onorientationchange' in window ? true : false),
+
+	overflow_scrolling: {
+		webkitoverflowscrolling: ('WebkitOverflowScrolling' in document.documentElement.style ? true : false),
+		msoverflowstyle: ('msOverflowStyle' in document.documentElement.style ? true : false)
+	},
 
 	page_uri: window.location.href,
 
@@ -332,6 +347,7 @@ msos.config = {
     touch: {
         ontouchstart: ('ontouchstart' in window ? true : false),
         ontouchend: ('ontouchend' in document ? true : false),
+		ontouchmove: ('ontouchmove' in document ? true : false),
         object: (typeof window.Touch === "object" ? true : false),
         event: (window.TouchEvent !== undefined ? true : false),
         create: ('createTouch' in document ? true : false),
@@ -361,6 +377,7 @@ msos.config = {
  */
 
 (function (_global) {
+	"use strict";
 
     var tag2attr = {
             a       : 'href',
@@ -696,7 +713,7 @@ msos.console = (function () {
 					filter = cfg.query.debug_filter || '',
 					i = 0,
 					args = aps.apply(arguments),
-					name = args[0] ? args[0].replace(/\W/g, '_') : 'missing_args',
+					name = args[0] && typeof args[0] === 'string' ? args[0].replace(/\W/g, '_') : 'missing name or input',
 					console_org = console_win[method] || console_win.log,
 					log_output = [],
 					out_args = [],
@@ -3797,7 +3814,7 @@ if (msos.config.verbose) {
 // *******************************************
 
 // Sort 'size_wide' object into consistent 'size_array' for resizeable displays
-Object.keys(msos.config.size_wide).map(
+_.keys(msos.config.size_wide).map(
 		function (k) {
 			return [k, msos.config.size_wide[k]];
 		}
@@ -3919,9 +3936,10 @@ msos.run_function_array = function (name) {
 
 	for (m = 0; m < msos[name].length; m += 1) {
 
-		msos.console.debug(temp_fa + 'index: ' + m);
-
 		if (msos.config.debug) {
+
+			msos.console.debug(temp_fa + 'index: ' + m + ', for: ' + name);
+
 			try {
 				msos[name][m]();
 			} catch (e) {
@@ -4199,8 +4217,9 @@ msos.browser_mobile = function () {
     if (msos.config.pixel_ratio > 1)	{ flag.push('pixel_ratio'); }
 	if (Modernizr.devicemotion)			{ flag.push('device_motion'); }
 	if (Modernizr.deviceorientation)	{ flag.push('device_orientation'); }
+	if (Modernizr.overflowscrolling)	{ flag.push('overflow_scrolling'); }
 
-    if (flag.length > 2) {
+    if (flag.length > 3) {
 		msos.config.browser.mobile = true;
 		msos.config.mobile = true;
     }
@@ -4304,6 +4323,80 @@ msos.browser_preloading = function () {
 	script_elm = null;
 };
 
+msos.browser_native_overflow = function () {
+	"use strict";
+
+	var conf = msos.config;
+
+	conf.browser.nativeoverflow = Modernizr.overflowscrolling
+		|| conf.overflow_scrolling.webkitoverflowscrolling
+		|| conf.overflow_scrolling.msoverflowstyle;
+};
+
+// Borrowed from "FastClick.notNeeded"
+msos.browser_has_fastclick = function () {
+	"use strict";
+
+	var chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1],
+		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1],
+		isblackberry10 = navigator.userAgent.indexOf('BB10') > 0,
+		blackberryVersion,
+		output = false;
+
+	// Devices that don't support touch don't need FastClick
+	if (window.ontouchstart === undefined) {
+
+		output = true;
+
+	} else if (chromeVersion) {
+
+		// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
+		if (navigator.userAgent.indexOf('Android') > 0) {
+			if (msos.config.browser.scalable) {
+				output = true;
+			}
+		} else {
+			output = true;
+		}
+
+	} else if (isblackberry10) {
+
+		blackberryVersion = navigator.userAgent.match(/Version\/([0-9]*)\.([0-9]*)/);
+
+		// BlackBerry 10.3+ does not require Fastclick library.
+		// https://github.com/ftlabs/fastclick/issues/251
+		if (blackberryVersion[1] >= 10 && blackberryVersion[2] >= 3) {
+			if (msos.config.browser.scalable) {
+				output = true;
+			}
+		}
+
+	} else if (firefoxVersion >= 27) {
+
+		if (msos.config.browser.scalable) {
+			output = true;
+		}
+
+	} else if (document.body.style.touchAction === 'none'
+			|| document.body.style.touchAction === 'manipulation') {
+		// IE10, 11 with -ms-touch-action: none or manipulation, which disables double-tap-to-zoom
+		output = true;
+	}
+
+	msos.config.browser.fastclick = output;
+};
+
+msos.browser_is_scalable = function () {
+	"use strict";
+
+	var metaViewport = document.querySelector('meta[name=viewport]');
+
+	if ((metaViewport && metaViewport.content.indexOf('user-scalable=no') !== -1)
+	 || (document.documentElement.scrollWidth <= window.outerWidth)) {
+		msos.config.browser.scalable = true;
+	}
+};
+
 msos.get_head = function (win) {
     "use strict";
 
@@ -4369,8 +4462,9 @@ msos.loader = function (win) {
 	this.add_resource_onload = [];
 
     // Load the resource
-    this.load = function (name, url, type, attribs) {
-		var base = url.split('?')[0],
+    this.load = function (url, type, attribs) {
+		var name = msos.generate_url_name(url),
+			base = url.split('?')[0],
 			ext = base.substr(base.lastIndexOf('.') + 1),
 			pattern = /^js|css|ico$/,
 			lo = ' - load -> ',
@@ -4397,7 +4491,10 @@ msos.loader = function (win) {
 
 		} else {
 
-			load_resource_func = function () { ld_obj.resource(name, url, type, attribs); };
+			load_resource_func = function () {
+				ld_obj.resource(name, url, type, attribs);
+				msos.pending_file_loads.push(name);
+			};
 
 			if (attribs.defer
 			 && attribs.defer === 'defer') {
@@ -4494,11 +4591,11 @@ msos.loader = function (win) {
 
 		// Define our typical node attributes by type (for convenience)
 		if			(type === 'js' ) {
-			node_attrs = { id: name, type: 'text/javascript', src: url, charset: 'utf-8' };
+			node_attrs = { id: name, src: url };
 		} else if	(type === 'css') {
-			node_attrs = { id: name, type: 'text/css',		rel: 'stylesheet',		href: url,	media: 'all' };
+			node_attrs = { id: name, rel: 'stylesheet', href: url, media: 'all' };
 		} else if	(type === 'ico') {
-			node_attrs = { id: name, type: 'image/x-icon',	rel: 'shortcut icon',	href: url };
+			node_attrs = { id: name, type: 'image/x-icon', rel: 'shortcut icon', href: url };
 		  }
 
 		if (attribs !== undefined && typeof attribs === 'object') {
@@ -4539,15 +4636,25 @@ msos.loader = function (win) {
 			ls = ' - resource -> ',
 			on_resource_load = function () {
 				var i = 0,
+					pending_idx,
+					pending_file = msos.pending_file_loads,
 					shifted;
 
 				if (this.msos_load_state !== 'loaded' && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete' || this.readyState === 'uninitialized')) {
 
-					if (msos.config.verbose) {
-						msos.console.debug(temp_mod + ls + 'loaded, name: ' + this.id);
-					}
-
 					this.msos_load_state = 'loaded';
+
+					// This should always return an index...
+					pending_idx = _.indexOf(pending_file, this.id);
+
+					if (pending_idx >= 0) {
+						pending_file.splice(pending_idx, 1);
+						if (msos.config.verbose) {
+							msos.console.debug(temp_mod + ls + 'loaded, name: ' + this.id + ', pending file count:', pending_file.length);
+						}
+					} else {
+						msos.console.error(temp_mod + ls + 'unknown pending file, name: ' + this.id, pending_file);
+					}
 
 					for (i = 0; i < ld_obj.add_resource_onload.length; i += 1) {
 						ld_obj.add_resource_onload[i]();
@@ -4615,6 +4722,9 @@ msos.set_environment = function () {
     msos.browser_touch();
     msos.browser_mobile();
 	msos.browser_preloading();
+	msos.browser_native_overflow();
+	msos.browser_is_scalable();
+	msos.browser_has_fastclick();
 
 	if (msos.config.verbose) {
 		msos.console.debug(set_txt + 'done, browser env: ', msos.config.browser);
@@ -4710,7 +4820,6 @@ msos.css_loader = function (url_array, win) {
 
 	var temp_cl = 'msos.css_loader -> ',
 		loader_obj = null,
-		css_name = '',
 		css_url = '',
 		i = 0;
 
@@ -4721,8 +4830,7 @@ msos.css_loader = function (url_array, win) {
 
 	for (i = 0; i < url_array.length; i += 1) {
 		css_url = url_array[i];
-		css_name = msos.generate_url_name(css_url);
-		loader_obj.load(css_name, css_url, 'css');
+		loader_obj.load(css_url, 'css');
 	}
 
 	msos.console.debug(temp_cl + 'done!');
@@ -4736,7 +4844,6 @@ msos.script_loader = function (url_array) {
 
 	var temp_esl = 'msos.script_loader -> ',
 		loader_obj = null,
-		script_name = '',
 		script_url = '',
 		i = 0;
 
@@ -4747,8 +4854,7 @@ msos.script_loader = function (url_array) {
 
 	for (i = 0; i < url_array.length; i += 1) {
 		script_url = url_array[i];
-		script_name = msos.generate_url_name(script_url);
-		loader_obj.load(script_name, script_url, 'js', { defer: 'defer' });
+		loader_obj.load(script_url, 'js', { defer: 'defer' });
 	}
 
 	msos.console.debug(temp_esl + 'done!');
