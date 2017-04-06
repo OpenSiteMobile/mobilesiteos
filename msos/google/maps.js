@@ -1,6 +1,6 @@
 // Copyright Notice:
 //				    maps.js
-//			Copyright©2010-2013 - OpenSiteMobile
+//			Copyright©2010-2016 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -24,7 +24,7 @@ if (!Modernizr.geolocation) {
     msos.require("msos.html5.geolocation");     // Hopefully never used now...
 }
 
-msos.google.maps.version = new msos.set_version(15, 11, 10);
+msos.google.maps.version = new msos.set_version(16, 10, 27);
 
 msos.google.maps.places = msos.google.maps.places || false;
 msos.google.maps.url_google_api = 'http://maps.google.com/maps/api/js?callback=google_maps_api_ready' + (msos.google.maps.places ? '&libraries=places' : '');
@@ -242,11 +242,7 @@ msos.google.maps.initiate = function () {
         return;
     }
     // Load Google Checkout API with our loader for better debugging
-    map_loader.load(
-        'google_maps_api',
-        msos.google.maps.url_google_api,
-        'js'
-    );
+    map_loader.load(msos.google.maps.url_google_api, 'js');
 
     msos.console.debug(temp_mi + 'done!');
 };
