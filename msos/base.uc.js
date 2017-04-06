@@ -4581,7 +4581,7 @@ msos.loader = function (win) {
 			ats = '';
 
 		if (msos.config.verbose) {
-			msos.console.debug(temp_mod + icn + 'start.');
+			msos.console.debug(temp_mod + icn + 'start, name: ' + name + ', type: ' + type);
 		}
 
 		// Force new copies (for testing)

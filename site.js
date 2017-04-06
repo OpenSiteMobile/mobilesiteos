@@ -1,9 +1,9 @@
 // Copyright Notice:
 //					site.js
-//			Copyright©2012-2015 - OpenSiteMobile
+//			Copyright©2012-2017 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
-//			http://opensite.mobi
+//			http://opensitemobile.com
 // ==========================================================================
 // Contact Information:
 //			Author: Dwight Vietzke
@@ -13,15 +13,14 @@
 
 	Use 'site.js' to add site specific code for availability
 	to many pages and apps. Note that here, as oppose to the 'config.js'
-	file, UnderscoreJS, Modernizr, jQuery, etc. are now available for use.
+	file, jQuery, Bootstrap, AngularJS, Backbone, etc. are now available for use.
 
 	Also, add small jQuery plugin's here, (ie - jQuery FitText below).
 
 	OpenSiteMobile MobileSiteOS site specific code:
 
 	    Google Analytics,
-	    AddThis,
-	    other Social site calls, etc.
+	    Social site calls, etc.
 	
 	Plus:
 
@@ -32,12 +31,12 @@
 	msos:false,
 	Modernizr:false,
 	jQuery: false,
-	_: false,
-	addthis: false,
-	addthis_config: false
+	_: false
 */
 
-msos.site = {};
+msos.site = {
+	msie: document.documentMode
+};
 
 msos.console.info('site -> start, (/mobilesiteos/site.js file).');
 msos.console.time('site');
@@ -262,7 +261,7 @@ msos.site.google_analytics = function () {
 			ga_loader = new msos.loader();
 
 		// Use our loader for better debugging
-		ga_loader.load('google_analytics_api', url, 'js');
+		ga_loader.load(url, 'js');
 
     } else {
 		msos.console.warn('msos.site.google_analytics -> please update msos.config.google.analytics_domain in config.js!');
@@ -270,54 +269,23 @@ msos.site.google_analytics = function () {
 };
 
 
-// --------------------------
-// Social Website Code
-// --------------------------
-
-msos.site.addthis_share = function () {
+(function () {
 	"use strict";
 
-	// Use AddThis provided language output
-	msos.config.google.no_translate.by_id.push('#social_ties');
+	var msViewportStyle;
 
-	var html_out =
-			'<div class="addthis_toolbox addthis_default_style ">' +
-				'<a class="addthis_button_google_plusone_share"></a>' +
-				'<a class="addthis_button_preferred_1"></a>' +
-				'<a class="addthis_button_preferred_2"></a>' +
-				'<a class="addthis_button_preferred_3"></a>' +
-				'<a class="addthis_button_compact"></a>' +
-				'<a class="addthis_counter addthis_bubble_style"></a>' +
-			'</div>',
-		run_addthis = function () {
-			var atl = new msos.loader();
+	// http://getbootstrap.com/getting-started/#support-ie10-width
+	if (msos.site.msie >= 9 && navigator.userAgent.match(/IEMobile\/10\.0/)) {
 
-			atl.add_resource_onload.push(
-				function () {
-					if (window.addthis) {
-						setTimeout(addthis.init, 250);		// Give AddThis css a chance to load completely
-					} else {
-						msos.console.warn('msos.site.addthis_share -> failed to load!');
-					}
-				}
-			);
+		msViewportStyle = document.createElement('style');
 
-			addthis_config.ui_language = msos.config.locale.replace('_', '-');
+		msViewportStyle.appendChild(
+			document.createTextNode('@-ms-viewport{width:auto!important}')
+		);
 
-			atl.load(
-				'addthis_share_api',
-				'//s7.addthis.com/js/300/addthis_widget.js#pubid=' + msos.config.addthis_pubid + '&async=1&domready=1',
-				'js'
-			);
-		};
-
-	// Add our 'AddThis' html
-	jQuery('#social_ties').html(html_out);
-
-	// Run this after everything else is done (non-critical)
-	msos.onload_func_post.push(run_addthis);
-};
-
+		document.head.appendChild(msViewportStyle);
+	}
+}());
 
 // --------------------------
 // Site Specific Code
@@ -334,14 +302,14 @@ msos.site.auto_init = function () {
 
 	msos.console.debug(temp_ai + 'start.');
 
+	// Apple mobile OS
+	if (cfg.mobile && navigator.platform.match(/iPad|iPhone|iPod/i)) { req("msos.mbp.ios"); }
+
 	// Run MobileSiteOS sizing (alt. would be: use media queries instead)
 	if (cfg.run_size)		{ req("msos.size"); }
 
 	// Add event debugging functions
     if (cfg.visualevent)	{ req("msos.visualevent"); }
-
-    // If a mobile (touch) operating system
-    if (cfg.mobile)			{ req("msos.mobile"); }
 
     // Add auto window.onerror alerting
     if (cfg.run_onerror)	{ req("msos.onerror"); }
@@ -353,12 +321,8 @@ msos.site.auto_init = function () {
 	if (cfg.console)		{ req("msos.pyromane"); }
 
     // Based on page elements and configuration -> run functions or add modules
-    if (cfg.run_ads
-	 && bdwidth > 150
-	 && jQuery('#branding').length === 1)		{ req("msos.google.ad"); }
-    if (cfg.run_social
-	 && bdwidth > 150
-     && jQuery('#social_ties').length)			{ msos.site.addthis_share(); }
+    if (cfg.run_ads && bdwidth > 150 && jQuery('#branding').length === 1)		{ req("msos.google.ad"); }
+    if (cfg.run_social && bdwidth > 150 && jQuery('#social_ties').length)		{ /* add social module(s) here */ }
 
 	// Or based on configuration settings
 	if (cfg.run_analytics && bdwidth > 150)		{ msos.site.google_analytics(); }
@@ -390,13 +354,13 @@ msos.site.css_load = function () {
 
     // Only load css3 if supported
 	if (M.cssgradients) {
-		css_loader.load('msos_gradient_css',	msos.resource_url('css', 'msos_gradient.css'));
+		css_loader.load(msos.resource_url('css', 'msos_gradient.css'));
     }
 	if (M.csstransitions) {
-		css_loader.load('msos_transition_css',	msos.resource_url('css', 'msos_transition.css'));
+		css_loader.load(msos.resource_url('css', 'msos_transition.css'));
     }
 	if (M.cssanimations && M.csstransforms) {
-		css_loader.load('msos_animation_css',	msos.resource_url('css', 'msos_animation.css'));
+		css_loader.load(msos.resource_url('css', 'msos_animation.css'));
     }
 
 	msos.console.debug(temp_cl + 'done!');

@@ -1,39 +1,29 @@
 // Copyright Notice:
 //					config.js
-//			Copyright©2012-2015 - OpenSiteMobile
+//			Copyright©2012-2017 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
-//			http://opensite.mobi
+//			http://ngmomentum.com & http://opensitemobile.com
 // ==========================================================================
 // Contact Information:
 //			Author: Dwight Vietzke
 //			Email:  dwight_vietzke@yahoo.com
 
 /*
-	OpenSiteMobile - MobileSiteOS demo pages (base) configuration file
+	MobileSiteOS demo pages (base) configuration file
 */
 
 /*global
 	msos: false,
     _gaq: true,
-    ___gcfg: true,
-    addthis_config: true
+    ___gcfg: true
 */
 
 msos.console.info('config -> start, (/mobilesiteos/config.js file).');
 msos.console.time('config');
 
 // Set specific config flags (w/ boolean)
-msos.site_specific({
-	run_ads: true,
-	run_size: true,
-	run_social: true
-});
-
-if (msos.config.verbose) {
-	msos.console.debug('config -> initial:', msos.config);
-}
-
+msos.site_specific({ run_onerror: true, run_ads: true, run_size: true });
 
 // --------------------------
 // Stylesheets to load (CSS injection)
@@ -72,26 +62,26 @@ if (msos.config.debug_script) {
 
 	// Debug full scripts (line no's mean something)
     msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v310_msos.uc.js'),
+		msos.resource_url('jquery', 'v311_msos.uc.js'),
 		msos.resource_url('jquery', 'ui/v1120.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.uc.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.uc.js'),
 		msos.resource_url('gmap3', 'v600.uc.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'v15518.uc.js')
+		msos.resource_url('msos', 'v161019.uc.js')
 	];
 
 } else {
 
 	// Standard site provided (including ext. bundles) scripts
         msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v310_msos.min.js'),
+		msos.resource_url('jquery', 'v311_msos.min.js'),
 		msos.resource_url('jquery', 'ui/v1120.min.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.min.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.min.js'),
 		msos.resource_url('gmap3', 'v600.min.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
-		msos.resource_url('msos', 'v15518.min.js')
+		msos.resource_url('msos', 'v161019.min.js')
 	];
 }
 
@@ -100,24 +90,22 @@ if (msos.config.debug_script) {
 // Google Related Globals
 // --------------------------
 
-// Replace with your site specific Google and other variables
-var _gaq = [],
-    ___gcfg = {},
-	addthis_config = {							// AddThis (addthis.com) configuration object
-		username: 'MobileSiteOS',
-		data_ga_property: 'UA-24170958-1',
-		ui_language: msos.default_locale,
-		ui_click: true
-	};
-
-// AddThis Social Sharing
-msos.config.addthis_pubid = 'ra-515ca32f73d2b2ae';
-
 // Google Analytics
-_gaq.push(['_setAccount', 'UA-24170958-1']);
-_gaq.push(['_trackPageview']);
-// Ref. 'msos.site.google_analytics' in site.uc.js -> site.min.js
+var _gaq = [['_setAccount', 'UA-24170958-1'], ['_trackPageview']],
+    ___gcfg = {};
+
+// Ref. 'msos.site.google_analytics' in site.js
 msos.config.google.analytics_domain = 'opensitemobile.com';
+
+// Social website API access keys
+msos.config.social = {
+	google: '526338426431.apps.googleusercontent.com',
+	facebook: '583738878406494',
+	windows: '000000004C107945',
+	instagram: '34e2fb9bd305446cb080d852597584e9',
+	cloudmade: 'efca0172cf084708a66a6d48ae1046dd',
+	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
+};
 
 // Add your Google Web Page Translator Widget ID here.
 msos.config.google.translate_id = '7aa52b36fcd8fcb6-07fbdbdc6a976e62-g7261f6c2de6e277c-d';
@@ -129,16 +117,6 @@ msos.config.google.no_translate = {
 msos.config.google.hide_tooltip = {
 	by_id: [],
 	by_class: []
-};
-
-// Social website API access keys
-msos.config.social = {
-	google: '526338426431.apps.googleusercontent.com',
-	facebook: '583738878406494',
-	windows: '000000004C107945',
-	instagram: '34e2fb9bd305446cb080d852597584e9',
-	cloudmade: 'efca0172cf084708a66a6d48ae1046dd',
-	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
 };
 
 
