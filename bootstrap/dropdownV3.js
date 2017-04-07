@@ -8,11 +8,11 @@
 
 msos.provide("bootstrap.dropdownV3");
 
-bootstrap.dropdownV3.version = new msos.set_version(14, 2, 25);
+bootstrap.dropdownV3.version = new msos.set_version(17, 4, 7);
 
 // Start by loading our stylesheets
 bootstrap.dropdownV3.css = new msos.loader();
-bootstrap.dropdownV3.css.load('bootstrap_css_dropdownV3', msos.resource_url('bootstrap', 'css/dropdownV3.css'));
+bootstrap.dropdownV3.css.load(msos.resource_url('bootstrap', 'css/dropdownV3.css'));
 
 
 +function ($) {
