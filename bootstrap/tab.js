@@ -8,11 +8,11 @@
 
 msos.provide("bootstrap.tab");
 
-bootstrap.tab.version = new msos.set_version(14, 2, 25);
+bootstrap.tab.version = new msos.set_version(17, 4, 7);
 
 // Start by loading our navigation.css stylesheet
 bootstrap.tab.css = new msos.loader();
-bootstrap.tab.css.load('bootstrap_css_navigation', msos.resource_url('bootstrap', 'css/navigation.css'));
+bootstrap.tab.css.load(msos.resource_url('bootstrap', 'css/navigation.css'));
 
 
 +function ($) {

@@ -62,8 +62,9 @@ var msos = {
     // *** Do NOT edit the key/value pairs below ***
 	// *******************************************
 
-    base_site_url: '//' + document.domain,
-	base_script_url: '',
+    base_site_url: document.domain ? '//' + document.domain : '',
+	base_script_url: document.currentScript && document.currentScript.src ? document.currentScript.src : '',
+	base_msos_folder: '',
 	base_config_url: '',
 	base_images_url: '',
 
@@ -131,6 +132,26 @@ var msos = {
     require_queue: 0
 };
 
+(function () {
+	"use strict";
+
+	var reg_msos = new RegExp('mobilesiteos'),
+		reg_ngm = new RegExp('ngm');
+
+	msos.base_script_url = msos.base_script_url.slice(0, msos.base_script_url.lastIndexOf('/') + 1) || '';
+
+	if (!msos.base_site_url)	{ throw new Error('msos.base_site_url must be set manually.'); }
+	if (!msos.base_script_url)	{ throw new Error('msos.base_script_url must be set manually.'); }
+
+	if (reg_msos.test(msos.base_script_url)) { msos.base_msos_folder = 'mobilesiteos'; }
+	if ( reg_ngm.test(msos.base_script_url)) { msos.base_msos_folder = 'ngm'; }
+
+	if (!msos.base_msos_folder)	{ throw new Error('msos.base_msos_folder must be set manually.');}
+
+	if (console && console.info) {
+		console.info('msos/base -> settings,\n     msos.base_site_url: ' + msos.base_site_url + ',\n     msos.base_script_url: ' + msos.base_script_url + ',\n     msos.base_msos_folder: ' + msos.base_msos_folder);
+	}
+}());
 
 // *******************************************
 // Base Configuration Settings
@@ -252,7 +273,7 @@ msos.config = {
 	},
 
 	// Set full url in config.js file
-	hellojs_redirect: '/mobilesiteos/hello/redirect.html',
+	hellojs_redirect: '/' + msos.base_msos_folder + '/hello/redirect.html',
 
     // See 'msos.i18n' and the 'MSOS Available Language Matrix' for ref.
     i18n: {
@@ -290,7 +311,7 @@ msos.config = {
         return (typeof el.ongesturestart === 'function' ? true : false);
     }()),
 
-	onerror_uri: 'http://' + window.location.hostname + '/ngm/onerror.html',
+	onerror_uri: msos.base_site_url + '/' + msos.base_msos_folder + '/onerror.html',
 
 	orientation: (typeof window.orientation === 'number' ? true : false),
     orientation_change: ('onorientationchange' in window ? true : false),
@@ -402,26 +423,26 @@ msos.config = {
 
         isint = /^[0-9]+$/;
 
-    function parseUri( url, strictMode ) {
+    function parseUri(url, strictMode) {
         var str = decodeURI( url ),
-        res   = parser[ strictMode || false ? 'strict' : 'loose' ].exec( str ),
+        res = parser[ strictMode || false ? 'strict' : 'loose' ].exec( str ),
         uri = { attr : {}, param : {}, seg : {} },
-        i   = 14;
+        i = 14;
 
-        while ( i-- ) {
+        while (i--) {
             uri.attr[ key[i] ] = res[i] || '';
         }
 
         // build query and fragment parameters
-        uri.param['query'] = parseString(uri.attr['query']);
-        uri.param['fragment'] = parseString(uri.attr['fragment']);
+        uri.param.query = parseString(uri.attr.query);
+        uri.param.fragment = parseString(uri.attr.fragment);
 
         // split path and fragement into segments
-        uri.seg['path'] = uri.attr.path.replace(/^\/+|\/+$/g,'').split('/');
-        uri.seg['fragment'] = uri.attr.fragment.replace(/^\/+|\/+$/g,'').split('/');
+        uri.seg.path = uri.attr.path.replace(/^\/+|\/+$/g,'').split('/');
+        uri.seg.fragment = uri.attr.fragment.replace(/^\/+|\/+$/g,'').split('/');
 
         // compile a 'base' domain attribute
-        uri.attr['base'] = uri.attr.host ? (uri.attr.protocol ?  uri.attr.protocol+'://'+uri.attr.host : uri.attr.host) + (uri.attr.port ? ':'+uri.attr.port : '') : '';
+        uri.attr.base = uri.attr.host ? (uri.attr.protocol ?  uri.attr.protocol+'://'+uri.attr.host : uri.attr.host) + (uri.attr.port ? ':'+uri.attr.port : '') : '';
 
         return uri;
     }
@@ -433,9 +454,20 @@ msos.config = {
     }
 
     function promote(parent, key) {
-        if (parent[key].length === 0) return parent[key] = {};
-        var t = {};
-        for (var i in parent[key]) t[i] = parent[key][i];
+        if (parent[key].length === 0) {
+			parent[key] = {};
+			return parent[key];
+		}
+
+        var t = {},
+			i;
+
+        for (i in parent[key]) {
+			if (parent[key].hasOwnProperty(i)) {
+				t[i] = parent[key][i];
+			}
+		}
+
         parent[key] = t;
         return t;
     }
@@ -480,8 +512,14 @@ msos.config = {
             parse(parts, parent, 'base', val);
         } else {
             if (!isint.test(key) && isArray(parent.base)) {
-                var t = {};
-                for (var k in parent.base) t[k] = parent.base[k];
+                var t = {},
+					k;
+
+                for (k in parent.base) {
+					if (parent.base.hasOwnProperty(k)) {
+						t[k] = parent.base[k];
+					}
+				}
                 parent.base = t;
             }
             if (key !== '') {
@@ -670,17 +708,14 @@ msos.console = (function () {
 			'profileEnd', 'show', 'table', 'time', 'timeEnd', 'timeline',
 			'timelineEnd', 'timeStamp', 'trace', 'warn'
 		],
-		method = methods.pop();
+		method = methods.pop(),
+		console_method_func = function (key) { return function () { console.warn('msos.console -> method: ' + key + ' is na!'); };};
 
 	// Normalize across browsers
     if (!console_win.memory) { console_win.memory = {}; }
 
     while (method) {
-		if (!console_win[method]) {
-			console_win[method] = function (key) {
-				return function () { console.warn('msos.console -> method: ' + key + ' is na!'); }
-			}(method);
-		}
+		if (!console_win[method]) { console_win[method] = console_method_func(method); }
 		method = methods.pop();
 	}
 
@@ -688,9 +723,7 @@ msos.console = (function () {
     function formatError(arg) {
 		if (arg instanceof Error) {
 			if (arg.stack) {
-				arg = (arg.message && arg.stack.indexOf(arg.message) === -1)
-					? 'Error: ' + arg.message + '\n' + arg.stack
-					: arg.stack;
+				arg = (arg.message && arg.stack.indexOf(arg.message) === -1) ? 'Error: ' + arg.message + '\n' + arg.stack : arg.stack;
 			} else if (arg.sourceURL) {
 				arg = arg.message + '\n' + arg.sourceURL + ':' + arg.line;
 			}
@@ -698,70 +731,69 @@ msos.console = (function () {
 		return arg;
     }
 
-	while (idx >= 0) {
+	function build_console(method) {
 
-		(function (method) {
+		console_obj[method] = function () {
 
-			console_obj[method] = function () {
+			// Always show errors and warnings
+			if (!(method === 'error' || method === 'warn') && !msos.config.debug) {
+				return;
+			}
 
-				// Always show errors and warnings
-				if (!(method === 'error' || method === 'warn') && !msos.config.debug) {
+			var cfg = msos.config,
+				filter = cfg.query.debug_filter || '',
+				i = 0,
+				args = aps.apply(arguments),
+				name = args[0] && typeof args[0] === 'string' ? args[0].replace(/\W/g, '_') : 'missing name or input',
+				console_org = console_win[method] || console_win.log,
+				log_output = [],
+				out_args = [],
+				message;
+
+			if (method === 'debug' && cfg.verbose && filter && /^[0-9a-zA-Z.]+$/.test(filter)) {
+				filter = new RegExp('^' + filter.replace('.', "\."));
+				if (!name.match(filter)) {
+					msos.console.warn('msos.console -> no match for debug filter: ' + filter);
 					return;
 				}
+			}
 
-				var cfg = msos.config,
-					filter = cfg.query.debug_filter || '',
-					i = 0,
-					args = aps.apply(arguments),
-					name = args[0] && typeof args[0] === 'string' ? args[0].replace(/\W/g, '_') : 'missing name or input',
-					console_org = console_win[method] || console_win.log,
-					log_output = [],
-					out_args = [],
-					message;
+			if (method === 'time' || method === 'timeEnd') {
+				msos.record_times[name + '_' + method] = (new Date()).getTime();
+			}
 
-				if (method === 'debug' && cfg.verbose && filter && /^[0-9a-zA-Z.]+$/.test(filter)) {
-					filter = new RegExp('^' + filter.replace('.', "\."));
-					if (!name.match(filter)) {
-						msos.console.warn('msos.console -> no match for debug filter: ' + filter);
-						return;
-					}
-				}
+			// if msos console output, add this
+			if (cfg.console) {
+
+				log_output = [method].concat(args);
 
 				if (method === 'time' || method === 'timeEnd') {
-					msos.record_times[name + '_' + method] = (new Date()).getTime();
+					log_output.push(msos.record_times[name + '_' + method]);
 				}
 
-				// if msos console output, add this
-				if (cfg.console) {
+				console_obj.queue.push(log_output);
+			}
 
-					log_output = [method].concat(args);
-
-					if (method === 'time' || method === 'timeEnd') {
-						log_output.push(msos.record_times[name + '_' + method]);
+			// if window console, add it
+			if (console_win) {
+				if (console_org.apply) {
+					for (i = 0; i < args.length; i += 1) {
+						out_args.push(formatError(args[i]));
 					}
+					// Do this for normal browsers
+					console_org.apply(console_win, out_args);
 
-					console_obj.queue.push(log_output);
+				} else {
+					// Do this for IE9
+					message = args.join(' ');
+					console_org(message);
 				}
+			}
+		};
+	}
 
-				// if window console, add it
-				if (console_win) {
-					if (console_org.apply) {
-						for (i = 0; i < args.length; i += 1) {
-							out_args.push(formatError(args[i]));
-						}
-						// Do this for normal browsers
-						console_org.apply(console_win, out_args);
-
-					} else {
-						// Do this for IE9
-						message = args.join(' ');
-						console_org(message);
-					}
-				}
-			};
-
-		}(msos.log_methods[idx]));
-
+	while (idx >= 0) {
+		build_console(msos.log_methods[idx]);
 		idx -= 1;
 	}
 
@@ -885,9 +917,6 @@ msos.site_specific = function (settings) {
         };
     };
 
-    // A mostly-internal function to generate callbacks that can be applied
-    // to each element in a collection, returning the desired result — either
-    // identity, an arbitrary callback, a property matcher, or a property accessor.
     var cb = function (value, context, argCount) {
         if (value == null) return _.identity;
         if (_.isFunction(value)) return optimizeCb(value, context, argCount);
@@ -3956,36 +3985,6 @@ msos.run_function_array = function (name) {
 	msos.console.debug(temp_fa + ' done: ' + name);
 };
 
-
-// --------------------------
-// Get Script url Location
-// --------------------------
-msos.get_js_base = function () {
-    "use strict";
-
-    var temp_gsl = 'msos.get_js_base -> ',
-		scripts_array,
-		current_script,
-		script_url;
-
-	msos.console.debug(temp_gsl + 'start.');
-
-    scripts_array = document.getElementsByTagName('script');
-    current_script = scripts_array[scripts_array.length - 1]; // last available script is this one when called
-    script_url = current_script.src;
-    script_url = script_url.slice(0, script_url.lastIndexOf('/') + 1) || '';
-
-	// No reason to continue
-    if (!script_url) { throw new Error(temp_gsl + 'failed!'); }
-
-	msos.console.debug(temp_gsl + 'done, uri: ' + script_url);
-	return script_url;
-};
-
-// Run immediately to get the current 'base.js' location
-msos.base_script_url = msos.get_js_base();
-
-
 // --------------------------
 // Apply Resource (relative) Locations
 // --------------------------
@@ -4869,5 +4868,5 @@ msos.set_locale();
 msos.get_display_size();
 
 
-msos.console.info('msos/base -> done!');
+if (console && console.info) { console.info('msos/base -> done!'); }
 msos.console.timeEnd('base');

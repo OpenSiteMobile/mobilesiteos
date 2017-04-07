@@ -2,9 +2,9 @@
 
 msos.provide("bootstrap.jumbotron");
 
-bootstrap.jumbotron.version = new msos.set_version(14, 2, 26);
+bootstrap.jumbotron.version = new msos.set_version(17, 4, 7);
 
 
 // Start by loading our stylesheets
 bootstrap.jumbotron.css = new msos.loader();
-bootstrap.jumbotron.css.load('bootstrap_css_jumbotron', msos.resource_url('bootstrap', 'css/jumbotron.css'));
+bootstrap.jumbotron.css.load(msos.resource_url('bootstrap', 'css/jumbotron.css'));

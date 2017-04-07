@@ -8,15 +8,15 @@
 
 msos.provide("bootstrap.alert");
 
-bootstrap.alert.version = new msos.set_version(14, 2, 25);
+bootstrap.alert.version = new msos.set_version(17, 4, 7);
 
 
 // Start by loading our stylesheets
 bootstrap.alert.css = new msos.loader();
-bootstrap.alert.css.load('bootstrap_css_alert', msos.resource_url('bootstrap', 'css/alert.css'));
+bootstrap.alert.css.load(msos.resource_url('bootstrap', 'css/alert.css'));
 
 if (Modernizr.cssgradients) {
-    bootstrap.alert.css.load('bootstrap_css_alert_gradient', msos.resource_url('bootstrap', 'css/alert_gradient.css'));
+    bootstrap.alert.css.load(msos.resource_url('bootstrap', 'css/alert_gradient.css'));
 }
 
 

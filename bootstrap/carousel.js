@@ -8,12 +8,12 @@
 
 msos.provide("bootstrap.carousel");
 
-bootstrap.carousel.version = new msos.set_version(14, 2, 25);
+bootstrap.carousel.version = new msos.set_version(17, 4, 7);
 
 
 // Start by loading our carousel.css stylesheet
 bootstrap.carousel.css = new msos.loader();
-bootstrap.carousel.css.load('bootstrap_css_carousel',   msos.resource_url('bootstrap', 'css/carousel.css'));
+bootstrap.carousel.css.load(msos.resource_url('bootstrap', 'css/carousel.css'));
 
 
 +function ($) {

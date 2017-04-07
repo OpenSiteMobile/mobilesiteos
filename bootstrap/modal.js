@@ -8,12 +8,12 @@
 
 msos.provide("bootstrap.modal");
 
-bootstrap.modal.version = new msos.set_version(14, 2, 25);
+bootstrap.modal.version = new msos.set_version(17, 4, 7);
 
 
 // Start by loading our modal.css stylesheet
 bootstrap.modal.css = new msos.loader();
-bootstrap.modal.css.load('bootstrap_css_modal', msos.resource_url('bootstrap', 'css/modal.css'));
+bootstrap.modal.css.load(msos.resource_url('bootstrap', 'css/modal.css'));
 
 
 +function ($) {
