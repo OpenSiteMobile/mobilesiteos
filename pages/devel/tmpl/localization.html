@@ -1,0 +1,75 @@
+
+
+    <section>
+		<div class='pgrph well'>
+			<div id='amazon_prod_ad'></div>
+
+			<p>
+				Application localization is another area where being able to load files
+				on demand is a destinct advantage. Many JavaScript libraries and scripts that
+				do address the localization issue, require you to load all available
+				localization code for each widget or page, at one time. So every language
+				a widget might be used in, has to be made available from the start. Not
+				very efficient!
+			</p>
+			<p>
+				Since we load all modules asynchronously and in a controlled
+				manor, we first determine the most likely localization language and other
+				files for that user, then just request them. And all country/locale
+				code is user selectable too, just in case <u>MobileSiteOS™</u> guesses
+				wrong or a user's native language is not available.
+			</p>
+		</div>
+
+		<div class="msos_legend">
+			<h2>Available Languages and Cultures</h2>
+			<div style="max-width: 24em; margin-top: 1em;">
+				<div class="row adjust" style="margin-bottom: 0.6em;">
+					<div class="span3 text_rt">Language:</div>
+					<div class="span9 text_lt"><select id='locale' name='locale'></select></div>
+				</div>
+				<div class="row adjust" style="margin-bottom: 0.6em;">
+					<div class="span3 text_rt">Culture:</div>
+					<div class="span9 text_lt"><select id='culture' name='culture'></select></div>
+				</div>
+				<div class="row adjust" style="margin-bottom: 0.6em;">
+					<div class="span3 text_rt">Calendar:</div>
+					<div class="span9 text_lt"><select id='calendar' name='calendar'></select></div>
+				</div>
+				<div class="row adjust">
+					<div class="span3 text_rt">Keyboard:</div>
+					<div class="span9 text_lt"><select id='keyboard' name='keyboard'></select></div>
+				</div>
+			</div>
+		</div>
+
+		<h2>Humble Beginnings</h2>
+
+		<div class='pgrph well'>
+			<p>
+				As mentioned on our "Dependency Mangagment" page, we originally derived
+				our module loading techniques from those of the
+				<a class="msos_link notranslate" href="http://dojotoolkit.org/">Dojo Toolkit</a>.
+				The main reason for this was that they had the best localization (<code>i18n</code>)
+				management code available at the time. The ability to load only the <code>i18n</code> 
+				files needed for each user independently, was one quick way to minimize
+				required download bandwidth to acceptable amounts. So even if you don't
+				think you need script loading on demand otherwise, if you plan to ever offer
+				localized content, you will probably want to load localization files on an "as
+				needed" basis for any serious mobile web based application.
+			<p>
+
+			<p>
+				Due to the complexity and effort required by website localization, this is
+				one area that is still an ongoing project. Some widgets and pages work
+				better than others. And this is still a relatively underdeveloped area,
+				given that mobile development has been geared more towards mobile apps.
+				Mobile apps typically provide only the specific localization needed by each
+				download, since they can "poll" the user's device or preferences ahead of time.
+				And this is relatively efficient unless the user wants to use multiple languages.
+				So all we are doing is allowing the same efficiency in a "language selectable" web
+				app environment. 
+			</p>
+		</div>
+
+    </section>

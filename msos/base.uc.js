@@ -269,7 +269,8 @@ msos.config = {
 
 	google: {
 		no_translate: {},
-		hide_tooltip: {}
+		hide_tooltip: {},
+		maps_api_key: ''
 	},
 
 	// Set full url in config.js file
@@ -950,7 +951,7 @@ msos.site_specific = function (settings) {
         if (!_.isObject(prototype)) return {};
         if (nativeCreate) return nativeCreate(prototype);
         Ctor.prototype = prototype;
-        var result = new Ctor;
+        var result = new Ctor();
         Ctor.prototype = null;
         return result;
     };
@@ -1180,8 +1181,6 @@ msos.site_specific = function (settings) {
         return result;
     };
 
-    // Shuffle a collection, using the modern version of the
-    // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
     _.shuffle = function (obj) {
         var set = isArrayLike(obj) ? obj : _.values(obj);
         var length = set.length;
@@ -4177,10 +4176,7 @@ msos.browser_touch = function () {
 
     if ("ontouchstart" in test_div) {
 		touch_avail += 1;
-    } else {
-		test_div.setAttribute("ontouchstart", 'return;');
-		touch_avail += (typeof test_div.ontouchstart === 'function') ? 1 : -1;
-      }
+    }
 
     test_div = null;
 
@@ -4197,7 +4193,6 @@ msos.browser_mobile = function () {
     "use strict";
 
     var temp_mbl = 'msos.browser_mobile -> ',
-		device = '',
 		scrn_px = 0,
 		flag = [];
 
@@ -4225,8 +4220,7 @@ msos.browser_mobile = function () {
 
     msos.console.debug(temp_mbl + 'browser is ' + (msos.config.browser.mobile ? 'mobile' : 'not mobile') + (flag.length > 0 ? ', flag(s): ' + flag.join(', ') : ''));
     
-    if (msos.config.query.mobile === true
-     || msos.config.query.mobile === false) {
+    if (msos.config.query.mobile === true || msos.config.query.mobile === false) {
 		if (msos.config.browser.mobile !== msos.config.query.mobile) {
 			msos.console.debug(temp_mbl + 'force mobile setting: ' + msos.config.query.mobile);
 		}
@@ -4327,17 +4321,15 @@ msos.browser_native_overflow = function () {
 
 	var conf = msos.config;
 
-	conf.browser.nativeoverflow = Modernizr.overflowscrolling
-		|| conf.overflow_scrolling.webkitoverflowscrolling
-		|| conf.overflow_scrolling.msoverflowstyle;
+	conf.browser.nativeoverflow = Modernizr.overflowscrolling || conf.overflow_scrolling.webkitoverflowscrolling || conf.overflow_scrolling.msoverflowstyle;
 };
 
 // Borrowed from "FastClick.notNeeded"
 msos.browser_has_fastclick = function () {
 	"use strict";
 
-	var chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1],
-		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1],
+	var chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [0,0])[1],
+		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [0,0])[1],
 		isblackberry10 = navigator.userAgent.indexOf('BB10') > 0,
 		blackberryVersion,
 		output = false;
@@ -4376,8 +4368,7 @@ msos.browser_has_fastclick = function () {
 			output = true;
 		}
 
-	} else if (document.body.style.touchAction === 'none'
-			|| document.body.style.touchAction === 'manipulation') {
+	} else if (document.body.style.touchAction === 'none' || document.body.style.touchAction === 'manipulation') {
 		// IE10, 11 with -ms-touch-action: none or manipulation, which disables double-tap-to-zoom
 		output = true;
 	}
@@ -4390,8 +4381,7 @@ msos.browser_is_scalable = function () {
 
 	var metaViewport = document.querySelector('meta[name=viewport]');
 
-	if ((metaViewport && metaViewport.content.indexOf('user-scalable=no') !== -1)
-	 || (document.documentElement.scrollWidth <= window.outerWidth)) {
+	if ((metaViewport && metaViewport.content.indexOf('user-scalable=no') !== -1) || (document.documentElement.scrollWidth <= window.outerWidth)) {
 		msos.config.browser.scalable = true;
 	}
 };
@@ -4470,7 +4460,7 @@ msos.loader = function (win) {
 			load_resource_func = null;
 
 		if (msos.config.verbose) {
-			msos.console.debug(temp_mod + lo + 'start.');
+			msos.console.debug(temp_mod + lo + 'start, name: ' + name);
 		}
 
 		// Check for attribs object
@@ -4479,8 +4469,9 @@ msos.loader = function (win) {
 		// If file type passed in use it, otherwise determine from url
 		if (!type) { type = ext || 'na'; }
 
-		if (!pattern.test(type)) {
-			msos.console.error(temp_mod + lo + 'missing or invalid: ' + type);
+		if (!pattern.test(type) || !name) {
+
+			msos.console.error(temp_mod + lo + 'missing or invalid input for url: ' + url + ', type: ' + type);
 			return;
 		}
 
@@ -4495,8 +4486,7 @@ msos.loader = function (win) {
 				msos.pending_file_loads.push(name);
 			};
 
-			if (attribs.defer
-			 && attribs.defer === 'defer') {
+			if (attribs.defer && attribs.defer === 'defer') {
 
 				if (msos.config.script_preload.ordered) {
 
@@ -4544,8 +4534,7 @@ msos.loader = function (win) {
 		msos.console.debug(temp_mod + ld + 'start.');
 
 		// Important: See the popwin.js for 'win.msos.registered_files' clearing
-		if (win.msos.registered_files[file_type]
-		 && win.msos.registered_files[file_type][file_name]) {
+		if (win.msos.registered_files[file_type] && win.msos.registered_files[file_type][file_name]) {
 			flag_loaded = true;
 		}
 
@@ -4627,6 +4616,7 @@ msos.loader = function (win) {
 		if (msos.config.verbose) {
 			msos.console.debug(temp_mod + icn + 'done!');
 		}
+
 		return node;
     };
 

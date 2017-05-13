@@ -1,0 +1,133 @@
+
+
+    <section>
+
+		<div class='pgrph well'>
+			<div id='amazon_prod_ad'></div>
+			<p>
+				For JavaScript running in a web browser, timing is everything. The key
+				to a great user experience is to have all <u>HTML5</u>, JavaScript
+				and <u>CSS</u> code load quickly and seamlessly. The trick is
+				to do it in such a way that the user isn't aware of all the time consuming
+				loading and executing processes taking place. With that in mind,
+				 <u>MobileSiteOS™</u> offers probably the most controlled script
+				and page execution environment available.
+			</p>
+
+			<p>
+				This distinction is intentional and due to our base requirement that
+				all software modules be loadable asynchronously. As explained under the
+				"Modular Code" section of our "Development" pages, when all modules can
+				load independently, there is no need for concern about module dependencies
+				and whether or not all scripting is ready. Through very precise timing,
+				the proper code is always ready in the proper order. This even works for
+				most typical <u>jQuery</u>, <u>Bootstrap</u> and <u>AngularJS</u>
+				code as well.
+			</p>
+
+			<p>
+				The drawback to this scheme is some added complexity. Thus much of our work on
+				 <u>MobileSiteOS™</u> has been directed towards making it as
+				developer friendly as possible.
+			</p>
+		</div>
+
+		<div class='msos_legend'>
+			<h3>Its All About Timing</h3>
+
+			<p>The basic execution timing goes as follows:</p>
+
+			<ul class="msos_list timings">
+				<li>
+					Our <code>/msos/base.min.js</code> and the application specific <code>config.js</code> 
+					files are called in the document head of each page, using standard script
+					tags, and load synchronously.
+				</li>
+				<li>
+					The <code>config.js</code> file loads all JavaScript library dependencies and
+					non-modular <u>MobileSiteOS™</u> code by injecting non-blocking "deferred"
+					(where available) script tags into the document head. For multi-page applications, this
+					includes a page specific external <code>.js</code> file for each page. No JavaScript
+					module function calls are allowed directly in the page, for obvious reasons.
+				</li>
+				<li>
+					At this point, <u>CSS</u>, JavaScript and the <u>HTML5</u> page are just loading,
+					at least until the DOM page loading is completely. Then the <code>jQuery(document).ready()</code> 
+					method fires and calls our <code>msos.check_deferred_scripts()</code> 
+					function. It checks to see whether all deferred scripts have loaded, or loops as needed
+					until they do.
+				</li>
+				<li>
+					Once all deferred scripts are confirmed loaded, we call our
+					<code>msos.run_onload()</code> function. This is the main execution
+					control subroutine which evaluates the readiness of called modules and
+					also makes sure all browser environment, display size and cookie information
+					is ready too. Called modules may or may not be still loading at this point.
+					The <code>msos.run_onload()</code> function loops over
+					itself until each level of programmed execution readiness is achieved.
+				</li>
+				<li>
+					There are roughly five evaluation levels to satisfy in <code>msos.run_onload()</code> 
+					before all scripting components are allowed to execute. Localization modules
+					and the corresponding culture specific files they use are a good example of the
+					most taxing to this process. They each take presidence over the other in order to
+					make them fully available to the original calling module. Note also that, even though
+					a given loop through <code>msos.run_onload()</code> may get to a certain
+					evaluation level, a new dependency might be added such that the evaluation process backs
+					up a step or two.
+				</li>
+				<li>
+					Once all five evaluation levels are passed, we run five levels of array stored
+					code execution functions, then finish with misc. debugging and environment specific
+					function calls. These five levels of code execution include "pre" and "post" execution
+					code required internally by <u>MobileSiteOS™</u> , and three typical levels of
+					execution for module based code. Thus, a module may enforce ordered interactions
+					between code components and other modules when necessary. Most simple modules won't
+					require specific execution levels unless they interact with third party web functionality
+					such as Google, Facebook, etc.
+				</li>
+			</ul>
+		</div>
+
+		<div class='msos_legend'>
+			<h3>Efficient Code Execution</h3>
+
+			<p>
+				Simple right? We did mention that this was complex. Over time, our
+				development efforts have shifted code loading and execution around to
+				best address what works most efficiently in state of the art browsers.
+				Thus, timing the calling and loading of code to best match a browser's
+				ability to process it, is the key. The good news is that for the most
+				part, all you need to know is this:
+			</p>
+
+			<ul class="msos_list timings">
+				<li>
+					You call each module with our <code>msos.require()</code> method, with the
+					module name entered as a "dot" separated string.
+				</li>
+				<li>
+					You start each module with our <code>msos.provide()</code> method, with the
+					module name again entered as a string.
+				</li>
+				<li>
+					You add each module's dependency module(s) with another <code>msos.require()</code>,
+					with that name entered as a string.
+				</li>
+				<li>
+					Somewhere in the original module (usually at the end) you assign
+					any dependency module or <u>DOM</u> acting functions to be run at
+					the appropriate time, after page load. There are three typical levels
+					available, using these arrays: <code>msos.onload_func_start</code>,
+					 <code>msos.onload_functions</code> and <code>msos.onload_func_done</code>.
+					Simply "push" each function onto the appropriate array.
+				</li>
+				<li>
+					Most applications only need the <code>msos.onload_functions</code> array, but as
+					mentioned earlier, some process types like <code>i18n</code> require further
+					layered code execution. Your more complex modules may too.
+				</li>
+			</ul>
+		</div>
+
+    </section>

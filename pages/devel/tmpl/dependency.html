@@ -1,0 +1,52 @@
+
+
+    <section>
+
+		<div class='pgrph well'>
+
+			<div id='amazon_prod_ad'></div>
+
+			<p>
+				<u>MobileSiteOS™</u> dependency management was originally derived from the early
+				<a class="msos_link notranslate" href="http://dojotoolkit.org/">Dojo Toolkit</a> style
+				of module calling and loading. Since then, it has evolved into its own form, more like
+				<a class="msos_link notranslate" href="http://requirejs.org/">Require.js</a> or
+				<a class="msos_link notranslate" href="http://labjs.com/">LAB.js</a>.
+				It is however a much lighter, more application specific code set than either
+				<u>Require.js</u> or <u>LAB.js</u>. It is also intended solely for client
+				side (browser) execution.
+			</p>
+
+			<p>
+				<u>MobileSiteOS™</u> uses simple <u>jQuery ajax</u> calls to load
+				all modules asynchronously. By design, our modules do not execute dependent code
+				immediately. We use "initializing" functions, pushed onto function arrays with
+				defined execution points. So <u>MobileSiteOS™</u> controls the loading
+				of modules, making sure to only load modules once, while holding execution until
+				the desired time. The benefit, module dependencies can chain down without having
+				to know or care what dependencies lie below.
+			</p>
+		</div>
+
+		<div class="msos_legend">
+			<h3>Too Complex?</h3>
+
+			<div class='pgrph'>
+				Admittedly, this does add some to module execution complexity, but the
+				result is that we achieve similar results to <u>Require.js</u> or
+				<u>LAB.js</u> with very simple module calls and much less code. It
+				is a more structured environment, better (only?) suited to browser execution,
+				but does allow very fast page loads in a very controlled manor. Does it work? The
+				proof being our incorporation of many standard <u>jQuery</u> and other
+				scripts or plug-ins as <u>MobileSiteOS™</u> style modules. Don't like it?
+				Cut it out and use <u>Require.js</u> or <u>LAB.js</u> instead.
+			</div>
+
+			<div class='pgrph'>
+				One recently added benefit: content injection via JavaScript can include more complex JavaScript
+				and CSS interaction too. As demonstrated by this site, each "page" is just new
+				content being added to the base "index.html" page. So only the JavaScript required for
+				each "content page" needs to be loaded at any give time, which is very fast and very efficient.
+			</div>
+		</div>
+    </section>
