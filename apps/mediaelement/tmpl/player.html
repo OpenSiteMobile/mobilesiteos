@@ -1,0 +1,47 @@
+
+
+	<section>
+		<h1>
+			<a class='btn btn-msos' href='http://opensitemobile.com' title='OpenSiteMobile website'>OSM</a>
+				<u>MediaElementPlayer.js</u>
+			<a class='btn btn-msos' href='https://github.com/OpenSiteMobile/osm_mep' title='ME Player GitHub repository'><i class="fa fa-github"></i></a>
+		</h1>
+
+		<h3>
+			Our&nbsp;<u>MobileSiteOS</u>&nbsp;Integrated Version of&nbsp;<u>MediaElementPlayer</u>&nbsp;for video file playback.
+		</h3>
+
+		<div class="pgrph well">
+			This page demo's the&nbsp;<u>MediaElementPlayer</u>&nbsp;with&nbsp;<u>MobileSiteOS</u>&nbsp;integration,
+			playing either .webm, .mp4 or .ogv video files. The correct video is rendered according to the user's
+			browser, and displayed at the correct page size. And player controls are also tailored to the
+			displaying browser, based on device size and capabilities.
+		</div>
+	</section>
+
+	<video id="player_video" width="640" height="360" poster="../mobilesiteos/media/echo-hereweare.jpg" controls="controls" preload="none">
+		<source src="../mobilesiteos/media/echo-hereweare.webm"	type='video/webm; codecs="vp8, vorbis"' />
+		<source src="../mobilesiteos/media/echo-hereweare.mp4"	type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"' />
+		<source src="../mobilesiteos/media/echo-hereweare.ogv"	type='video/ogg; codecs="theora, vorbis"' />
+		<track  src="../mobilesiteos/media/mediaelement.srt"	label="English subtitles" kind="subtitles" srclang="en" default />
+		<script src="../mobilesiteos/apps/mediaelement/tmpl/postroll.html" type="text/postroll"></script>
+		<p>Our website does not support video playback for your current browser!</p>
+	</video>
+
+	<section>
+		<h3 id="player_mode_video"></h3>
+		<div style="text-align: center; margin-bottom: 1em;">
+			<a class="btn btn-msos" id="player_pause_video" title="Pause via external button">Pause</a>
+			<a class="btn btn-msos" href="#/page/apps.mediaelement.playerhtml5"	title="No MediaElement player">HTML5 Only</a>
+		</div>
+
+		<audio id="player_audio" controls="controls">
+			<source src="../mobilesiteos/media/ToneWobble.mp3" type='audio/mpeg'>
+			<source src="../mobilesiteos/media/ToneWobble.ogg" type='audio/ogg'>
+		</audio>
+
+		<h3 id="player_mode_audio"></h3>
+		<div style="text-align: center; margin-bottom: 0.5em;">
+			<a class="btn btn-msos" id="player_pause_audio" title="Pause via external button">Pause</a>
+		</div>
+	</section>
