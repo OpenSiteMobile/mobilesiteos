@@ -9,12 +9,12 @@
 
 msos.provide("bootstrap.tooltip");
 
-bootstrap.tooltip.version = new msos.set_version(14, 2, 25);
+bootstrap.tooltip.version = new msos.set_version(17, 5, 8);
 
 
 // Start by loading our tooltip.css stylesheet
 bootstrap.tooltip.css = new msos.loader();
-bootstrap.tooltip.css.load('bootstrap_css_tooltip', msos.resource_url('bootstrap', 'css/tooltip.css'));
+bootstrap.tooltip.css.load(msos.resource_url('bootstrap', 'css/tooltip.css'));
 
 // Standard Bootstrap "tooltip.js code except we bundle popover.js with it (and call CSS seperately)
 +function ($) {

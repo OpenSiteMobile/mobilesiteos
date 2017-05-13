@@ -1,8 +1,7 @@
 // Page specific js code
 
 /*global
-    msos: false,
-    jQuery: false
+    msos: false
 */
 
 msos.provide("pages.contact");
@@ -17,11 +16,7 @@ msos.onload_functions.push(
 
 		var contact_map = function () {
 
-			var geo_error = function (msg) {
-					msg = typeof msg === 'string' ? msg : "Mapping failed!";
-					msos.console.warn('Content: contact.html, mapping problem: ' + msg);
-				},
-				geo_locate = function (position) {
+			var geo_locate = function (position) {
 
 					// Go to go, so show map canvas
 					msos.byid("map_canvas").style.display = 'block';
@@ -41,7 +36,8 @@ msos.onload_functions.push(
 							title: "Beautiful Charleston, SC!"
 						});
 
-					msos.console.debug('Content: contact.html - geo_locate -> done!');
+
+					msos.console.debug('Content: contact.html - geo_locate -> done, marker object:', marker);
 				};
 	
 			geo_locate({ coords: { latitude: 32.7846, longitude: -79.9409 } });

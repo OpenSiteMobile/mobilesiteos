@@ -107,6 +107,9 @@ msos.config.social = {
 	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
 };
 
+// Add your Google Maps API key here.
+msos.config.google.maps_api_key = 'AIzaSyAhvG_5h55iUW3fLREMTPxB6joCAexYQ2o';
+
 // Add your Google Web Page Translator Widget ID here.
 msos.config.google.translate_id = '7aa52b36fcd8fcb6-07fbdbdc6a976e62-g7261f6c2de6e277c-d';
 msos.config.google.no_translate = {

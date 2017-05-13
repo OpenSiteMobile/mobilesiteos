@@ -30,8 +30,7 @@
 /*global
 	msos:false,
 	Modernizr:false,
-	jQuery: false,
-	_: false
+	jQuery: false
 */
 
 msos.site = {
