@@ -36,6 +36,7 @@ msos.onload_functions.push(
 							title: "Beautiful Charleston, SC!"
 						});
 
+
 					msos.console.debug('Content: contact.html - geo_locate -> done, marker object:', marker);
 				};
 	
