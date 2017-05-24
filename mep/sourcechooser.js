@@ -17,12 +17,12 @@
 
 msos.provide("mep.sourcechooser");
 
-mep.sourcechooser.version = new msos.set_version(15, 12, 4);
+mep.sourcechooser.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our stylesheet
 mep.sourcechooser.css = new msos.loader();
-mep.sourcechooser.css.load('mep_sourcechooser_css', msos.resource_url('mep', 'css/sourcechooser.css'));
+mep.sourcechooser.css.load(msos.resource_url('mep', 'css/sourcechooser.css'));
 
 mep.sourcechooser.start = function (me_player) {
 	"use strict";

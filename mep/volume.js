@@ -16,12 +16,12 @@
 
 msos.provide("mep.volume");
 
-mep.volume.version = new msos.set_version(15, 12, 10);
+mep.volume.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our volume.css stylesheet
 mep.volume.css = new msos.loader();
-mep.volume.css.load('mep_volume_css', msos.resource_url('mep', 'css/volume.css'));
+mep.volume.css.load(msos.resource_url('mep', 'css/volume.css'));
 
 mep.volume.start = function (me_player) {
 	"use strict";

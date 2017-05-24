@@ -16,7 +16,7 @@
 
 msos.provide("mep.youtube");
 
-mep.youtube.version = new msos.set_version(15, 12, 9);
+mep.youtube.version = new msos.set_version(17, 5, 21);
 
 
 // YouTube Flash and Iframe API
@@ -108,7 +108,7 @@ mep.youtube.api = {
 		var youtube_loader = new msos.loader(),
 			youtube_src = "http://www.youtube.com/player_api";
 
-		youtube_loader.load('youtube_api', youtube_src);
+		youtube_loader.load(youtube_src);
 
 		this.isIframeStarted = true;
 	},

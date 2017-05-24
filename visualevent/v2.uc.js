@@ -234,7 +234,7 @@
 		// HTML element id's to be ignored by VisualEvent code
 		this.ignore = [
 			'Event_Label', 'Event_Display', 'Event_Lightbox', 'Event_code', 'Event_Help',
-			'google_ad', 'social_ties', 'google_translate_element', 'goog-gt-tt'
+			'google_ad', 'google_translate_element', 'goog-gt-tt'
 		];
 
 		this.targetable_ids = {};

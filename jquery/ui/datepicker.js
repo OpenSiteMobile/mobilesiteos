@@ -18,7 +18,7 @@
 // msos: start
 msos.provide("jquery.ui.datepicker");
 
-jquery.ui.datepicker.version = new msos.set_version(16, 10, 27);
+jquery.ui.datepicker.version = new msos.set_version(17, 5, 20);
 
 
 jquery.ui.datepicker.css = new msos.loader();
@@ -761,7 +761,7 @@ $.extend(Datepicker.prototype, {
 		if (!inst.inline) {
 			showAnim = $.datepicker._get(inst, "showAnim");
 			duration = $.datepicker._get(inst, "duration");
-			inst.dpDiv.zIndex($(input).zIndex()+1);
+			inst.dpDiv.css('zIndex', ($(input).css('zIndex')) + 1);
 			$.datepicker._datepickerShowing = true;
 
 			if ( $.effects && $.effects.effect[ showAnim ] ) {
