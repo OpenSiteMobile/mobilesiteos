@@ -5,7 +5,7 @@ msos.provide('apps.invoicing.start');
 apps.invoicing.start.css = new msos.loader();
 
 // Load the page specific css (but after ./config.js loaded css)
-apps.invoicing.start.css.load('apps_invoicing_style_css', msos.resource_url('apps', 'invoicing/style.css'), 'css');
+apps.invoicing.start.css.load(msos.resource_url('apps', 'invoicing/style.css'), 'css');
 
 msos.onload_func_done.push(
 	function () {
@@ -16,7 +16,7 @@ msos.onload_func_done.push(
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         $('#company_logo').attr('src', e.target.result);
-                    }
+                    };
                     reader.readAsDataURL(input.files[0]);
                 }
             };
@@ -28,7 +28,7 @@ msos.onload_func_done.push(
 		// create the controller and inject Angular's $scope
 		apps.invoicing.start.controller(
 			'InvoiceController',
-			['$scope', function($scope) {
+			['$scope', function ($scope) {
 
 				msos.console.debug(temp_sd + 'InvoiceController called!');
 
@@ -53,22 +53,21 @@ msos.onload_func_done.push(
                             postal: "M5S 1B6"
                         },
                         items:[
-                            { qty:10, description:'Gadget', cost:9.95 }
+                            { qty: 10, description: 'Gadget', cost: 9.95 }
                         ]
                     };
 
-                if (localStorage["invoice"] == ""
-                 || localStorage["invoice"] == null) {
+                if (localStorage.invoice === undefined || localStorage.invoice === null) {
                     $scope.invoice = sample_invoice;
-                } else{
-                    $scope.invoice =  JSON.parse(localStorage["invoice"]);
+                } else {
+                    $scope.invoice =  JSON.parse(localStorage.invoice);
                 }
 
                 $scope.addItem = function () {
                     $scope.invoice.items.push({qty:0, cost:0, description:""});    
-                }
+                };
 
-                $scope.removeLogo = function (element) {
+                $scope.removeLogo = function () {
                     var elem = angular.element("#remove_logo");
                     if (elem.text() == "Show Logo") {
                         elem.text("Remove Logo");
@@ -77,49 +76,49 @@ msos.onload_func_done.push(
                         elem.text("Show Logo");
                         $scope.logoRemoved = true;
                     }
-                }
+                };
 
                 $scope.editLogo = function () {
                     jQuery("#imgInp").trigger("click");
-                }
+                };
 
                 $scope.showLogo = function () {
                     $scope.logoRemoved = false;
-                }
+                };
 
                 $scope.removeItem = function (item) {
                     $scope.invoice.items.splice($scope.invoice.items.indexOf(item), 1);    
-                }
+                };
 
                 $scope.invoice_sub_total = function () {
                     var total = 0.00;
                     angular.forEach(
                         $scope.invoice.items,
-                        function (item, key) {
+                        function (item) {
                             total += (item.qty * item.cost);
                         }
                     );
                     return total;
-                }
+                };
 
                 $scope.calculate_tax = function () {
                     return (($scope.invoice.tax * $scope.invoice_sub_total()) / 100);
-                }
+                };
 
                 $scope.calculate_grand_total = function () {
-                    localStorage["invoice"] = JSON.stringify($scope.invoice);
+                    localStorage.invoice = JSON.stringify($scope.invoice);
                     return $scope.calculate_tax() + $scope.invoice_sub_total();
-                } 
+                }; 
 
-                $scope.printInfo = function() { window.print(); }
+                $scope.printInfo = function() { window.print(); };
 
                 $scope.clearLocalStorage = function () {
                     var confirmClear = confirm("Are you sure you would like to clear the invoice?");
                     if (confirmClear) {
-                        localStorage["invoice"] = "";
+                        localStorage.invoice = "";
                         $scope.invoice = sample_invoice;
                     }
-                }
+                };
             }]
         );
 
@@ -132,7 +131,7 @@ msos.onload_func_done.push(
                         function () { instanceElement.show('slow'); },
                         0
                     ); 
-                } 
+                }; 
             }
         );
 

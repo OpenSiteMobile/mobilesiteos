@@ -8,7 +8,7 @@ msos.require("ng.util.smoothscroll");
 apps.bootstrap2.start.css = new msos.loader();
 
 // Load the page specific css (but after ./config.js loaded css)
-apps.bootstrap2.start.css.load('apps_bootstrap_css_demo', msos.resource_url('apps', 'bootstrap/css/demo.css'), 'css');
+apps.bootstrap2.start.css.load(msos.resource_url('apps', 'bootstrap/css/demo.css'), 'css');
 
 
 msos.onload_functions.push(
@@ -114,7 +114,9 @@ msos.onload_functions.push(
             function ($scope, $http, $document, $modal, $location, orderByFilter, $postloader) {
 
                 $scope.showBuildModal = function() {
-                var modalInstance = $modal.open({
+				var modalInstance = null;
+				
+                modalInstance = $modal.open({
                     templateUrl: msos.resource_url('apps','bootstrap2/tmpl/build_modal.html'),
                     controller: 'SelectModulesCtrl',
                     resolve: {
@@ -128,7 +130,9 @@ msos.onload_functions.push(
                 };
 
                 $scope.showDownloadModal = function() {
-                    var modalInstance = $modal.open({
+					var modalInstance = null;
+
+                    modalInstance = $modal.open({
                         templateUrl: msos.resource_url('apps','bootstrap2/tmpl/download_modal.html'),
                         controller: 'DownloadCtrl'
                     });
