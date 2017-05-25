@@ -16,12 +16,12 @@
 
 msos.provide("mep.contextmenu");
 
-mep.contextmenu.version = new msos.set_version(15, 12, 8);
+mep.contextmenu.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our contextmenu.css stylesheet
 mep.contextmenu.css = new msos.loader();
-mep.contextmenu.css.load('mep_css_contextmenu', msos.resource_url('mep', 'css/contextmenu.css'));
+mep.contextmenu.css.load(msos.resource_url('mep', 'css/contextmenu.css'));
 
 mep.contextmenu.start = function (me_player) {
 	"use strict";
@@ -137,13 +137,7 @@ mep.contextmenu.start = function (me_player) {
 						il = items.length,
 						rendered;
 
-					msos.console.debug(temp_cts + ' - renderContextMenu -> called'
-						+ ', x: ' + x
-						+ ', offset x: ' + layer_pos.left
-						+ ', adj x: ' + x_adj
-						+ ', y: ' + y
-						+ ', offset y: ' + layer_pos.top
-						+ ', adj y: ' + y_adj
+					msos.console.debug(temp_cts + ' - renderContextMenu -> called' + ', x: ' + x + ', offset x: ' + layer_pos.left + ', adj x: ' + x_adj + ', y: ' + y + ', offset y: ' + layer_pos.top + ', adj y: ' + y_adj
 					);
 
 					for (i = 0; i < il; i += 1) {

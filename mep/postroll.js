@@ -7,12 +7,12 @@
 
 msos.provide("mep.postroll");
 
-mep.postroll.version = new msos.set_version(15, 12, 9);
+mep.postroll.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our progress.css stylesheet
 mep.postroll.css = new msos.loader();
-mep.postroll.css.load('mep_postroll_css', msos.resource_url('mep', 'css/postroll.css'));
+mep.postroll.css.load(msos.resource_url('mep', 'css/postroll.css'));
 
 
 mep.postroll.start = function (me_player) {

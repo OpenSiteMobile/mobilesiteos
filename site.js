@@ -321,7 +321,6 @@ msos.site.auto_init = function () {
 
     // Based on page elements and configuration -> run functions or add modules
     if (cfg.run_ads && bdwidth > 150 && jQuery('#branding').length === 1)		{ req("msos.google.ad"); }
-    if (cfg.run_social && bdwidth > 150 && jQuery('#social_ties').length)		{ /* add social module(s) here */ }
 
 	// Or based on configuration settings
 	if (cfg.run_analytics && bdwidth > 150)		{ msos.site.google_analytics(); }

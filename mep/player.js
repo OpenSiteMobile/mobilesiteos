@@ -1,6 +1,6 @@
 // Copyright Notice:
 //					player.js
-//			Copyright©2012-2015 - OpenSiteMobile
+//			Copyright©2012-2017 - OpenSiteMobile
 //				All rights reserved
 // ==========================================================================
 //			http://opensite.mobi
@@ -16,7 +16,6 @@
     msos: false,
     mep: false,
     jQuery: false,
-    jquery: false,
     Modernizr: false,
     _: false
 */
@@ -27,16 +26,16 @@ msos.require("msos.fitmedia");
 
 if (msos.config.verbose) { msos.require("mep.debug"); }
 
-mep.player.version = new msos.set_version(15, 12, 8);
+mep.player.version = new msos.set_version(17, 5, 22);
 
 
 // Start by loading our mep/player.css stylesheet
 mep.player.css = new msos.loader();
-mep.player.css.load('mep_css_player', msos.resource_url('mep', 'css/player.css'));
+mep.player.css.load(msos.resource_url('mep', 'css/player.css'));
 
 // Only load css3 if supported
 if (Modernizr.cssgradients) {
-	mep.player.css.load('mep_css_gradient',	msos.resource_url('mep', 'css/gradient.css'));
+	mep.player.css.load(msos.resource_url('mep', 'css/gradient.css'));
 }
 
 mep.player.mepIndex = 0;
@@ -107,6 +106,7 @@ mep.player.defaults = function () {
 			error_func = cfg.error_function, 
 			tagName = ply_obj.node.tagName.toLowerCase(),
 			player_title = '',
+			player_span = '',
 			cloned;
 
 		msos.console.debug(ply_obj.name + ' - init -> start, tag: ' + tagName);
@@ -155,9 +155,11 @@ mep.player.defaults = function () {
 		ply_obj.isVideo = (tagName !== 'audio');
 		ply_obj.tagName = tagName;
 
-		player_title = ply_obj.isVideo ? cfg.i18n.video_player : cfg.i18n.audio_player,
+		player_title = ply_obj.isVideo ? cfg.i18n.video_player : cfg.i18n.audio_player;
+		player_span = jQuery('<span>' + player_title + '</span>');
 
-		jQuery('<span class="visually_hidden">' + player_title + '</span>').insertBefore(ply_obj.$node);
+		player_span.addClass('visually_hidden');
+		player_span.insertBefore(ply_obj.$node);
 
 		// Remove native controls
 		ply_obj.$node.removeAttr('controls');
@@ -275,9 +277,7 @@ mep.player.defaults = function () {
 
 		msos.console.debug(ply_obj.name + hcl + 'start, animation: ' + doAnimation);
 
-		if (!ply_obj.controlsAreVisible
-		  || ply_obj.config.alwaysShowControls
-		  || ply_obj.keyboardAction) { return; }
+		if (!ply_obj.controlsAreVisible || ply_obj.config.alwaysShowControls || ply_obj.keyboardAction) { return; }
 
 		if (doAnimation) {
 
@@ -395,9 +395,7 @@ mep.player.defaults = function () {
 				ply_obj.set_rail_width -= 1;			
 			}
 
-		} while (lastControlPosition !== null
-			  && lastControlPosition.top > 0
-			  && ply_obj.set_rail_width > 0);
+		} while (lastControlPosition !== null && lastControlPosition.top > 0 && ply_obj.set_rail_width > 0);
 
 		if (ply_obj.setProgressRail) { ply_obj.setProgressRail(); }
 		if (ply_obj.setCurrentRail)  { ply_obj.setCurrentRail();  }
@@ -622,12 +620,7 @@ mep.player.determinePlayback = function (ply_obj) {
 
 		// Go thru media types and see what
 		for (i = 0; i < mediaFiles.length; i += 1) {
-			if (mediaFiles[i].type === "video/m3u8"
-			 || html5_elm.canPlayType(mediaFiles[i].type).replace(/no/, '') !== ''
-			 // special case for Mac/Safari 5.0.3 which answers '' to canPlayType('audio/mp3') but 'maybe' to canPlayType('audio/mpeg')
-			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/mp3/,'mpeg')).replace(/no/, '') !== ''
-			 // special case for m4a supported by detecting mp4 support
-			 || html5_elm.canPlayType(mediaFiles[i].type.replace(/m4a/,'mp4')).replace(/no/, '') !== '') {
+			if (mediaFiles[i].type === "video/m3u8" || html5_elm.canPlayType(mediaFiles[i].type).replace(/no/, '') !== '' || html5_elm.canPlayType(mediaFiles[i].type.replace(/mp3/,'mpeg')).replace(/no/, '') !== '' || html5_elm.canPlayType(mediaFiles[i].type.replace(/m4a/,'mp4')).replace(/no/, '') !== '') {
 					result.method = 'native';
 					result.url = mediaFiles[i].url;
 					break;
@@ -647,8 +640,7 @@ mep.player.determinePlayback = function (ply_obj) {
 	if (mep && mep.plugins) {
 
 		// if native playback didn't work, then test plugins
-		if (ply_obj.config.mode === 'auto'
-		 || ply_obj.config.mode === 'shim') {
+		if (ply_obj.config.mode === 'auto' || ply_obj.config.mode === 'shim') {
 
 			db_note = 'plugin playback, mode: ' + ply_obj.config.mode;
 
@@ -666,8 +658,7 @@ mep.player.determinePlayback = function (ply_obj) {
 						pluginInfo = pluginTypes[k];
 						// test if user has the correct plugin version
 						// for youtube/vimeo
-						if (pluginInfo.version === null
-						 || mep.plugins.hasPluginVersion(pluginName, pluginInfo.version)) {
+						if (pluginInfo.version === null || mep.plugins.hasPluginVersion(pluginName, pluginInfo.version)) {
 
 							// test for plugin playback types
 							for (l = 0; l < pluginInfo.types.length; l += 1) {
@@ -762,9 +753,7 @@ mep.player.createErrorMessage = function (ply_obj, playback, poster) {
 	"use strict";
 
 	var dl_txt = ply_obj.config.i18n.click_to_download,
-		inner_tag = (poster !== '')
-			? '<a href="' + playback.url + '"><img src="' + poster + '" title="' + dl_txt + '" alt="' + dl_txt + '" /></a>'
-			: '<a href="' + playback.url + '"><span>' + dl_txt + '</span></a>',
+		inner_tag = (poster !== '') ? '<a href="' + playback.url + '"><img src="' + poster + '" title="' + dl_txt + '" alt="' + dl_txt + '" /></a>' : '<a href="' + playback.url + '"><span>' + dl_txt + '</span></a>',
 		errorContainer = jQuery('<div class="me-cannotplay">' + inner_tag + '</div>');
 
 	ply_obj.container.prepend(errorContainer);
@@ -800,9 +789,7 @@ mep.player.controls = function (ply_obj) {
 	// add user-defined features/controls
 	for (i = 0; i < feat.length; i += 1) {
 
-		if (mep[feat[i]]
-		 && mep[feat[i]].start
-		 && typeof mep[feat[i]].start === 'function') {
+		if (mep[feat[i]] && mep[feat[i]].start && typeof mep[feat[i]].start === 'function') {
 			mep[feat[i]].start(ply_obj);
 
 			func_name = 'build' + feat[i];
@@ -921,10 +908,7 @@ mep.player.controls = function (ply_obj) {
 
 					p = mep.player.players[plr];
 
-					if (p.id !== ply_obj.id
-					 && ply_obj.config.pauseOtherPlayers
-					 && !p.paused
-					 && !p.ended) {
+					if (p.id !== ply_obj.id && ply_obj.config.pauseOtherPlayers && !p.paused && !p.ended) {
 						p.pause();
 					}
 

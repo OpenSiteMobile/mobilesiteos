@@ -2,8 +2,6 @@
 /*global
     msos: false,
     jQuery: false,
-    Modernizr: false,
-    _: false,
     angular: false,
     apps: false
 */
@@ -14,7 +12,7 @@ msos.require('ng.route');
 apps.ngdemos.start.css = new msos.loader();
 
 // Load the page specific css (but after ./config.js loaded css)
-apps.ngdemos.start.css.load('apps_ngdemos_css_demo', msos.resource_url('apps', 'ngdemos/css/demo.css'), 'css');
+apps.ngdemos.start.css.load(msos.resource_url('apps', 'ngdemos/css/demo.css'), 'css');
 
 
 msos.onload_functions.push(

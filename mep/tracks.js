@@ -18,12 +18,12 @@
 
 msos.provide("mep.tracks");
 
-mep.tracks.version = new msos.set_version(15, 12, 2);
+mep.tracks.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our tracks.css stylesheet
 mep.tracks.css = new msos.loader();
-mep.tracks.css.load('mep_tracks_css', msos.resource_url('mep', 'css/tracks.css'));
+mep.tracks.css.load(msos.resource_url('mep', 'css/tracks.css'));
 
 	
 mep.tracks.SMPTEtoSec = function (SMPTE) {

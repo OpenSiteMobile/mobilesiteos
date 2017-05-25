@@ -8,16 +8,16 @@
 
 msos.provide("mep.progress");
 
-mep.progress.version = new msos.set_version(15, 12, 3);
+mep.progress.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our progress.css stylesheet
 mep.progress.css = new msos.loader();
-mep.progress.css.load('mep_css_progress', msos.resource_url('mep', 'css/progress.css'));
+mep.progress.css.load(msos.resource_url('mep', 'css/progress.css'));
 
 // Only load css3 if supported
 if (Modernizr.cssanimations && Modernizr.csstransforms) {
-	mep.progress.css.load('mep_css_animation',	msos.resource_url('mep', 'css/animation.css'));
+	mep.progress.css.load(msos.resource_url('mep', 'css/animation.css'));
 }
 
 mep.progress.start = function (me_player) {

@@ -7,12 +7,12 @@
 
 msos.provide("mep.speedselect");
 
-mep.speedselect.version = new msos.set_version(15, 12, 2);
+mep.speedselect.version = new msos.set_version(17, 5, 21);
 
 
 // Start by loading our tracks.css stylesheet
 mep.speedselect.css = new msos.loader();
-mep.speedselect.css.load('mep_speedselect_css', msos.resource_url('mep', 'css/speedselect.css'));
+mep.speedselect.css.load(msos.resource_url('mep', 'css/speedselect.css'));
 
 
 mep.speedselect.start = function (me_player) {
