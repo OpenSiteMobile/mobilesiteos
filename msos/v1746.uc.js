@@ -585,8 +585,7 @@ msos.notify = {
 		self.clear_current();
 
 		for (n = 0; n < self.queue.length; n += 1) {
-			if (self.queue[n].type !== 'warning'
-			 && self.queue[n].type !== 'error') {
+			if (self.queue[n].type !== 'warning' && self.queue[n].type !== 'error') {
 				clearTimeout(self.queue[n].auto_delay);
 			}
 		}
@@ -882,8 +881,7 @@ msos.set_bandwidth = function () {
 		kbps_new = false,
 		cnt = 0,
 		sum = 0,
-		avg = 0,
-		i = 0;
+		avg = 0;
 
 	// This function does **not** provide a rigorous bandwidth value, but just
 	// a reasonable "best guess" estimate. It is important to note that it
@@ -1001,8 +999,7 @@ msos.set_window_onchange = function () {
 	jQuery(window).on('resize', _.debounce(msos.run_onresize, 250));
 
 	// Bind onorientationchange function (always run on change)
-	if (msos.config.orientation
-	 && msos.config.orientation_change) {
+	if (msos.config.orientation && msos.config.orientation_change) {
 		jQuery(window).on('orientationchange', _.debounce(msos.run_onorientationchange, 100));
 	}
 
