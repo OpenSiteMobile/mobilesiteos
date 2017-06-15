@@ -230,7 +230,7 @@ msos.config = {
 
 	// All the T/F toggles used for debugging (see msos.debugform)
 	debugging: [
-		'console',
+		'console', 'console_forced',
 		'debug', 'debug_script', 'debug_css', 'debug_output',
 		'mobile', 'verbose', 'visualevent',
 		'run_ads', 'run_size', 'run_analytics', 'run_onerror',
@@ -764,7 +764,7 @@ msos.console = (function () {
 			}
 
 			// if msos console output, add this
-			if (cfg.console) {
+			if (cfg.console || cfg.console_forced) {
 
 				log_output = [method].concat(args);
 
@@ -4421,6 +4421,7 @@ msos.create_node = function (tag, atts_obj, win) {
 
     return elem;
 };
+
 
 msos.loader = function (win) {
     "use strict";

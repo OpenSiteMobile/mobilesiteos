@@ -108,6 +108,35 @@ msos.zero_pad = function (input, count, left) {
     return str;
 };
 
+msos.array_segments = function (array, size) {
+	"use strict";
+
+    // initialize vars
+    var i = 0,
+		j = array.length,
+		tempArray = [];
+
+    // loop through and jump based on size
+		for (i = 0; i < j; i += size) {
+        // slice chunk of arr and push to tempArray
+        tempArray.push(array.slice(i, i + size));
+    }
+
+    // return temp array (chunck)
+    return tempArray;
+};
+
+msos.run_console_forced = function (console_queue) {
+	"use strict";
+
+	var queue_segments = msos.array_segments(console_queue, 25),
+		i = 0;
+
+		for (i = 0; i < queue_segments.length; i += 1) {
+			alert(queue_segments[i].join("\n"));
+		}
+};
+
 msos.run_onresize = function () {
     "use strict";
 
@@ -1038,6 +1067,11 @@ msos.run_final = function () {
 
 	msos.console.debug(temp_rf + ' -> done!');
 
+	// Force output to alerts, if required (such as iPhone or iPad w/o console)
+	if (msos.config.console_forced) {
+		msos.run_console_forced(msos.console.queue);
+	}
+
 	// Last function, report debugging output
 	if (msos.pyromane) { setTimeout(msos.pyromane.run, 500); }
 
@@ -1061,7 +1095,7 @@ msos.run_onload = function () {
 		cc = cfg.storage;
 
 	/*
-		JavaScript is all about timing. This funtion allows precise timing of software
+		JavaScript is all about timing. This function allows precise timing of software
 		execution in layers. Important because it allows us to load modules based on user
 		preferences, browser settings and page html in cascading order of readiness.
 	*/
@@ -1172,6 +1206,10 @@ msos.run_onload = function () {
 				msos.console.error(run_txt + 'failed, module queue: ' + msos.require_queue + ', i18n queue: ' + msos.i18n_queue + ', pending file loading:', msos.pending_file_loads);
 				msos.notify.warning(jQuery('title').text(), 'Page Timed Out');
 				msos.check_resources();
+
+				if (msos.config.console_forced) {
+					msos.run_console_forced(msos.console.queue);
+				}
 			};
 
 			// Let any 'thrown errors' settle, then report script stop
@@ -1198,5 +1236,5 @@ jQuery(document).ready(msos.check_deferred_scripts);
 
 msos.registered_modules.msos = true;
 
-msos.console.info('msos/core -> done!');
+msos.console.info('msos/core -> done, ' + msos.version);
 msos.console.timeEnd('core');
