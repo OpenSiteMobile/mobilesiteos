@@ -91,24 +91,13 @@ if (msos.config.debug_script) {
 // --------------------------
 
 // Google Analytics
-var _gaq = [['_setAccount', 'UA-24170958-1'], ['_trackPageview']],
+var _gaq = [],
     ___gcfg = {};
 
-// Ref. 'msos.site.google_analytics' in site.js
+_gaq.push(['_setAccount', 'UA-24170958-1']);
+_gaq.push(['_trackPageview']);
+// Ref. 'msos.site.google_analytics' in site.uc.js -> site.min.js
 msos.config.google.analytics_domain = 'opensitemobile.com';
-
-// Social website API access keys
-msos.config.social = {
-	google: '526338426431.apps.googleusercontent.com',
-	facebook: '583738878406494',
-	windows: '000000004C107945',
-	instagram: '34e2fb9bd305446cb080d852597584e9',
-	cloudmade: 'efca0172cf084708a66a6d48ae1046dd',
-	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
-};
-
-// Add your Google Maps API key here.
-msos.config.google.maps_api_key = 'AIzaSyAhvG_5h55iUW3fLREMTPxB6joCAexYQ2o';
 
 // Add your Google Web Page Translator Widget ID here.
 msos.config.google.translate_id = '7aa52b36fcd8fcb6-07fbdbdc6a976e62-g7261f6c2de6e277c-d';
@@ -122,6 +111,18 @@ msos.config.google.hide_tooltip = {
 	by_class: []
 };
 
+// Social website API access keys
+msos.config.social = {
+	google: '526338426431.apps.googleusercontent.com',
+	facebook: '583738878406494',
+	windows: '000000004C107945',
+	instagram: '34e2fb9bd305446cb080d852597584e9',
+	cloudmade: 'efca0172cf084708a66a6d48ae1046dd',
+	foursquare: 'SFYWHRQ1LTUJEQWYQMHOCXYWNFNS0MKUCAGANTHLFUGJX02E'
+};
+
+// Add your Google Maps API key here.
+msos.config.google.maps_api_key = 'AIzaSyAhvG_5h55iUW3fLREMTPxB6joCAexYQ2o';
 
 msos.css_loader(msos.deferred_css);
 msos.script_loader(msos.deferred_scripts);
