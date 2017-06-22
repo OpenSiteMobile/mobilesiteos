@@ -126,15 +126,75 @@ msos.array_segments = function (array, size) {
     return tempArray;
 };
 
-msos.run_console_forced = function (console_queue) {
+msos.run_console_alert = function () {
 	"use strict";
 
-	var queue_segments = msos.array_segments(console_queue, 25),
+	var queue_segments = msos.array_segments(msos.console.queue, 25),
 		i = 0;
 
 		for (i = 0; i < queue_segments.length; i += 1) {
 			alert(queue_segments[i].join("\n"));
 		}
+};
+
+msos.run_console_remote = function () {
+	"use strict";
+
+	msos.console.debug('msos.run_console_remote -> called, queued messages: ' + msos.console.queue.length);
+
+	// Start sending remote console data
+	msos.cycle_console_remote();
+};
+
+msos.cycle_console_remote = function () {
+	var console_array = msos.console.remote.length ? msos.console.remote.shift() : undefined,
+		method = '',
+		message = '';
+
+	if (console_array) { 
+		method = console_array.shift();
+		message = console_array.map(msos.obj_stringify);
+
+		if (method === 'debug' || method === 'time' || method === 'timeEnd' || method === 'warn') {
+			method = 'info';
+		}
+
+		msos.remoteWindow.postMessage(
+			JSON.stringify({
+				response: message.join(' '),
+				type: method
+			}),
+			msos.remote_origin
+		);
+	}
+
+	if (msos.console.remote.length) {
+		// Keep sending data
+		setTimeout(msos.cycle_console_remote, 15);
+	} else {
+		// Check for more data
+		setTimeout(msos.cycle_console_remote, 10000);
+	}
+};
+
+msos.run_debugging_output = function () {
+	"use strict";
+
+	if (msos.config.console_alert) {
+		msos.run_console_alert();
+	}
+
+	if (msos.config.console_remote) {
+		msos.run_console_remote();
+	}
+
+	if (msos.config.console) {
+		msos.pyromane.run();
+	}
+
+	// Clear queue to accomodate new input
+	msos.console.queue = [];
+
 };
 
 msos.run_onresize = function () {
@@ -1067,13 +1127,8 @@ msos.run_final = function () {
 
 	msos.console.debug(temp_rf + ' -> done!');
 
-	// Force output to alerts, if required (such as iPhone or iPad w/o console)
-	if (msos.config.console_forced) {
-		msos.run_console_forced(msos.console.queue);
-	}
-
-	// Last function, report debugging output
-	if (msos.pyromane) { setTimeout(msos.pyromane.run, 500); }
+	// Last function, add debugging output
+	msos.run_debugging_output();
 
 	msos.run_onload_incr += 1;
 };
@@ -1207,9 +1262,8 @@ msos.run_onload = function () {
 				msos.notify.warning(jQuery('title').text(), 'Page Timed Out');
 				msos.check_resources();
 
-				if (msos.config.console_forced) {
-					msos.run_console_forced(msos.console.queue);
-				}
+				// Report debugging info where possible
+				msos.run_debugging_output();
 			};
 
 			// Let any 'thrown errors' settle, then report script stop
