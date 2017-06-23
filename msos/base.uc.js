@@ -403,19 +403,7 @@ msos.config = {
 (function (_global) {
 	"use strict";
 
-    var tag2attr = {
-            a       : 'href',
-            img     : 'src',
-            form    : 'action',
-            base    : 'href',
-            script  : 'src',
-            iframe  : 'src',
-            link    : 'href',
-            embed   : 'src',
-            object  : 'data'
-        },
-
-        key = ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'fragment'], // keys available to query
+	var key = ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'fragment'], // keys available to query
 
         aliases = { 'anchor' : 'fragment' }, // aliases for backwards compatability
 
@@ -448,12 +436,6 @@ msos.config = {
         uri.attr.base = uri.attr.host ? (uri.attr.protocol ?  uri.attr.protocol+'://'+uri.attr.host : uri.attr.host) + (uri.attr.port ? ':'+uri.attr.port : '') : '';
 
         return uri;
-    }
-
-    function getAttrName( elm ) {
-        var tn = elm.tagName;
-        if ( typeof tn !== 'undefined' ) return tag2attr[tn.toLowerCase()];
-        return tn;
     }
 
     function promote(parent, key) {
@@ -4966,13 +4948,14 @@ msos.script_loader = function (url_array) {
 };
 
 
-// --------------------------
+// *******************************************
 // Establish base MSOS environment
-// --------------------------
+// *******************************************
 msos.set_environment();
 msos.set_locale();
 msos.get_display_size();
 
+if (!msos.config.size) { throw new Error('msos.get_display_size did not run!'); }
 
 if (console && console.info) { console.info('msos/base -> done!'); }
 msos.console.timeEnd('base');
