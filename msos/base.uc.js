@@ -22,8 +22,6 @@
     _: true
 */
 
-if (console && console.info) { console.info('msos/base -> start.'); }
-
 // --------------------------
 // Our Global Object
 // --------------------------
@@ -72,6 +70,11 @@ var msos = {
     head: null,
     html: null,
     docl: null,
+
+	console: {
+		queue: [],
+		remote: []
+	},
 
 	ajax_loading_kbps: {},
 
@@ -148,14 +151,11 @@ var msos = {
 
 	if (!msos.base_msos_folder)	{ throw new Error('msos.base_msos_folder must be set manually.');}
 
-	if (console && console.info) {
-		console.info('msos/base -> settings,\n     msos.base_site_url: ' + msos.base_site_url + ',\n     msos.base_script_url: ' + msos.base_script_url + ',\n     msos.base_msos_folder: ' + msos.base_msos_folder);
-	}
 }());
 
 // *******************************************
 // Base Configuration Settings
-// Edit as deisired for all apps
+// Edit (with care), as deisired for all apps
 // *******************************************
 
 msos.config = {
@@ -392,7 +392,6 @@ msos.config = {
         delta_heigth: 0
     }
 };
-
 
 /*
  * Purl (A JavaScript URL parser) v2.3.1
@@ -641,6 +640,202 @@ msos.config = {
 
 }(msos));
 
+msos.parse_query = function () {
+    "use strict";
+
+	var url = msos.purl(),	// Get current page url
+		key = '',
+        cfg = '',
+		result = url.param();
+
+    for (key in result) {
+		// only allow std word characters
+		if (result.hasOwnProperty(key)) {
+			result[key] = result[key].replace(/[^0-9a-zA-Z_]/g, '_');
+	
+			if (result[key] === 'true')		{ result[key] = true; }
+			if (result[key] === 'false')	{ result[key] = false; }
+		}
+	}
+
+    // Update msos.config if new info passed in by query string
+    for (cfg in msos.config) {
+		if (msos.config.hasOwnProperty(cfg)) {
+			if (result[cfg] || result[cfg] === false) {
+				msos.config[cfg] = result[cfg];
+			}
+		}
+    }
+
+	// Verbose output implies debugging too.
+	if (msos.config.verbose) { msos.config.debug = true; }
+
+    return result;
+};
+
+// Run immediately so inputs are evaluated
+msos.config.query = msos.parse_query();
+
+/*
+ * MobileSiteOS Debugging Console
+ */
+
+(function (console_obj) {
+	"use strict";
+
+	var console_win = window.console,
+		idx = msos.log_methods.length - 1,
+		aps = Array.prototype.slice,
+		methods = [
+			'assert', 'clear', 'count', 'debug', 'dir', 'dirxml',
+			'error', 'exception', 'group', 'groupCollapsed', 'groupEnd',
+			'info', 'log', 'markTimeline', 'profile', 'profiles',
+			'profileEnd', 'show', 'table', 'time', 'timeEnd', 'timeline',
+			'timelineEnd', 'timeStamp', 'trace', 'warn'
+		],
+		method = methods.pop(),
+		console_method_func = function (key) {
+			return function () { msos.console.warn('msos.console -> method: ' + key + ' is na!'); };
+		};
+
+	// Normalize across browsers
+    if (!console_win.memory) { console_win.memory = {}; }
+
+    while (method) {
+		if (!console_win[method]) { console_win[method] = console_method_func(method); }
+		method = methods.pop();
+	}
+
+	// From AngularJS
+    function formatError(arg) {
+		if (arg instanceof Error) {
+			if (arg.stack) {
+				arg = (arg.message && arg.stack.indexOf(arg.message) === -1) ? 'Error: ' + arg.message + '\n' + arg.stack : arg.stack;
+			} else if (arg.sourceURL) {
+				arg = arg.message + '\n' + arg.sourceURL + ':' + arg.line;
+			}
+		}
+		return arg;
+    }
+
+	function build_console(method) {
+
+		console_obj[method] = function () {
+
+			// Always show errors, warnings and info
+			if (!(method === 'error' || method === 'warn' || method === 'info') && !msos.config.debug) {
+				return;
+			}
+
+			var cfg = msos.config,
+				filter = cfg.query.debug_filter || '',
+				i = 0,
+				args = aps.apply(arguments),
+				name = args[0] && typeof args[0] === 'string' ? args[0].replace(/\W/g, '_') : 'missing name or input',
+				console_org = console_win[method] || console_win.log,
+				log_output = [],
+				out_args = [],
+				message;
+
+			if (method === 'debug' && cfg.verbose && filter && /^[0-9a-zA-Z.]+$/.test(filter)) {
+				filter = new RegExp('^' + filter.replace('.', "\."));
+				if (!name.match(filter)) {
+					msos.console.warn('msos.console -> no match for debug filter: ' + filter);
+					return;
+				}
+			}
+
+			if (method === 'time' || method === 'timeEnd') {
+				msos.record_times[name + '_' + method] = (new Date()).getTime();
+			}
+
+			// Look for error objects and format for display
+			for (i = 0; i < args.length; i += 1) {
+				out_args.push(formatError(args[i]));
+			}
+
+			// if msos console output, add this code
+			if (cfg.console || cfg.console_alert || cfg.console_remote) {
+
+				log_output = [method].concat(out_args);
+
+				if (method === 'time' || method === 'timeEnd') {
+					log_output.push(msos.record_times[name + '_' + method]);
+				}
+
+				console_obj.queue.push(log_output);
+
+				if (cfg.console_remote) {
+					console_obj.remote.push(log_output);
+				}
+			}
+
+			if (console_win) {
+
+				if (console_org.apply) {
+					// Do this for normal browsers (msos.console output to window.console by type)
+					console_org.apply(console_win, out_args);
+
+				} else {
+					// Do msos.console output to very simple console)
+					message = msos.obj_stringify(args, true);
+					console_org(message);
+				}
+			}
+		};
+	}
+
+	while (idx >= 0) {
+		build_console(msos.log_methods[idx]);
+		idx -= 1;
+	}
+
+}(msos.console));
+
+msos.set_version = function (mjr, mnr, pth) {
+	"use strict";
+
+	var self = this;
+
+	self = {			// loosely translates to:
+		major: mjr,		// year
+		minor: mnr,		// month
+		patch: pth,		// day
+		toString: function () {
+			return 'v' + self.major + '.' + self.minor + '.' + self.patch;
+		}
+	};
+
+	return self;
+};
+
+// Console is now available...
+msos.console.info('msos/base -> start, (/mobilesiteos/msos/base.uc.js file), ' + (new msos.set_version(17, 6, 23)));
+msos.console.time('base');
+msos.console.info('msos/base -> settings,\n     msos.base_site_url: ' + msos.base_site_url + ',\n     msos.base_script_url: ' + msos.base_script_url + ',\n     msos.base_msos_folder: ' + msos.base_msos_folder + ',\n     msos.config.query:', msos.config.query);
+
+msos.site_specific = function (settings) {
+	"use strict";
+
+	var i = 0,
+		ms_db = msos.config.debugging,
+		ms_qu = msos.config.query,
+		set = '';
+
+	for (i = 0; i < ms_db.length; i += 1) {
+		// configuration setting
+		set = ms_db[i];
+
+		if (typeof settings[set] === 'boolean') {
+			// Set msos.config based on site specific setting
+			msos.config[set] = settings[set];
+		}
+		if (typeof ms_qu[set] === 'boolean') {
+			// Or override w/ debugging settings if sent via query string
+			msos.config[set] = ms_qu[set];
+		}
+	}
+};
 
 msos.obj_type = function (obj) {
     "use strict";
@@ -710,51 +905,12 @@ msos.obj_stringify = function (o, simple) {
 	return json;
 };
 
-msos.parse_query = function () {
-    "use strict";
-
-	var url = msos.purl(),	// Get current page url
-		key = '',
-        cfg = '',
-		result = url.param();
-
-    for (key in result) {
-		// only allow std word characters
-		if (result.hasOwnProperty(key)) {
-			result[key] = result[key].replace(/[^0-9a-zA-Z_]/g, '_');
-	
-			if (result[key] === 'true')		{ result[key] = true; }
-			if (result[key] === 'false')	{ result[key] = false; }
-		}
-	}
-
-    // Update msos.config if new info passed in by query string
-    for (cfg in msos.config) {
-		if (msos.config.hasOwnProperty(cfg)) {
-			if (result[cfg] || result[cfg] === false) {
-				msos.config[cfg] = result[cfg];
-			}
-		}
-    }
-
-	// Verbose output implies debugging too.
-	if (msos.config.verbose) { msos.config.debug = true; }
-
-    return result;
-};
-
-// Run immediately so inputs are evaluated
-msos.config.query = msos.parse_query();
-
-if (console && console.log) {
-	console.log('msos/base -> msos.config.query:', msos.config.query);
-}
-
 msos.remote_origin = 'https://jsconsole.com';
 msos.remoteWindow = null;
 msos.remoteFrame = null;
 
 msos.use_remote_debugging = function () {
+	"use strict";
 
 	msos.remoteFrame = document.createElement('iframe');
 	msos.remoteFrame.style.display = 'none';
@@ -786,152 +942,13 @@ if (msos.config.query.console_remote && (/^msos_/).test(msos.config.query.consol
 	msos.use_remote_debugging();
 }
 
-msos.console = (function () {
-	"use strict";
-
-	var console_obj = { queue: [], remote: [] },
-		console_win = window.console,
-		idx = msos.log_methods.length - 1,
-		aps = Array.prototype.slice,
-		methods = [
-			'assert', 'clear', 'count', 'debug', 'dir', 'dirxml',
-			'error', 'exception', 'group', 'groupCollapsed', 'groupEnd',
-			'info', 'log', 'markTimeline', 'profile', 'profiles',
-			'profileEnd', 'show', 'table', 'time', 'timeEnd', 'timeline',
-			'timelineEnd', 'timeStamp', 'trace', 'warn'
-		],
-		method = methods.pop(),
-		console_method_func = function (key) { return function () { console.warn('msos.console -> method: ' + key + ' is na!'); };};
-
-	// Normalize across browsers
-    if (!console_win.memory) { console_win.memory = {}; }
-
-    while (method) {
-		if (!console_win[method]) { console_win[method] = console_method_func(method); }
-		method = methods.pop();
-	}
-
-	// From AngularJS
-    function formatError(arg) {
-		if (arg instanceof Error) {
-			if (arg.stack) {
-				arg = (arg.message && arg.stack.indexOf(arg.message) === -1) ? 'Error: ' + arg.message + '\n' + arg.stack : arg.stack;
-			} else if (arg.sourceURL) {
-				arg = arg.message + '\n' + arg.sourceURL + ':' + arg.line;
-			}
-		}
-		return arg;
-    }
-
-	function build_console(method) {
-
-		console_obj[method] = function () {
-
-			// Always show errors and warnings
-			if (!(method === 'error' || method === 'warn') && !msos.config.debug) {
-				return;
-			}
-
-			var cfg = msos.config,
-				filter = cfg.query.debug_filter || '',
-				i = 0,
-				args = aps.apply(arguments),
-				name = args[0] && typeof args[0] === 'string' ? args[0].replace(/\W/g, '_') : 'missing name or input',
-				console_org = console_win[method] || console_win.log,
-				log_output = [],
-				out_args = [],
-				message;
-
-			if (method === 'debug' && cfg.verbose && filter && /^[0-9a-zA-Z.]+$/.test(filter)) {
-				filter = new RegExp('^' + filter.replace('.', "\."));
-				if (!name.match(filter)) {
-					msos.console.warn('msos.console -> no match for debug filter: ' + filter);
-					return;
-				}
-			}
-
-			if (method === 'time' || method === 'timeEnd') {
-				msos.record_times[name + '_' + method] = (new Date()).getTime();
-			}
-
-			// Look for error objects and format for display
-			for (i = 0; i < args.length; i += 1) {
-				out_args.push(formatError(args[i]));
-			}
-
-			// if msos console output, add this code
-			if (cfg.console || cfg.console_alert || cfg.console_remote) {
-
-				log_output = [method].concat(out_args);
-
-				if (method === 'time' || method === 'timeEnd') {
-					log_output.push(msos.record_times[name + '_' + method]);
-				}
-
-				console_obj.queue.push(log_output);
-
-				if (cfg.console_remote) {
-					console_obj.remote.push(log_output);
-				}
-			}
-
-			if (console_win) {
-
-				if (console_org.apply) {
-					// Do this for normal browsers (msos.console output to window.console by type)
-					console_org.apply(console_win, out_args);
-
-				} else {
-					// Do msos.console output to very simple console)
-					message = msos.obj_stringify(args, true);
-					console_org(message);
-				}
-			}
-		};
-	}
-
-	while (idx >= 0) {
-		build_console(msos.log_methods[idx]);
-		idx -= 1;
-	}
-
-	return console_obj;
-}());
-
-msos.console.time('base');
-msos.console.debug('msos/base -> msos.console now available.');
-msos.console.debug('msos/base -> purl.js now available.');
-
-msos.site_specific = function (settings) {
-	"use strict";
-
-	var i = 0,
-		ms_db = msos.config.debugging,
-		ms_qu = msos.config.query,
-		set = '';
-
-	for (i = 0; i < ms_db.length; i += 1) {
-		// configuration setting
-		set = ms_db[i];
-
-		if (typeof settings[set] === 'boolean') {
-			// Set msos.config based on site specific setting
-			msos.config[set] = settings[set];
-		}
-		if (typeof ms_qu[set] === 'boolean') {
-			// Or override w/ debugging settings if sent via query string
-			msos.config[set] = ms_qu[set];
-		}
-	}
-};
-
-
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
 
 (function () {
+	"use strict";
 
     // Baseline setup
     // --------------
@@ -2504,7 +2521,6 @@ msos.site_specific = function (settings) {
 
 }.call(this));
 
-
 /*!
  * modernizr v3.2.0
  *
@@ -3414,6 +3430,8 @@ msos.site_specific = function (settings) {
 // https://github.com/Wisembly/basil.js
 
 (function () {
+	"use strict";
+
     // Basil
     var Basil = function (options) {
 
@@ -3992,23 +4010,6 @@ msos.do_abs_nothing = function (evt) {
 msos.new_time = function () {
 	"use strict";
 	return (new Date()).getTime();
-};
-
-msos.set_version = function (mjr, mnr, pth) {
-	"use strict";
-
-	var self = this;
-
-	self = {			// loosely translates to:
-		major: mjr,		// year
-		minor: mnr,		// month
-		patch: pth,		// day
-		toString: function () {
-			return 'v' + self.major + '.' + self.minor + '.' + self.patch;
-		}
-	};
-
-	return self;
 };
 
 msos.gen_namespace = function (b) {
@@ -4955,7 +4956,5 @@ msos.set_environment();
 msos.set_locale();
 msos.get_display_size();
 
-if (!msos.config.size) { throw new Error('msos.get_display_size did not run!'); }
-
-if (console && console.info) { console.info('msos/base -> done!'); }
+msos.console.info('msos/base -> done!');
 msos.console.timeEnd('base');
