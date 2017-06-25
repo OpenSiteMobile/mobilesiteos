@@ -191,7 +191,6 @@ msos.config = {
         mobile: false,
         touch: false,
 		nativeoverflow: false,
-		fastclick: false,
 		scalable: false
     },
 
@@ -4422,58 +4421,6 @@ msos.browser_native_overflow = function () {
 	conf.browser.nativeoverflow = Modernizr.overflowscrolling || conf.overflow_scrolling.webkitoverflowscrolling || conf.overflow_scrolling.msoverflowstyle;
 };
 
-// Borrowed from "FastClick.notNeeded"
-msos.browser_has_fastclick = function () {
-	"use strict";
-
-	var chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [0,0])[1],
-		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [0,0])[1],
-		isblackberry10 = navigator.userAgent.indexOf('BB10') > 0,
-		blackberryVersion,
-		output = false;
-
-	// Devices that don't support touch don't need FastClick
-	if (window.ontouchstart === undefined) {
-
-		output = true;
-
-	} else if (chromeVersion) {
-
-		// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
-		if (navigator.userAgent.indexOf('Android') > 0) {
-			if (msos.config.browser.scalable) {
-				output = true;
-			}
-		} else {
-			output = true;
-		}
-
-	} else if (isblackberry10) {
-
-		blackberryVersion = navigator.userAgent.match(/Version\/([0-9]*)\.([0-9]*)/);
-
-		// BlackBerry 10.3+ does not require Fastclick library.
-		// https://github.com/ftlabs/fastclick/issues/251
-		if (blackberryVersion[1] >= 10 && blackberryVersion[2] >= 3) {
-			if (msos.config.browser.scalable) {
-				output = true;
-			}
-		}
-
-	} else if (firefoxVersion >= 27) {
-
-		if (msos.config.browser.scalable) {
-			output = true;
-		}
-
-	} else if (document.body.style.touchAction === 'none' || document.body.style.touchAction === 'manipulation') {
-		// IE10, 11 with -ms-touch-action: none or manipulation, which disables double-tap-to-zoom
-		output = true;
-	}
-
-	msos.config.browser.fastclick = output;
-};
-
 msos.browser_is_scalable = function () {
 	"use strict";
 
@@ -4809,16 +4756,9 @@ msos.set_environment = function () {
     msos.browser_orientation();
     msos.browser_touch();
     msos.browser_mobile();
-
-	// iPhone/iPad had a problem with one or more of these, but of coarse didn't error out necessarily...
-	try {
-		msos.browser_preloading();
-		msos.browser_native_overflow();
-		msos.browser_is_scalable();
-		msos.browser_has_fastclick();
-	} catch (e) {
-		msos.console.warn(set_txt + 'problem evaluating some browser properties:', e);
-	}
+	msos.browser_preloading();
+	msos.browser_native_overflow();
+	msos.browser_is_scalable();
 
 	if (msos.config.verbose) {
 		msos.console.debug(set_txt + 'done, browser env: ', msos.config.browser);
