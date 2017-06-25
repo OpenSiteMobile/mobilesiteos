@@ -17,11 +17,8 @@
     _: false
 */
 
-msos.version = new msos.set_version(17, 4, 6);
-
-msos.console.info('msos/core -> start, ' + msos.version);
+msos.console.info('msos/core -> start, (/mobilesiteos/msos/core.uc.js file), ' + (new msos.set_version(17, 6, 23)));
 msos.console.time('core');
-
 
 // *******************************************
 // MSOS Functions using jQuery, underscore.js
@@ -1290,5 +1287,5 @@ jQuery(document).ready(msos.check_deferred_scripts);
 
 msos.registered_modules.msos = true;
 
-msos.console.info('msos/core -> done, ' + msos.version);
+msos.console.info('msos/core -> done!');
 msos.console.timeEnd('core');
