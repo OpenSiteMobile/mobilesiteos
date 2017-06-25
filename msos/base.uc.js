@@ -4809,10 +4809,16 @@ msos.set_environment = function () {
     msos.browser_orientation();
     msos.browser_touch();
     msos.browser_mobile();
-	msos.browser_preloading();
-	msos.browser_native_overflow();
-	msos.browser_is_scalable();
-	msos.browser_has_fastclick();
+
+	// iPhone/iPad had a problem with one or more of these, but of coarse didn't error out necessarily...
+	try {
+		msos.browser_preloading();
+		msos.browser_native_overflow();
+		msos.browser_is_scalable();
+		msos.browser_has_fastclick();
+	} catch (e) {
+		msos.console.warn(set_txt + 'problem evaluating some browser properties:', e);
+	}
 
 	if (msos.config.verbose) {
 		msos.console.debug(set_txt + 'done, browser env: ', msos.config.browser);
