@@ -191,7 +191,6 @@ msos.run_debugging_output = function () {
 
 	// Clear queue to accomodate new input
 	msos.console.queue = [];
-
 };
 
 msos.run_onresize = function () {
@@ -206,12 +205,16 @@ msos.run_onresize = function () {
     // Get the viewport size (which resets msos.config.view_port)
     msos.get_viewport(window);
 
-	// Run all window onresize functions now
-	for (m = 0; m < msos.onresize_functions.length; m += 1) {
-		msos.onresize_functions[m]();
+	// Compare against original...
+	if (port_width === msos.config.view_port.width) {
+		msos.console.debug(temp_onr + 'done, no change w: ' + msos.config.view_port.width);
+	} else {
+		// Run all window onresize functions now
+		for (m = 0; m < msos.onresize_functions.length; m += 1) {
+			msos.onresize_functions[m]();
+		}
+		msos.console.debug(temp_onr + 'done, orig. w: ' + port_width + ', new w: ' + msos.config.view_port.width + ', for: ' + m + ' functions.');
 	}
-
-	msos.console.debug(temp_onr + 'done, orig. w: ' + port_width + ', new w: ' + msos.config.view_port.width + ', for: ' + m + ' functions.');
 };
 
 msos.run_onorientationchange = function () {
