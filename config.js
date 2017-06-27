@@ -114,7 +114,7 @@ msos.config.google.hide_tooltip = {
 
 // Social website API access keys
 msos.config.social = {
-	google: '526338426431.apps.googleusercontent.com',
+	google: 'AIzaSyAhvG_5h55iUW3fLREMTPxB6joCAexYQ2o',
 	facebook: '583738878406494',
 	windows: '000000004C107945',
 	instagram: '34e2fb9bd305446cb080d852597584e9',
@@ -124,6 +124,7 @@ msos.config.social = {
 
 // Add your Google Maps API key here.
 msos.config.google.maps_api_key = 'AIzaSyAhvG_5h55iUW3fLREMTPxB6joCAexYQ2o';
+
 
 msos.css_loader(msos.deferred_css);
 msos.script_loader(msos.deferred_scripts);
