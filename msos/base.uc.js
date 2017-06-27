@@ -276,7 +276,7 @@ msos.config = {
 	},
 
 	// Set full url in config.js file
-	hellojs_redirect: msos.base_site_url  + '/' + msos.base_msos_folder + '/hello/redirect.html',
+	hellojs_redirect: 'https:' + msos.base_site_url  + '/' + msos.base_msos_folder + '/hello/redirect.html',
 
     // See 'msos.i18n' and the 'MSOS Available Language Matrix' for ref.
     i18n: {
