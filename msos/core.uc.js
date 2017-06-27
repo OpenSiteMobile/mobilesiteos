@@ -17,7 +17,7 @@
     _: false
 */
 
-msos.console.info('msos/core -> start, (/mobilesiteos/msos/core.uc.js file), ' + (new msos.set_version(17, 6, 23)));
+msos.console.info('msos/core -> start, (/mobilesiteos/msos/core.uc.js file), ' + (new msos.set_version(17, 6, 26)));
 msos.console.time('core');
 
 // *******************************************
@@ -134,16 +134,19 @@ msos.run_console_alert = function () {
 		}
 };
 
+msos.run_console_remote_cnt = 0;
 msos.run_console_remote = function () {
-	"use strict";
 
-	msos.console.debug('msos.run_console_remote -> called, queued messages: ' + msos.console.queue.length);
+	msos.run_console_remote_cnt += 1;
 
-	// Start sending remote console data
-	msos.cycle_console_remote();
-};
+	// If the iframe isn't ready...
+	if (msos.remoteWindow === null) {
+		if (msos.run_console_remote_cnt < 6) {
+			setTimeout(msos.run_console_remote, 100);
+		}
+		return;
+	}
 
-msos.cycle_console_remote = function () {
 	var console_array = msos.console.remote.length ? msos.console.remote.shift() : undefined,
 		method = '',
 		message = '';
@@ -167,10 +170,10 @@ msos.cycle_console_remote = function () {
 
 	if (msos.console.remote.length) {
 		// Keep sending data
-		setTimeout(msos.cycle_console_remote, 15);
+		setTimeout(msos.run_console_remote, 15);
 	} else {
 		// Check for more data
-		setTimeout(msos.cycle_console_remote, 10000);
+		setTimeout(msos.run_console_remote, 10000);
 	}
 };
 
