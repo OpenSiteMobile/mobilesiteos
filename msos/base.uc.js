@@ -153,6 +153,7 @@ var msos = {
 
 }());
 
+
 // *******************************************
 // Base Configuration Settings
 // Edit (with care), as deisired for all apps
@@ -275,7 +276,7 @@ msos.config = {
 	},
 
 	// Set full url in config.js file
-	hellojs_redirect: '/' + msos.base_msos_folder + '/hello/redirect.html',
+	hellojs_redirect: msos.base_site_url  + '/' + msos.base_msos_folder + '/hello/redirect.html',
 
     // See 'msos.i18n' and the 'MSOS Available Language Matrix' for ref.
     i18n: {
@@ -809,7 +810,7 @@ msos.set_version = function (mjr, mnr, pth) {
 };
 
 // Console is now available...
-msos.console.info('msos/base -> start, (/mobilesiteos/msos/base.uc.js file), ' + (new msos.set_version(17, 6, 23)));
+msos.console.info('msos/base -> start, (/mobilesiteos/msos/base.uc.js file), ' + (new msos.set_version(17, 6, 27)));
 msos.console.time('base');
 msos.console.info('msos/base -> settings,\n     msos.base_site_url: ' + msos.base_site_url + ',\n     msos.base_script_url: ' + msos.base_script_url + ',\n     msos.base_msos_folder: ' + msos.base_msos_folder + ',\n     msos.config.query:', msos.config.query);
 
