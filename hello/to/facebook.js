@@ -4,13 +4,82 @@
 
 /*global
     msos: false,
-    jQuery: false,
     hello: false
 */
 
 msos.provide("hello.to.facebook");
 
-hello.to.facebook.version = new msos.set_version(14, 10, 14);
+hello.to.facebook.version = new msos.set_version(17, 6, 30);
+
+hello.to.facebook.sdk = 'v2.9';
+hello.to.facebook.base = 'https://graph.facebook.com/';
+
+hello.to.facebook.formatUser = function (o) {
+	"use strict";
+
+	if (o.id) {
+		o.thumbnail = o.picture = hello.to.facebook.base + o.id + '/picture';
+	}
+
+	return o;
+};
+
+hello.to.facebook.formatFriends = function (o) {
+	"use strict";
+
+	if ('data' in o) {
+		o.data.forEach(hello.to.facebook.formatUser);
+	}
+
+	return o;
+};
+
+hello.to.facebook.format = function (o, headers, req) {
+	"use strict";
+
+	if (typeof o === 'boolean') {
+		o = { success: o };
+	}
+
+	if (o && 'data' in o) {
+		var token = req.query.access_token,
+			data;
+
+		if (!(o.data instanceof Array)) {
+			data = o.data;
+
+			delete o.data;
+			o.data = [data];
+		}
+
+		o.data.forEach(function (d) {
+
+			if (d.picture) {
+				d.thumbnail = d.picture;
+			}
+
+			d.pictures = (d.images || []).sort(
+				function (a, b) {
+					return a.width - b.width;
+				}
+			);
+
+			if (d.cover_photo && d.cover_photo.id) {
+				d.thumbnail = base + d.cover_photo.id + '/picture?access_token=' + token;
+			}
+
+			if (d.type === 'album') {
+				d.files = d.photos = base + d.id + '/photos';
+			}
+
+			if (d.can_upload) {
+				d.upload_location = base + d.id + '/photos';
+			}
+		});
+	}
+
+	return o;
+};
 
 
 hello.to.facebook.config = {
@@ -22,8 +91,47 @@ hello.to.facebook.config = {
 
         oauth: {
             version: 2,
-            auth: 'https://www.facebook.com/dialog/oauth/',
-            grant: 'https://graph.facebook.com/oauth/access_token'
+            auth: 'https://www.facebook.com/' + hello.to.facebook.sdk + '/dialog/oauth/',
+            grant: hello.to.facebook.base + 'oauth/access_token'
+        },
+
+        // Authorization scopes
+        scope: {
+			basic: 'public_profile',
+			email: 'email',
+			share: 'user_posts',
+			birthday: 'user_birthday',
+			events: 'user_events',
+			photos: 'user_photos',
+			videos: 'user_videos',
+			friends: 'user_friends',
+			files: 'user_photos,user_videos',
+			publish_files: 'user_photos,user_videos,publish_actions',
+			publish: 'publish_actions',
+			offline_access: ''
+        },
+
+		// Refresh the access_token
+		refresh: false,
+
+        // API Base URL
+		base: hello.to.facebook.base + hello.to.facebook.sdk + '/',
+
+        // Map GET requests
+        get: {
+			'me': 'me?fields=email,first_name,last_name,name,timezone,verified',
+			'me/friends': 'me/friends',
+			'me/following': 'me/friends',
+			'me/followers': 'me/friends',
+			'me/share': 'me/feed',
+			'me/like': 'me/likes',
+			'me/files': 'me/albums',
+			'me/albums': 'me/albums?fields=cover_photo,name',
+			'me/album': '@{id}/photos?fields=picture',
+			'me/photos': 'me/photos',
+			'me/photo': '@{id}',
+			'friend/albums': '@{id}/albums',
+			'friend/photos': '@{id}/photos'
         },
 
 		logout: function (callback) {
@@ -37,41 +145,7 @@ hello.to.facebook.config = {
 			if (!token) { return false; }
 
             return true;
-		},
-
-        // Authorization scopes
-        scope: {
-            basic: '',
-            email: 'email',
-            birthday: 'user_birthday',
-            events: 'user_events',
-            photos: 'user_photos,user_videos',
-            videos: 'user_photos,user_videos',
-            friends: '',
-            files: 'user_photos,user_videos',
-
-            publish_files: 'user_photos,user_videos,publish_stream',
-            publish: 'publish_stream',
-
-            offline_access: 'offline_access'
-        },
-
-        // API Base URL
-        base: 'https://graph.facebook.com/',
-
-        // Map GET requests
-        get: {
-            'me': 'me',
-            'me/friends': 'me/friends',
-            'me/following': 'me/friends',
-            'me/followers': 'me/friends',
-            'me/share': 'me/feed',
-            'me/files': 'me/albums',
-            'me/albums': 'me/albums',
-            'me/album': '@{id}/photos',
-            'me/photos': 'me/photos',
-            'me/photo': '@{id}'
-        }
+		}
     }
 };
 
