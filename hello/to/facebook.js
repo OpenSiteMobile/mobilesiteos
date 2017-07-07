@@ -9,7 +9,7 @@
 
 msos.provide("hello.to.facebook");
 
-hello.to.facebook.version = new msos.set_version(17, 6, 30);
+hello.to.facebook.version = new msos.set_version(17, 6, 29);
 
 hello.to.facebook.sdk = 'v2.9';
 hello.to.facebook.base = 'https://graph.facebook.com/';
@@ -87,7 +87,7 @@ hello.to.facebook.config = {
     facebook: {
 
         name: 'Facebook',
-        id: msos.config.social.facebook,
+        id: msos.config.oauth2.facebook,
 
         oauth: {
             version: 2,
@@ -134,17 +134,77 @@ hello.to.facebook.config = {
 			'friend/photos': '@{id}/photos'
         },
 
-		logout: function (callback) {
-			// Assign callback to a global handler
-			var callbackID = hello.utils.globalEvent(callback),
-                redirect = encodeURIComponent(hello.settings.redirect_uri + "?" + hello.utils.param({ callback: callbackID, result: JSON.stringify({ force: true }), state : '{}' })),
-                token = (hello.utils.store('facebook') || {}).access_token;
+		// Map POST requests
+		post: {
+			'me/share': 'me/feed',
+			'me/photo': '@{id}'
+		},
 
-            hello.utils.iframe('https://www.facebook.com/logout.php?next=' + redirect + '&access_token=' + token);
+		wrap: {
+			'me': hello.to.facebook.formatUser,
+			'me/friends': hello.to.facebook.formatFriends,
+			'me/following': hello.to.facebook.formatFriends,
+			'me/followers': hello.to.facebook.formatFriends,
+			'me/albums': hello.to.facebook.format,
+			'me/photos': hello.to.facebook.format,
+			'me/files': hello.to.facebook.format,
+			'default': hello.to.facebook.format
+		},
+
+		login: function (p) {
+			"use strict";
+
+			if (p.options.force) { p.qs.auth_type = 'reauthenticate'; }
+
+			p.qs.display = p.options.display || 'popup';
+		},
+
+		logout: function (callback, options) {
+			"use strict";
+
+			var callbackID = hello.utils.globalEvent(callback),
+				redirect = encodeURIComponent(hello.settings.redirect_uri + '?' + hello.utils.param({ callback: callbackID, result: JSON.stringify({ force: true }), state: '{}' })),
+				token = (options.authResponse || {}).access_token;
+
+			hello.utils.iframe('https://www.facebook.com/logout.php?next=' + redirect + '&access_token=' + token);
 
 			if (!token) { return false; }
+		},
 
-            return true;
+		xhr: function (p, qs) {
+			"use strict";
+
+			if (p.method === 'get' || p.method === 'post') {
+				qs.suppress_response_codes = true;
+			}
+
+			// Is this a post with a data-uri?
+			if (p.method === 'post' && p.data && typeof (p.data.file) === 'string') {
+				// Convert the Data-URI to a Blob
+				p.data.file = hello.utils.toBlob(p.data.file);
+			}
+
+			return true;
+		},
+
+		jsonp: function (p, qs) {
+			"use strict";
+
+			var m = p.method;
+
+			if (m !== 'get' && !hello.utils.hasBinary(p.data)) {
+				p.data.method = m;
+				p.method = 'get';
+			} else if (p.method === 'delete') {
+				qs.method = 'delete';
+				p.method = 'post';
+			}
+		},
+
+		form: function () {
+			"use strict";
+
+			return { callbackonload: true };
 		}
     }
 };

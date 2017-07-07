@@ -3,19 +3,59 @@
 //
 /*global
     msos: false,
-    jQuery: false,
     hello: false
 */
+
 msos.provide("hello.to.foursquare");
 
-hello.to.foursquare.version = new msos.set_version(14, 10, 14);
+hello.to.foursquare.version = new msos.set_version(17, 6, 29);
 
+hello.to.foursquare.formatError = function (o) {
+	"use strict";
+
+	if (o.meta && (o.meta.code === 400 || o.meta.code === 401)) {
+		o.error = {
+			code: 'access_denied',
+			message: o.meta.errorDetail
+		};
+	}
+};
+
+hello.to.foursquare.formatUser = function (o) {
+	"use strict";
+
+	if (o && o.id) {
+		o.thumbnail = o.photo.prefix + '100x100' + o.photo.suffix;
+		o.name = o.firstName + ' ' + o.lastName;
+		o.first_name = o.firstName;
+		o.last_name = o.lastName;
+
+		if (o.contact) {
+			if (o.contact.email) {
+				o.email = o.contact.email;
+			}
+		}
+	}
+};
+
+hello.to.foursquare.formatRequest = function (p, qs) {
+	"use strict";
+
+	var token = qs.access_token;
+
+	delete qs.access_token;
+	qs.oauth_token = token;
+	qs.v = 20121125;
+
+	return true;
+};
 
 hello.to.foursquare.config = {
+
     foursquare: {
 
         name: 'FourSquare',
-        id: msos.config.social.foursquare,
+        id: msos.config.oauth2.foursquare,
 
         oauth: {
             version: 2,
@@ -25,36 +65,48 @@ hello.to.foursquare.config = {
 
         scope: {},
 
+		refresh: true,
+
 		base: 'https://api.foursquare.com/v2/',
 
-        // Alter the querystring
-        querystring: function (qs) {
-			"use strict";
-
-            var token = qs.access_token;
-
-            delete qs.access_token;
-            qs.oauth_token = token;
-            qs.v = 20121125;
-        },
-
         get: {
-            'me':			'users/self',
-            'me/friends':	'users/self/friends',
-            'me/followers':	'users/self/friends',
-            'me/following':	'users/self/friends'
+			'me': 'users/self',
+			'me/friends': 'users/self/friends',
+			'me/followers': 'users/self/friends',
+			'me/following': 'users/self/friends'
         },
 
-		error: function (o) {
-			"use strict";
+		wrap: {
+			me: function (o) {
+				"use strict";
 
-			if (o.meta && o.meta.code === 400) {
-				o.error = {
-					code: "access_denied",
-					message: o.meta.errorDetail
-				};
+				hello.to.foursquare.formatError(o);
+
+				if (o && o.response) {
+					o = o.response.user;
+					hello.to.foursquare.formatUser(o);
+				}
+
+				return o;
+			},
+
+			'default': function (o) {
+				"use strict";
+
+				hello.to.foursquare.formatError(o);
+
+				if (o && 'response' in o && 'friends' in o.response && 'items' in o.response.friends) {
+					o.data = o.response.friends.items;
+					o.data.forEach(hello.to.foursquare.formatUser);
+					delete o.response;
+				}
+
+				return o;
 			}
-		}
+		},
+
+		xhr: hello.to.foursquare.formatRequest,
+		jsonp: hello.to.foursquare.formatRequest
     }
 };
 
