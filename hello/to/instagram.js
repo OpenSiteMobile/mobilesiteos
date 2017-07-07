@@ -4,40 +4,109 @@
 
 /*global
     msos: false,
-    jQuery: false,
     hello: false,
     _: false
 */
 
 msos.provide("hello.to.instagram");
 
-hello.to.instagram.version = new msos.set_version(14, 10, 14);
+hello.to.instagram.version = new msos.set_version(17, 6, 29);
 
+
+hello.to.instagram.formatImage = function (image) {
+	"use strict";
+
+	return {
+		source: image.url,
+		width: image.width,
+		height: image.height
+	};
+};
+
+hello.to.instagram.formatError = function (o) {
+	"use strict";
+
+	if (typeof o === 'string') {
+		return {
+			error: {
+				code: 'invalid_request',
+				message: o
+			}
+		};
+	}
+
+	if (o && 'meta' in o && 'error_type' in o.meta) {
+		o.error = {
+			code: o.meta.error_type,
+			message: o.meta.error_message
+		};
+	}
+
+	return o;
+};
+
+hello.to.instagram.formatFriends = function (o) {
+	"use strict";
+
+	hello.to.instagram.paging(o);
+
+	if (o && 'data' in o) {
+		o.data.forEach(hello.to.instagram.formatFriend);
+	}
+
+	return o;
+};
+
+hello.to.instagram.formatFriend = function (o) {
+	"use strict";
+
+	if (o.id) {
+		o.thumbnail = o.profile_picture;
+		o.name = o.full_name || o.username;
+	}
+};
+
+hello.to.instagram.paging = function (res) {
+	"use strict";
+
+	if ('pagination' in res) {
+		res.paging = {
+			next: res.pagination.next_url
+		};
+
+		delete res.pagination;
+	}
+};
 
 hello.to.instagram.config = {
 
 	instagram: {
 
 		name: 'Instagram',
-		id: msos.config.social.instagram,
-
-		login: function (p) {
-			"use strict";
-			// Instagram throws errors like "Javascript API is unsupported" if the display is 'popup'.
-			p.qs.display = '';
-		},
+		id: msos.config.oauth2.instagram,
 
 		oauth: {
 			version: 2,
-			auth: 'https://instagram.com/oauth/authorize/'
+			auth: 'https://instagram.com/oauth/authorize/',
+			grant: 'https://api.instagram.com/oauth/access_token'
 		},
 
 		scope: {
 			basic: 'basic',
-			friends: 'relationships'
+			photos: '',
+			friends: 'relationships',
+			publish: 'likes comments',
+			email: '',
+			share: '',
+			publish_files: '',
+			files: '',
+			videos: '',
+			offline_access: ''
 		},
 
 		scope_delim : ' ',
+
+		refresh: true,
 
 		base: 'https://api.instagram.com/v1/',
 
@@ -47,20 +116,85 @@ hello.to.instagram.config = {
 			'me/photos': 'users/self/media/recent?min_id=0&count=@{limit|100}',
 			'me/friends': 'users/self/follows?count=@{limit|100}',
 			'me/following': 'users/self/follows?count=@{limit|100}',
-			'me/followers': 'users/self/followed-by?count=@{limit|100}'
+			'me/followers': 'users/self/followed-by?count=@{limit|100}',
+			'friend/photos': 'users/@{id}/media/recent?min_id=0&count=@{limit|100}'
 		},
 
-		error: function (o) {
-			"use strict";
+		post: {
+			'me/like': function (p, callback) {
+				"use strict";
 
-			if (o && o.meta && o.meta.error_type) {
-				o.error = {
-					code: o.meta.error_type,
-					message: o.meta.error_message
-				};
+				var id = p.data.id;
+
+				p.data = {};
+				callback('media/' + id + '/likes');
 			}
 		},
 
+		del: {
+			'me/like': 'media/@{id}/likes'
+		},
+
+		wrap: {
+			'me': function (o) {
+				"use strict";
+
+				hello.to.instagram.formatError(o);
+
+				if ('data' in o) {
+					o.id = o.data.id;
+					o.thumbnail = o.data.profile_picture;
+					o.name = o.data.full_name || o.data.username;
+				}
+
+				return o;
+			},
+			'me/friends': hello.to.instagram.formatFriends,
+			'me/following': hello.to.instagram.formatFriends,
+			'me/followers': hello.to.instagram.formatFriends,
+			'me/photos': function (o) {
+				"use strict";
+
+				hello.to.instagram.formatError(o);
+				hello.to.instagram.paging(o);
+
+				if ('data' in o) {
+					o.data = o.data.filter(
+						function (d) {
+							return d.type === 'image';
+						}
+					);
+
+					o.data.forEach(
+						function (d) {
+							d.name = d.caption ? d.caption.text : null;
+							d.thumbnail = d.images.thumbnail.url;
+							d.picture = d.images.standard_resolution.url;
+							d.pictures = Object.keys(d.images)
+								.map(
+									function (key) {
+										var image = d.images[key];
+										return hello.to.instagram.formatImage(image);
+									}
+								).sort(
+									function (a, b) {
+										return a.width - b.width;
+									}
+								);
+						}
+					);
+				}
+
+				return o;
+			},
+			'default': function (o) {
+				o = hello.to.instagram.formatError(o);
+				hello.to.instagram.paging(o);
+				return o;
+			}
+		},
+
+		// Not in std Hello.js
 		jsonp: function (qs_obj, base_url, callback) {
 			"use strict";
 
@@ -128,7 +262,28 @@ hello.to.instagram.config = {
 			head.appendChild(script);
 
 			msos.console.debug(temp_jp + 'done.');
-		}
+		},
+
+		xhr: function (p) {
+			"use strict";
+
+			var method = p.method,
+				proxy = method !== 'get';
+
+			if (proxy) {
+
+				if ((method === 'post' || method === 'put') && p.query.access_token) {
+					p.data.access_token = p.query.access_token;
+					delete p.query.access_token;
+				}
+
+				p.proxy = proxy;
+			}
+
+			return proxy;
+		},
+
+		form: false
 	}
 };
 
