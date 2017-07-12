@@ -178,7 +178,7 @@ hello.to.windows.config = {
 		xhr: function (p) {
 			"use strict";
 
-			if (p.method !== 'get' && p.method !== 'delete' && !hello.utils.hasBinary(p.data)) {
+			if (p && p.method !== 'get' && p.method !== 'delete' && !hello.utils.hasBinary(p.data)) {
 
 				// Does this have a data-uri to upload as a file?
 				if (typeof (p.data.file) === 'string') {
@@ -189,6 +189,8 @@ hello.to.windows.config = {
 						'Content-Type': 'application/json'
 					};
 				}
+			} else {
+				msos.console.warn('hello.to.windows.config.xhr -> no input!');
 			}
 
 			return true;
@@ -197,9 +199,11 @@ hello.to.windows.config = {
 		jsonp: function (p) {
 			"use strict";
 
-			if (p.method !== 'get' && !hello.utils.hasBinary(p.data)) {
+			if (p && p.method !== 'get' && !hello.utils.hasBinary(p.data)) {
 				p.data.method = p.method;
 				p.method = 'get';
+			} else {
+				msos.console.warn('hello.to.windows.config.jsonp -> no input!');
 			}
 		}
     }
