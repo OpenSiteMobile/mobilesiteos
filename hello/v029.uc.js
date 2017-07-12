@@ -352,7 +352,7 @@ var hello = {
 				return this;
 			};
 
-			this.emit = function (evt, data) {
+			this.emit = function (evt) {
 
 				// Get arguments as an Array, knock off the first one
 				var args = Array.prototype.slice.call(arguments, 1),
@@ -453,6 +453,42 @@ var hello = {
 
 			msos.console.debug(this.ut_name + '.globalEvent -> done, guid: ' + guid);
 			return guid;
+		},
+
+		hasBinary: function (data) {
+			var x;
+
+			for (x in data) {
+				if (data.hasOwnProperty(x)) {
+					if (this.isBinary(data[x])) { return true; }
+				}
+			}
+
+			return false;
+		},
+
+		isBinary: function(data) {
+			return data instanceof Object && ((this.domInstance('input', data) && data.type === 'file') || ('FileList' in window && data instanceof window.FileList) || ('File' in window && data instanceof window.File) || ('Blob' in window && data instanceof window.Blob));
+		},
+
+		toBlob: function (dataURI) {
+			var reg = /^data\:([^;,]+(\;charset=[^;,]+)?)(\;base64)?,/i,
+				m = dataURI.match(reg),
+				binary,
+				array = [],
+				i = 0;
+
+			if (!m) {
+				return dataURI;
+			}
+
+			binary = atob(dataURI.replace(reg, ''));
+
+			for (i = 0; i < binary.length; i += 1) {
+				array.push(binary.charCodeAt(i));
+			}
+
+			return new Blob([new Uint8Array(array)], { type: m[1] });
 		}
 	},
 
@@ -650,10 +686,7 @@ var hello = {
 
         if (p.options.force === false) {
 
-            if (session
-			 && session.access_token
-			 && session.expires
-			 && session.expires > ((new Date()).getTime() / 1e3)) {
+            if (session && session.access_token && session.expires && session.expires > ((new Date()).getTime() / 1e3)) {
                 // What is different about the scopes in the session vs the scopes in the new login?
                 diff = _.difference(session.scope || [], p.qs.state.scope || []);
 
