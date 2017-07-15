@@ -9,7 +9,7 @@
 
 msos.provide("hello.to.facebook");
 
-hello.to.facebook.version = new msos.set_version(17, 6, 29);
+hello.to.facebook.version = new msos.set_version(17, 7, 15);
 
 hello.to.facebook.sdk = 'v2.9';
 hello.to.facebook.base = 'https://graph.facebook.com/';
@@ -151,6 +151,7 @@ hello.to.facebook.config = {
 			'default': hello.to.facebook.format
 		},
 
+		// Added v1151
 		login: function (p) {
 			"use strict";
 
@@ -171,36 +172,7 @@ hello.to.facebook.config = {
 			if (!token) { return false; }
 		},
 
-		xhr: function (p, qs) {
-			"use strict";
-
-			if (p.method === 'get' || p.method === 'post') {
-				qs.suppress_response_codes = true;
-			}
-
-			// Is this a post with a data-uri?
-			if (p.method === 'post' && p.data && typeof (p.data.file) === 'string') {
-				// Convert the Data-URI to a Blob
-				p.data.file = hello.utils.toBlob(p.data.file);
-			}
-
-			return true;
-		},
-
-		jsonp: function (p, qs) {
-			"use strict";
-
-			var m = p.method;
-
-			if (m !== 'get' && !hello.utils.hasBinary(p.data)) {
-				p.data.method = m;
-				p.method = 'get';
-			} else if (p.method === 'delete') {
-				qs.method = 'delete';
-				p.method = 'post';
-			}
-		},
-
+		// Added v1151
 		form: function () {
 			"use strict";
 
