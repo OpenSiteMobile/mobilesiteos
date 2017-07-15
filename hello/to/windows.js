@@ -9,7 +9,7 @@
 
 msos.provide("hello.to.windows");
 
-hello.to.windows.version = new msos.set_version(17, 6, 29);
+hello.to.windows.version = new msos.set_version(17, 7, 15);
 
 hello.to.windows.base = 'https://apis.live.net/v5.0/';
 
@@ -173,42 +173,9 @@ hello.to.windows.config = {
 			"use strict";
 
 			return 'https://login.live.com/oauth20_logout.srf?ts=' + (new Date()).getTime();
-		},
-	
-		xhr: function (p) {
-			"use strict";
-
-			if (p && p.method !== 'get' && p.method !== 'delete' && !hello.utils.hasBinary(p.data)) {
-
-				// Does this have a data-uri to upload as a file?
-				if (typeof (p.data.file) === 'string') {
-					p.data.file = hello.utils.toBlob(p.data.file);
-				} else {
-					p.data = JSON.stringify(p.data);
-					p.headers = {
-						'Content-Type': 'application/json'
-					};
-				}
-			} else {
-				msos.console.warn('hello.to.windows.config.xhr -> no input!');
-			}
-
-			return true;
-		},
-
-		jsonp: function (p) {
-			"use strict";
-
-			if (p && p.method !== 'get' && !hello.utils.hasBinary(p.data)) {
-				p.data.method = p.method;
-				p.method = 'get';
-			} else {
-				msos.console.warn('hello.to.windows.config.jsonp -> no input!');
-			}
 		}
     }
 };
-
 
 hello.to.windows.init = function () {
     "use strict";
