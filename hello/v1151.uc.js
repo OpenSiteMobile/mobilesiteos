@@ -630,6 +630,8 @@ var hello = {
     init: function (service, options) {
 		"use strict";
 
+		var x;
+
 		if (msos.config.verbose) {
 			msos.console.debug('hello.init -> start, service/options:', service, options);
 		} else {
@@ -637,6 +639,15 @@ var hello = {
 		}
 
         if (service) {
+
+			for (x in service) {
+				if (service.hasOwnProperty(x)) {
+					if (typeof (service[x]) !== 'object') {
+						msos.console.warn('hello.init -> service not an object, key: ' + x);
+						service[x] = { id: service[x] };
+					}
+				}
+			}
 
 			this.services = _.extend(this.services, service);
 
