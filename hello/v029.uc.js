@@ -660,15 +660,19 @@ var hello = {
         session = utils.store(p.network);
         scope = p.options.scope;
 
+		if (msos.config.verbose) {
+			msos.console.debug('hello.login -> session/scope:', session, scope);
+		}
+
         if (scope && typeof scope !== 'string') {
             scope = scope.join(',');
         }
 
         scope = (scope ? scope + ',' : '') + p.qs.scope;
 
-        if (session && session.scope) {
-            scope += "," + session.scope.join(",");
-        }
+		if (session && session.scope && session.scope instanceof String) {
+			scope.push(session.scope);
+		}
 
         // Save in the State
         p.qs.state.scope = _.uniq(scope.split(/[,\s]+/));
