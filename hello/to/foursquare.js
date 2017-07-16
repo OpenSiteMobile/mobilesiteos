@@ -41,11 +41,14 @@ hello.to.foursquare.formatUser = function (o) {
 hello.to.foursquare.formatRequest = function (p, qs) {
 	"use strict";
 
+	msos.console.debug('hello.to.foursquare.formatRequest -> called, p/qs:', p, qs);
+
 	var token = qs.access_token;
 
-	delete qs.access_token;
 	qs.oauth_token = token;
 	qs.v = 20121125;
+
+	delete qs.access_token;
 
 	return true;
 };
@@ -103,10 +106,10 @@ hello.to.foursquare.config = {
 
 				return o;
 			}
-		},
+		}
 
-		xhr: hello.to.foursquare.formatRequest,
-		jsonp: hello.to.foursquare.formatRequest
+//		xhr: hello.to.foursquare.formatRequest,
+//		jsonp: hello.to.foursquare.formatRequest
     }
 };
 

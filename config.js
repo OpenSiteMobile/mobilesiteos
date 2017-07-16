@@ -66,7 +66,7 @@ if (msos.config.debug_script) {
 		msos.resource_url('hammer', 'v204.uc.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.uc.js'),
 		msos.resource_url('gmap3', 'v600.uc.js'),
-		msos.resource_url('hello', 'v029.uc.js'),
+		msos.resource_url('hello', 'v1151.uc.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
 		msos.resource_url('msos', 'core.uc.js')
 	];
@@ -80,7 +80,7 @@ if (msos.config.debug_script) {
 		msos.resource_url('hammer', 'v204.min.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.min.js'),
 		msos.resource_url('gmap3', 'v600.min.js'),
-		msos.resource_url('hello', 'v029.min.js'),
+		msos.resource_url('hello', 'v1151.min.js'),
 		msos.resource_url('','site.js'),					// Common installation specific setup code (which needs jQuery, underscore.js, etc.)
 		msos.resource_url('msos', 'core.min.js')
 	];
