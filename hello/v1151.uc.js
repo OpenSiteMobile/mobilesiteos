@@ -25,8 +25,18 @@ var hello = {
         response_type: 'token',
         display: 'popup',
         state: '',
+		oauth_proxy: msos.config.oauth2.proxy_url,
+		popup: {
+			resizable: 1,
+			scrollbars: 1,
+			width: 500,
+			height: 550
+		},
+		scope: ['basic'],
+		scope_map: { basic: '' },
         default_service: null,
-        force: true
+        force: true,
+		page_uri: window.location.href
     },
 
 	utils: {
@@ -127,6 +137,19 @@ var hello = {
 
 			msos.console.debug(this.ut_name + '.xhr -> done!');
 			return r;
+		},
+
+		url: function (path) {
+
+			if (!path) {
+				return window.location;
+			} else if (window.URL && URL instanceof Function && URL.length !== 0) {
+				return new URL(path, window.location);
+			} else {
+				var a = document.createElement('a');
+				a.href = path;
+				return a.cloneNode(false);
+			}
 		},
 
 		add_qs: function (url, params) {
@@ -291,23 +314,40 @@ var hello = {
 			return n;
 		},
 
-		merge: function (a, b) {
+		merge: function () {
 			"use strict";
 
-			var x,
-				r = {};
+			var args = Array.prototype.slice.call(arguments);
 
-			if (typeof a === 'object' && typeof b === 'object') {
-				for (x in a) {
-					r[x] = a[x];
-					if (b[x] !== undefined) { r[x] = this.merge(a[x], b[x]); }
+			args.unshift({});
+
+			return this.extend.apply(null, args);
+		},
+
+		extend: function (r) {
+			"use strict";
+
+			Array.prototype.slice.call(arguments, 1).forEach(
+				function (a) {
+					var x;
+
+					if (_.isArray(r) && _.isArray(a)) {
+							Array.prototype.push.apply(r, a);
+					} else if (r && (r instanceof Object || typeof r === 'object') && a && (a instanceof Object || typeof a === 'object') && r !== a) {
+						for (x in a) {
+							if (a.hasOwnProperty(x)) {
+								r[x] = hello.utils.extend(r[x], a[x]);
+							}
+						}
+					} else {
+						if (_.isArray(a)) {
+							a = a.slice(0);
+						}
+						r = a;
+					}
 				}
-				for (x in b) {
-					if (a[x] === undefined) { r[x] = b[x]; }
-				}
-			} else {
-				r = b;
-			}
+			);
+
 			return r;
 		},
 
