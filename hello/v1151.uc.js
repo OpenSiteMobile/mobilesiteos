@@ -25,18 +25,8 @@ var hello = {
         response_type: 'token',
         display: 'popup',
         state: '',
-		oauth_proxy: msos.config.oauth2.proxy_url,
-		popup: {
-			resizable: 1,
-			scrollbars: 1,
-			width: 500,
-			height: 550
-		},
-		scope: ['basic'],
-		scope_map: { basic: '' },
         default_service: null,
-        force: true,
-		page_uri: window.location.href
+        force: true
     },
 
 	utils: {
@@ -137,19 +127,6 @@ var hello = {
 
 			msos.console.debug(this.ut_name + '.xhr -> done!');
 			return r;
-		},
-
-		url: function (path) {
-
-			if (!path) {
-				return window.location;
-			} else if (window.URL && URL instanceof Function && URL.length !== 0) {
-				return new URL(path, window.location);
-			} else {
-				var a = document.createElement('a');
-				a.href = path;
-				return a.cloneNode(false);
-			}
 		},
 
 		add_qs: function (url, params) {
@@ -314,40 +291,23 @@ var hello = {
 			return n;
 		},
 
-		merge: function () {
+		merge: function (a, b) {
 			"use strict";
 
-			var args = Array.prototype.slice.call(arguments);
+			var x,
+				r = {};
 
-			args.unshift({});
-
-			return this.extend.apply(null, args);
-		},
-
-		extend: function (r) {
-			"use strict";
-
-			Array.prototype.slice.call(arguments, 1).forEach(
-				function (a) {
-					var x;
-
-					if (_.isArray(r) && _.isArray(a)) {
-							Array.prototype.push.apply(r, a);
-					} else if (r && (r instanceof Object || typeof r === 'object') && a && (a instanceof Object || typeof a === 'object') && r !== a) {
-						for (x in a) {
-							if (a.hasOwnProperty(x)) {
-								r[x] = hello.utils.extend(r[x], a[x]);
-							}
-						}
-					} else {
-						if (_.isArray(a)) {
-							a = a.slice(0);
-						}
-						r = a;
-					}
+			if (typeof a === 'object' && typeof b === 'object') {
+				for (x in a) {
+					r[x] = a[x];
+					if (b[x] !== undefined) { r[x] = this.merge(a[x], b[x]); }
 				}
-			);
-
+				for (x in b) {
+					if (a[x] === undefined) { r[x] = b[x]; }
+				}
+			} else {
+				r = b;
+			}
 			return r;
 		},
 
@@ -529,64 +489,6 @@ var hello = {
 			}
 
 			return new Blob([new Uint8Array(array)], { type: m[1] });
-		},
-
-		dataToJSON: function (p) {
-			var _this = this,
-				w = window,
-				data = p.data,
-				x;
-
-			if (_this.domInstance('form', data)) {
-				data = _this.nodeListToJSON(data.elements);
-			} else if ('NodeList' in w && data instanceof NodeList) {
-				data = _this.nodeListToJSON(data);
-			} else if (_this.domInstance('input', data)) {
-				data = _this.nodeListToJSON([data]);
-			}
-
-			// Is data a blob, File, FileList?
-			if (('File' in w && data instanceof w.File) || ('Blob' in w && data instanceof w.Blob) || ('FileList' in w && data instanceof w.FileList)) {
-				data = { file: data };
-			}
-
-			// Loop through data if it's not form data it must now be a JSON object
-			if (!('FormData' in w && data instanceof w.FormData)) {
-				for (x in data) {
-					if (data.hasOwnProperty(x)) {
-						if ('FileList' in w && data[x] instanceof w.FileList) {
-							if (data[x].length === 1) { data[x] = data[x][0]; }
-						} else if (_this.domInstance('input', data[x]) && data[x].type === 'file') {
-							continue;
-						} else if (_this.domInstance('input', data[x]) || _this.domInstance('select', data[x]) || _this.domInstance('textArea', data[x])) {
-							data[x] = data[x].value;
-						} else if (_this.domInstance(null, data[x])) {
-							data[x] = data[x].innerHTML || data[x].innerText;
-						}
-					}
-				}
-			}
-
-			p.data = data;
-			return data;
-		},
-
-		nodeListToJSON: function (nodelist) {
-			var json = {},
-				i = 0,
-				input;
-
-			for (i = 0; i < nodelist.length; i += 1) {
-
-				input = nodelist[i];
-
-				if (input.disabled || !input.name) { continue; }
-
-				if (input.type === 'file')	{ json[input.name] = input; }
-				else						{ json[input.name] = input.value || input.innerHTML; }
-			}
-
-			return json;
 		}
 	},
 
@@ -604,10 +506,10 @@ var hello = {
 
     services: {},
 
-    use: function (service) {
+    using: function (service) {
 		"use strict";
 
-		msos.console.debug('hello.use -> start.');
+		msos.console.debug('hello.using -> start.');
 
         // Create self, which inherits from its parent
         var self = Object.create(this);
@@ -623,56 +525,39 @@ var hello = {
         // Create an instance of Events
         self.utils.Event.call(self);
 
-		msos.console.debug('hello.use -> done!');
+		msos.console.debug('hello.using -> done!');
         return self;
     },
 
     init: function (service, options) {
 		"use strict";
 
-		var x;
-
 		if (msos.config.verbose) {
-			msos.console.debug('hello.init -> start, service/options:', service, options);
+			msos.console.debug('hello.init -> start, service:', service);
 		} else {
 			msos.console.debug('hello.init -> start.');
 		}
 
         if (service) {
 
-			for (x in service) {
-				if (service.hasOwnProperty(x)) {
-					if (typeof (service[x]) !== 'object') {
-						msos.console.warn('hello.init -> service not an object, key: ' + x);
-						service[x] = { id: service[x] };
-					}
-				}
-			}
-
 			this.services = _.extend(this.services, service);
 
 			// Update the default settings with this one.
 			if (options) {
 				this.settings = _.extend(this.settings, options);
-
-				if ('redirect_uri' in options) {
-					this.settings.redirect_uri = hello.utils.url(options.redirect_uri).href;
-				}
 			}
 
         } else {
-			msos.console.warn('hello.init -> done, return hello.services!');
-			return this.services;
+			msos.console.warn('hello.init -> no service input.');
 		}
 
 		msos.console.debug('hello.init -> done!');
-		return this;
     },
 
     login: function (p) {
 		"use strict";
 
-        var self = this.use(),
+        var self = this.using(),
             utils = self.utils,
 			url,
 			provider,
@@ -905,7 +790,7 @@ var hello = {
     logout: function (p) {
 		"use strict";
 
-        var self = this.use(),
+        var self = this.using(),
 			x;
 
 		p = _.isObject(p) ? p : {};
@@ -1025,7 +910,7 @@ hello.api = function (p) {
 	msos.console.debug('hello.api -> start.');
 
 	// self: an object which inherits its parent as the prototype, and constructs a new event chain.
-    var self = this.use(),
+    var self = this.using(),
         utils = self.utils,
 		api_cb,
 		o;
