@@ -83,7 +83,20 @@ hello.utils = {
 	error: function (in_code, in_message) {
 		"use strict";
 
-		msos.console.error(this.ut_name + '.error -> ' + in_code + ': ' + in_message);
+		return {
+			error: {
+				code: in_code,
+				message: in_message
+			}
+		};
+	},
+
+	error_db: function (in_code, in_message) {
+		"use strict";
+
+		var _this = this;
+
+		msos.console.error(_this.ut_name + '.error -> ' + in_code + ': ' + in_message);
 
 		return {
 			error: {
@@ -258,7 +271,7 @@ hello.utils = {
 				json = JSON.parse(r.responseText);
 			} catch (e) {
 				if (r.status === 401) {
-					json = utils.error('access_denied', r.statusText);
+					json = utils.error_db('access_denied', r.statusText);
 				}
 			}
 
@@ -274,7 +287,7 @@ hello.utils = {
 			try {
 				json = JSON.parse(r.responseText);
 			} catch (e) {
-				utils.error('onerror_parse', 'hello.utils.xhr -> problem parsing r.responseText');
+				utils.error_db('onerror_parse', 'hello.utils.xhr -> problem parsing r.responseText');
 			}
 
 			callback(json || utils.error('access_denied', 'hello.utils.xhr -> could not get resource'));
@@ -370,7 +383,7 @@ hello.utils = {
 			reg;
 
 		if (msos.config.verbose) {
-			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url + ', params:', params);
+			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url + ',\n     params:', params);
 		}
 
 		if (params) {
@@ -623,7 +636,7 @@ hello.utils = {
 								doc_body.removeChild(newform);
 							}
 						} catch (e) {
-							utils.error('remove_form', e.message);
+							utils.error_db('remove_form', e.message);
 						}
 
 						for (i = 0; i < reenableAfterSubmit.length; i += 1) {
@@ -655,7 +668,7 @@ hello.utils = {
 			str = '';
 
 		if (msos.config.verbose) {
-			msos.console.debug(this.ut_name + '.param -> start.');
+			msos.console.debug(this.ut_name + '.param -> start, for:', s);
 		}
 
 		if (typeof s === 'string') {
@@ -684,7 +697,7 @@ hello.utils = {
 
 			for (x in o) {
 				if (o.hasOwnProperty(x)) {
-					c.push([x, o[x] === '?' ? '?' : encodeURIComponent(o[x])].join('='));
+					c.push([x, o[x] === '?' ? '?' : formatFunction(o[x])].join('='));
 				}
 			}
 

@@ -34,6 +34,9 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 		function (auth) {
 			if (auth && typeof (auth) === 'object' && auth.network) {
 				old_sessions[auth.network] = _hello.utils.store(auth.network) || {};
+				if (mtv) {
+					msos.console.debug(tmp_mt + 'old_sessions:', old_sessions);
+				}
 			}
 		}
 	);
@@ -74,34 +77,28 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 				provider =	_hello.services[name];
                 oldsess =	old_sessions[name] || {};
 
-				if (mtv) { msos.console.debug(tmp_mt + 'check -> loop services, session:', session); }
+				if (mtv) { msos.console.debug(tmp_mt + 'check -> loop services, for: ' + name + ', session:', session); }
 
                 if (session && session.callback) {
 
-					if (_.isString(session.callback)) {
+					cb = session.callback;
 
-						cb = session.callback;
+					delete session.callback;
 
-						delete session.callback;
+					// Update store (removing the callback id)
+					_hello.utils.store(name, session);
 
-						// Update store (removing the callback id)
-						_hello.utils.store(name, session);
-
-						// Emit global events
-						try {
-							_win[cb](session);
-						} catch (e) {
-							msos.console.error(tmp_mt + 'check -> execute callback: ' + cb + ', failed:', e);
-						}
-
-					} else {
-						msos.console.warn(tmp_mt + 'check -> callback is not a string.');
+					// Emit global events
+					try {
+						_win[cb](session);
+					} catch (e) {
+						msos.console.error(tmp_mt + 'check -> execute callback: ' + cb + ', failed:', e);
 					}
 				}
 
                 if (session && session.expires && session.expires < CURRENT_TIME) {
 
-					msos.console.debug(tmp_mt + 'check -> expired');
+					msos.console.debug(tmp_mt + 'check -> expired, for: ' + name);
 
 					refresh = provider.refresh || session.refresh_token;
 
@@ -132,17 +129,17 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
                     }
 
                 } else if (oldsess.access_token === session.access_token && oldsess.expires === session.expires) {
-					if (mtv) { msos.console.debug(tmp_mt + 'check -> no change'); }
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> no change, for: ' + name); }
 					expired[name] = false;
 					loaded += 1;
                 } else if (!session.access_token && oldsess.access_token) {
-					if (mtv) { msos.console.debug(tmp_mt + 'check -> logout'); }
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> logout, for: ' + name); }
                     emit('logout');
                 } else if (session.access_token && !oldsess.access_token) {
-					if (mtv) { msos.console.debug(tmp_mt + 'check -> login'); }
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> login, for: ' + name); }
 					emit('login');
                 } else if (session.expires !== oldsess.expires) {
-					if (mtv) { msos.console.debug(tmp_mt + 'check -> update'); }
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> update, for: ' + name); }
                     emit('update');
                 }
 
@@ -159,7 +156,9 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 						self_timeout = (session.expires - CURRENT_TIME) * 1e3 * 0.8;
 					}
 				}
-            }
+            } else {
+				msos.console.warn(tmp_mt + 'check -> no provider, for: ' + name);
+			}
         }
 
 		if ((loaded < checked) && (self_count < 11)) {
