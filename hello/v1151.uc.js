@@ -343,6 +343,26 @@ hello.utils = {
 		}
 	},
 
+	diffKey: function (a, b) {
+		"use strict";
+
+		var r = {},
+			x;
+
+		if (a || !b) {
+			for (var x in a) {
+				// Does the property not exist?
+				if (!(x in b)) {
+					r[x] = a[x];
+				}
+			}
+
+			return r;
+		}
+
+		return a;
+	},
+
 	qs: function (url, params, formatFunction) {
 		"use strict";
 
