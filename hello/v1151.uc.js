@@ -1333,46 +1333,47 @@ hello.use = function (service) {
 	return self;
 };
 
- hello.init = function (service, options) {
+ hello.init = function (services, options) {
 	"use strict";
 
-	var x;
+	var _this = this,
+		x,
+		mtv = msos.config.verbose;
 
-	if (msos.config.verbose) {
-		msos.console.debug('hello.init -> start, service/options:', service, options);
-	} else {
-		msos.console.debug('hello.init -> start.');
-	}
+	if (mtv) { msos.console.debug('hello.init -> start, services:', services); }
 
-	if (service) {
+	if (services) {
 
-		for (x in service) {
-			if (service.hasOwnProperty(x)) {
-				if (typeof (service[x]) !== 'object') {
+		for (x in services) {
+			if (services.hasOwnProperty(x)) {
+				if (typeof (services[x]) !== 'object') {
 					msos.console.warn('hello.init -> service not an object, key: ' + x);
-					service[x] = { id: service[x] };
+					services[x] = { id: services[x] };
 				}
 			}
 		}
 
-		this.services = _.extend(this.services, service);
+		_this.services = _.extend(_this.services, services);
 
 		// Update the default settings with this one.
 		if (options) {
-			this.settings = _.extend(this.settings, options);
+
+			if (mtv) { msos.console.debug('hello.init -> extend setting, options:', options); }
+
+			_this.settings = _.extend(_this.settings, options);
 
 			if ('redirect_uri' in options) {
-				this.settings.redirect_uri = hello.utils.url(options.redirect_uri).href;
+				_this.settings.redirect_uri = hello.utils.url(options.redirect_uri).href;
 			}
 		}
 
 	} else {
 		msos.console.warn('hello.init -> done, return hello.services!');
-		return this.services;
+		return _this.services;
 	}
 
-	msos.console.debug('hello.init -> done!');
-	return this;
+	if (mtv) { msos.console.debug('hello.init -> done!'); }
+	return _this;
 };
 
 hello.login = function () {

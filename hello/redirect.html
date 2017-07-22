@@ -26,9 +26,6 @@
 
 		// Redirect configuration settings
 
-		msos.console.info('config -> start, (/hello/redirect.html for window: ' + (window.name || 'child') + ').');
-		msos.console.time('config');
-
 		var _win_parent = window.opener || window.parent;
 
 		if (_win_parent.msos.console && _win_parent.msos.console.debug) {
@@ -39,6 +36,9 @@
 		    msos.config.debug_script =  _win_parent.msos.config.debug_script;
 		    msos.config.verbose =       _win_parent.msos.config.verbose;
 		}
+
+		msos.console.info('config -> start, (/hello/redirect.html for window: ' + (window.name || 'child') + ').');
+		msos.console.time('config');
 
 		// --------------------------
 		// Scripts to 'defer' load (script injection)
