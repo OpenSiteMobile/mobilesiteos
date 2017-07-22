@@ -1,13 +1,12 @@
 
 /*global
     msos: false,
-    jQuery: false,
     hello: false
 */
 
 msos.provide("hello.to.monitor");
 
-hello.to.monitor.version = new msos.set_version(14, 10, 14);
+hello.to.monitor.version = new msos.set_version(17, 7, 21);
 
 
 // Start monitoring
@@ -15,25 +14,38 @@ hello.to.monitor.version = new msos.set_version(14, 10, 14);
 	"use strict";
 
     // Monitor for a change in state and fire
-    var tmp_mt = ' - monitoring 8==> ',
-		old_session = {},
-        refresh_called = {},
+    var tmp_mt = '',
+		mtv = msos.config.verbose,
+		old_sessions = {},
+		expired = {},
 		self_count = 0,
 		self_timeout = 600000;	// Default checking every 10 minutes
 
 	_win.name = _win.name || 'parent_window';
 
 	// Let ref. where this script is
-	tmp_mt = _win.name + ' - monitoring 8==> ';
+	tmp_mt = _win.name + ' - monitor 8==> ';
 
 	msos.console.debug(tmp_mt + 'start.');
+
+	// Listen to other triggers to Auth events, use these to update this
+	_hello.on(
+		'auth.login, auth.logout',
+		function (auth) {
+			if (auth && typeof (auth) === 'object' && auth.network) {
+				old_sessions[auth.network] = _hello.utils.store(auth.network) || {};
+			}
+		}
+	);
 
     (function check() {
 
         var CURRENT_TIME = ((new Date()).getTime() / 1e3),
 			name,
 			session,
+			provider,
 			oldsess,
+			refresh,
 			cb,
 			checked = 0,
 			loaded = 0,
@@ -53,21 +65,19 @@ hello.to.monitor.version = new msos.set_version(14, 10, 14);
         // Loop through the services
         for (name in _hello.services) {
 
-            if (_hello.services.hasOwnProperty(name)
-			 && _hello.services[name].id) {
+            if (_hello.services.hasOwnProperty(name) && _hello.services[name].id) {
 
 				checked += 1;
 
                 // Get session
                 session =	_hello.utils.store(name) || {};
-                oldsess =	old_session[name] || {};
+				provider =	_hello.services[name];
+                oldsess =	old_sessions[name] || {};
 
-				if (msos.config.verbose) {
-					msos.console.debug(tmp_mt + 'check -> loop services, session:', session);
-				}
+				if (mtv) { msos.console.debug(tmp_mt + 'check -> loop services, session:', session); }
 
-                if (session
-				 && session.callback) {
+                if (session && session.callback) {
+
 					if (_.isString(session.callback)) {
 
 						cb = session.callback;
@@ -89,14 +99,19 @@ hello.to.monitor.version = new msos.set_version(14, 10, 14);
 					}
 				}
 
-                if (session.expires
-				 && session.expires < CURRENT_TIME) {
+                if (session && session.expires && session.expires < CURRENT_TIME) {
 
 					msos.console.debug(tmp_mt + 'check -> expired');
 
-                    if (!refresh_called[name]) {
-                        // Try to auto login
-                        _hello.login(
+					refresh = provider.refresh || session.refresh_token;
+
+					if (refresh && (!(name in expired) || expired[name] < CURRENT_TIME)) {
+						// Try to resignin
+						_hello.emit(
+							'notice',
+							name + ' has expired trying to resignin'
+						);
+						_hello.login(
 							{
 								network: name,
 								options: {
@@ -106,44 +121,39 @@ hello.to.monitor.version = new msos.set_version(14, 10, 14);
 							}
 						);
 
-						refresh_called[name] = true;
-						self_timeout = 600000;	// Reset the timeout to self check every 10 min.
+						// Update expired, every 10 minutes
+						expired[name] = CURRENT_TIME + 600;
 
-                    } else {
-                        emit('expired');
+					} else if (!refresh && !expired[name]) {
+						// Label the event
+						emit('expired');
+						expired[name] = true;
+						self_timeout = 600000;	// Reset the timeout to self check every 10 min.
                     }
 
                 } else if (oldsess.access_token === session.access_token && oldsess.expires === session.expires) {
-					if (msos.config.verbose) {
-						msos.console.debug(tmp_mt + 'check -> no change');
-					}
-					refresh_called[name] = false;
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> no change'); }
+					expired[name] = false;
 					loaded += 1;
                 } else if (!session.access_token && oldsess.access_token) {
-					if (msos.config.verbose) {
-						msos.console.debug(tmp_mt + 'check -> logout');
-					}
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> logout'); }
                     emit('logout');
-					old_session[name] = session;
                 } else if (session.access_token && !oldsess.access_token) {
-					if (msos.config.verbose) {
-						msos.console.debug(tmp_mt + 'check -> login');
-					}
-					emit('success');
-					old_session[name] = session;
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> login'); }
+					emit('login');
                 } else if (session.expires !== oldsess.expires) {
-					if (msos.config.verbose) {
-						msos.console.debug(tmp_mt + 'check -> update');
-					}
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> update'); }
                     emit('update');
-					old_session[name] = session;
                 }
 
-				if (session.expires
-				 && session.expires > CURRENT_TIME) {
-					if (msos.config.verbose) {
-						msos.console.debug(tmp_mt + 'check -> name: ' + name + ', expires in: ' + String(parseInt((session.expires - CURRENT_TIME) / 60, 10)) + ' min.');
-					}
+				// Updated stored session
+				old_sessions[name] = session;
+
+				// Remove the expired flags
+				if (expired[name]) { delete expired[name]; }
+
+				if (session.expires && session.expires > CURRENT_TIME) {
+					if (mtv) { msos.console.debug(tmp_mt + 'check -> name: ' + name + ', expires in: ' + String(parseInt((session.expires - CURRENT_TIME) / 60, 10)) + ' min.'); }
 					// We check more often when we get nearer a session expiration (the .8 part)
 					if ((session.expires - CURRENT_TIME) < (self_timeout / 1e3)) {
 						self_timeout = (session.expires - CURRENT_TIME) * 1e3 * 0.8;
