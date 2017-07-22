@@ -128,7 +128,7 @@
 				b = JSON.parse(stateDecoded);
 				_hello.utils.extend(p, b);
 			} catch (e2) {
-				console.error(tmp_at + 'could not decode state parameter, ' + e2.message);
+				msos.console.error(tmp_at + 'could not decode state parameter, ' + e2.message);
 			}
         }
 
