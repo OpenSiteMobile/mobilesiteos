@@ -350,10 +350,9 @@ hello.utils = {
 			x;
 
 		if (a || !b) {
-			for (var x in a) {
-				// Does the property not exist?
-				if (!(x in b)) {
-					r[x] = a[x];
+			for (x in a) {
+				if (a.hasOwnProperty(x)) {
+					if (!(x in b)) { r[x] = a[x]; }
 				}
 			}
 
@@ -1579,6 +1578,7 @@ hello.login = function () {
 	if (parseInt(provider.oauth.version, 10) === 1) {
 
 		url = utils.qs(opts.oauth_proxy, p.qs, encodeFunction);
+
 	} else if (opts.display === 'none' && provider.oauth.grant && session && session.refresh_token) {
 
 		p.qs.refresh_token = session.refresh_token;
@@ -1590,8 +1590,6 @@ hello.login = function () {
 	}
 
 	emit('auth.init', p);
-
-	url = utils.add_qs(provider.oauth.auth, p.qs);
 
 	msos.console.debug('hello.login -> display: ' + opts.display || 'undefined');	// undef. is a valid response
 
