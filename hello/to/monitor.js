@@ -63,21 +63,21 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
             };
 
 		self_count += 1;
-		msos.console.debug(tmp_mt + 'check -> start, count: ' + String(self_count));
+		msos.console.debug(tmp_mt + 'check -> start (' + self_count + ').');
 
         // Loop through the services
         for (name in _hello.services) {
 
-            if (_hello.services.hasOwnProperty(name) && _hello.services[name].id) {
+            if (_hello.services.hasOwnProperty(name) && _hello.services[name] && _hello.services[name].id) {
 
 				checked += 1;
 
                 // Get session
                 session =	_hello.utils.store(name) || {};
-				provider =	_hello.services[name];
                 oldsess =	old_sessions[name] || {};
+				provider =	_hello.services[name];
 
-				if (mtv) { msos.console.debug(tmp_mt + 'check -> loop services, for: ' + name + ', session:', session); }
+				if (mtv) { msos.console.debug(tmp_mt + 'check -> loop services, for: ' + name); }
 
                 if (session && session.callback) {
 
@@ -93,6 +93,9 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 						_win[cb](session);
 					} catch (e) {
 						msos.console.error(tmp_mt + 'check -> execute callback: ' + cb + ', failed:', e);
+					}
+					if (mtv) {
+						msos.console.debug(tmp_mt + 'check -> executed cb, for: ' + name);
 					}
 				}
 
