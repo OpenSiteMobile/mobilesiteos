@@ -380,10 +380,12 @@ hello.utils = {
 
 		var x,
 			str,
-			reg;
+			reg,
+			new_url = '',
+			mtv = msos.config.verbose;
 
-		if (msos.config.verbose) {
-			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url + ',\n     params:', params);
+		if (mtv) {
+			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url);
 		}
 
 		if (params) {
@@ -404,13 +406,16 @@ hello.utils = {
 		}
 
 		if (!_.isEmpty(params)) {
-			return url + (url.indexOf('?') > -1 ? '&' : '?') + this.param(params, formatFunction);
+			new_url = url + (url.indexOf('?') > -1 ? '&' : '?') + this.param(params, formatFunction);
+			if (mtv) {
+				msos.console.debug(this.ut_name + '.qs ->  done (empty params), url: ' + new_url);
+			}
+			return new_url;
 		}
 
-		if (msos.config.verbose) {
+		if (mtv) {
 			msos.console.debug(this.ut_name + '.qs ->  done, url: ' + url);
 		}
-
 		return url;
 	},
 
@@ -717,6 +722,7 @@ hello.utils = {
 		var json = JSON.parse(msos.basil.get('hello')) || {};
 
 		if (name && value === undefined) {
+			msos.console.debug('hello.utils.store - get -> name: ' + name + ', value: ' + json[name]);
 			return json[name] || null;
 		} else if (name && value === null) {
 			try {
@@ -725,6 +731,7 @@ hello.utils = {
 				json[name] = null;
 			}
 		} else if (name) {
+			msos.console.debug('hello.utils.store - set -> name: ' + name + ', value: ' + value);
 			json[name] = value;
 		} else {
 			return json;
@@ -1337,21 +1344,11 @@ hello.use = function (service) {
 	"use strict";
 
 	var _this = this,
-		x,
 		mtv = msos.config.verbose;
 
-	if (mtv) { msos.console.debug('hello.init -> start, services:', services); }
+	if (mtv) { msos.console.debug('hello.init -> start.'); }
 
 	if (services) {
-
-		for (x in services) {
-			if (services.hasOwnProperty(x)) {
-				if (typeof (services[x]) !== 'object') {
-					msos.console.warn('hello.init -> service not an object, key: ' + x);
-					services[x] = { id: services[x] };
-				}
-			}
-		}
 
 		_this.services = _.extend(_this.services, services);
 
@@ -1368,11 +1365,11 @@ hello.use = function (service) {
 		}
 
 	} else {
-		msos.console.warn('hello.init -> done, return hello.services!');
+		msos.console.warn('hello.init -> done, return hello.services obj.');
 		return _this.services;
 	}
 
-	if (mtv) { msos.console.debug('hello.init -> done!'); }
+	if (mtv) { msos.console.debug('hello.init -> done, extend hello.services:', _this.services); }
 	return _this;
 };
 
