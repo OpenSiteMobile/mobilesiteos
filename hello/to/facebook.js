@@ -172,7 +172,34 @@ hello.to.facebook.config = {
 			if (!token) { return false; }
 		},
 
-		// Added v1151
+		xhr: function (p, qs) {
+			"use strict";
+
+			if (p.method === 'get' || p.method === 'post') {
+				qs.suppress_response_codes = true;
+			}
+
+			if (p.method === 'post' && p.data && typeof (p.data.file) === 'string') {
+				p.data.file = hello.utils.toBlob(p.data.file);
+			}
+
+			return true;
+		},
+
+		jsonp: function (p, qs) {
+			"use strict";
+
+			var m = p.method;
+
+			if (m !== 'get' && !hello.utils.hasBinary(p.data)) {
+				p.data.method = m;
+				p.method = 'get';
+			} else if (p.method === 'delete') {
+				qs.method = 'delete';
+				p.method = 'post';
+			}
+		},
+
 		form: function () {
 			"use strict";
 

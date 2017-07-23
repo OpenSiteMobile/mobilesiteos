@@ -173,6 +173,33 @@ hello.to.windows.config = {
 			"use strict";
 
 			return 'https://login.live.com/oauth20_logout.srf?ts=' + (new Date()).getTime();
+		},
+
+		xhr: function (p) {
+			"use strict";
+
+			if (p.method !== 'get' && p.method !== 'delete' && !hello.utils.hasBinary(p.data)) {
+
+				if (typeof (p.data.file) === 'string') {
+					p.data.file = hello.utils.toBlob(p.data.file);
+				} else {
+					p.data = JSON.stringify(p.data);
+					p.headers = {
+						'Content-Type': 'application/json'
+					};
+				}
+			}
+
+			return true;
+		},
+
+		jsonp: function (p) {
+			"use strict";
+
+			if (p.method !== 'get' && !hello.utils.hasBinary(p.data)) {
+				p.data.method = p.method;
+				p.method = 'get';
+			}
 		}
     }
 };
