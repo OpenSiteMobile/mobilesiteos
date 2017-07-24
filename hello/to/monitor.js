@@ -6,7 +6,7 @@
 
 msos.provide("hello.to.monitor");
 
-hello.to.monitor.version = new msos.set_version(17, 7, 21);
+hello.to.monitor.version = new msos.set_version(17, 7, 26);
 
 
 // Start monitoring
@@ -18,8 +18,8 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 		mtv = msos.config.verbose,
 		old_sessions = {},
 		expired = {},
-		self_count = 0,
-		self_timeout = 600000;	// Default checking every 10 minutes
+		check_count = 0,
+		check_timeout = 600000;	// Default checking every 10 minutes
 
 	_win.name = _win.name || 'parent_window';
 
@@ -62,8 +62,8 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 				);
             };
 
-		self_count += 1;
-		msos.console.debug(tmp_mt + 'check -> start (' + self_count + ').');
+		check_count += 1;
+		msos.console.debug(tmp_mt + 'check -> start (' + String(check_count) + ').');
 
         // Loop through the services
         for (name in _hello.services) {
@@ -128,7 +128,7 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 						// Label the event
 						emit('expired');
 						expired[name] = true;
-						self_timeout = 600000;	// Reset the timeout to self check every 10 min.
+						check_timeout = 600000;	// Reset the timeout to self check every 10 min.
                     }
 
                 } else if (oldsess.access_token === session.access_token && oldsess.expires === session.expires) {
@@ -155,8 +155,8 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 				if (session.expires && session.expires > CURRENT_TIME) {
 					if (mtv) { msos.console.debug(tmp_mt + 'check -> name: ' + name + ', expires in: ' + String(parseInt((session.expires - CURRENT_TIME) / 60, 10)) + ' min.'); }
 					// We check more often when we get nearer a session expiration (the .8 part)
-					if ((session.expires - CURRENT_TIME) < (self_timeout / 1e3)) {
-						self_timeout = (session.expires - CURRENT_TIME) * 1e3 * 0.8;
+					if ((session.expires - CURRENT_TIME) < (check_timeout / 1e3)) {
+						check_timeout = (session.expires - CURRENT_TIME) * 1e3 * 0.8;
 					}
 				}
             } else {
@@ -164,15 +164,15 @@ hello.to.monitor.version = new msos.set_version(17, 7, 21);
 			}
         }
 
-		if ((loaded < checked) && (self_count < 11)) {
+		if ((loaded < checked) && (check_count < 11)) {
 			// Check for up to 10, 1 sec. intervals
 			setTimeout(check, 1000);
 		} else {
 			// Never go below 1 sec.
-			self_timeout = self_timeout < 1000 ? 1000 : self_timeout;
+			check_timeout = check_timeout < 1000 ? 1000 : check_timeout;
 
-			msos.console.debug(tmp_mt + 'check -> timeout: ' + String(self_timeout));
-			setTimeout(check, self_timeout);
+			msos.console.debug(tmp_mt + 'check -> timeout: ' + String(check_timeout));
+			setTimeout(check, check_timeout);
 		}
 
 		msos.console.debug(tmp_mt + 'check -> done!');
