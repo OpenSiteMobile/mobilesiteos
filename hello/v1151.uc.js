@@ -1435,7 +1435,7 @@ hello.login = function () {
 	function encodeFunction(s) { return s; }
 
 	function filterEmpty(s) { return !!s; }
-	
+
 	qs = utils.diffKey(p.options, _this.settings);
 
 	opts = p.options = utils.merge(
@@ -1625,7 +1625,7 @@ hello.login = function () {
 	emit('auth.init', p);
 
 	msos.console.debug('hello.login -> display: ' + opts.display || 'undefined');	// undef. is a valid response
-
+alert('Stop at display.');
 	if (opts.display === 'none') {
 	
 		utils.iframe(url);
