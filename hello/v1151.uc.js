@@ -716,10 +716,18 @@ hello.utils = {
 		return str;
 	},
 
+	store_cache: undefined,
 	store: function (name, value) {
 		"use strict";
 
-		var json = JSON.parse(msos.basil.get('hello')) || {};
+		var json;
+
+		if (this.store_cache === undefined) {
+			json = JSON.parse(msos.basil.get('hello')) || {};
+			this.store_cache = json;
+		} else {
+			json = this.store_cache;
+		}
 
 		if (name && value === undefined) {
 			msos.console.debug('hello.utils.store - get -> name: ' + name + ', value: ' + json[name]);
@@ -737,6 +745,8 @@ hello.utils = {
 			return json;
 		}
 
+		// If we get to here, reset cache and set new Basil value
+		this.store_cache = undefined;
 		msos.basil.set('hello', JSON.stringify(json));
 
 		return json || null;

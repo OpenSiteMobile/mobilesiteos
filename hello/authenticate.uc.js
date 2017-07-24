@@ -60,23 +60,17 @@
 
 		msos.console.debug(tmp_at + tmp_ac + 'start.');
 
-        // Trigger the callback on the parent
-        _hello.utils.store(network, obj);
-
 		if (obj.display && obj.display === 'page') {
-			msos.console.debug(tmp_at + tmp_ac + 'done, skipped for page.');
-			return;
-		}
 
-        if (parent && cb && parent[cb]) {
+			msos.console.debug(tmp_at + tmp_ac + 'skipped for page.');
+
+		} else if (parent && cb && parent[cb]) {
 
 			try {
                 delete obj.callback;
 			} catch (e) {
 				msos.console.error(tmp_at + tmp_ac + 'delete callback failed, ' + e.message);
 			}
-
-			_hello.utils.store(network, obj);
 
 			msos.console.debug(tmp_at + tmp_ac + 'callback: ' + cb);
 
@@ -90,11 +84,13 @@
 				}
 			}
 
+			closeWindow();
         } else {
 			msos.console.warn(tmp_at + tmp_ac + 'no parent or parent callback');
+			closeWindow();
 		}
 
-        closeWindow();
+		_hello.utils.store(network, obj);
 
 		msos.console.debug(tmp_at + tmp_ac + 'done!');
     }
