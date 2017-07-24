@@ -22,6 +22,8 @@ var hello = function (name) {
 	return hello.use(name);
 };
 
+hello.responsive = msos.config.size_wide[msos.config.size];
+
 hello.settings = {
 	// OAuth 2 authentication defaults
 	redirect_uri: msos.config.hellojs_redirect,		// Full uri path including protocal
@@ -32,7 +34,7 @@ hello.settings = {
 	popup: {
 		resizable: 1,
 		scrollbars: 1,
-		width: 500,
+		width: (hello.responsive < 520 ? hello.responsive : 520),
 		height: 550
 	},
 	scope: ['basic'],
@@ -810,6 +812,19 @@ hello.utils = {
 		return n;
 	},
 
+	iframe: function (src) {
+		"use strict";
+
+		this.append(
+			'iframe',
+			{
+				src: src,
+				style: { position: 'absolute', left: '-1000px', bottom: 0, height: '1px', width: '1px'}
+			},
+			'body'
+		);
+	},
+
 	merge: function () {
 		"use strict";
 
@@ -1330,7 +1345,7 @@ hello.events = {};
 hello.use = function (service) {
 		"use strict";
 
-	msos.console.debug('hello.use -> start.');
+	msos.console.debug('hello.use -> start, service: ' + service);
 
 	// Create self, which inherits from its parent
 	var self = Object.create(this);
@@ -1350,7 +1365,7 @@ hello.use = function (service) {
 	return self;
 };
 
- hello.init = function (services, options) {
+ hello.init = function (service, options) {
 	"use strict";
 
 	var _this = this,
@@ -1358,9 +1373,9 @@ hello.use = function (service) {
 
 	if (mtv) { msos.console.debug('hello.init -> start.'); }
 
-	if (services) {
+	if (service) {
 
-		_this.services = _.extend(_this.services, services);
+		_this.services = _.extend(_this.services, service);
 
 		// Update the default settings with this one.
 		if (options) {
@@ -1403,9 +1418,6 @@ hello.login = function () {
 		diff,
 		scope,
 		scopeMap,
-//		responsive = msos.config.size_wide[ msos.config.size],
-//		windowHeight,
-//		windowWidth,
 		popup,
 		timer;
 
@@ -1616,7 +1628,7 @@ hello.login = function () {
 
 	if (opts.display === 'none') {
 	
-		utils.iframe(url, redirectUri);
+		utils.iframe(url);
 
 	} else if (opts.display === 'popup') {
 
