@@ -387,7 +387,7 @@ hello.utils = {
 			mtv = msos.config.verbose;
 
 		if (mtv) {
-			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url);
+			msos.console.debug(this.ut_name + '.qs -> start, url: ' + url+ ', params:', params);
 		}
 
 		if (params) {
@@ -1402,6 +1402,7 @@ hello.login = function () {
 	"use strict";
 
 	var _this = this,
+		mtv = msos.config.verbose,
 		utils = _this.utils,
 		error = utils.error,
 		promise = utils.Promise(),
@@ -1419,7 +1420,8 @@ hello.login = function () {
 		scope,
 		scopeMap,
 		popup,
-		timer;
+		timer,
+		leave_page = true;
 
 	p = utils.args(
 		{
@@ -1437,6 +1439,10 @@ hello.login = function () {
 	function filterEmpty(s) { return !!s; }
 
 	qs = utils.diffKey(p.options, _this.settings);
+
+	if (mtv) {
+		msos.console.debug('hello.login -> qs:', qs);
+	}
 
 	opts = p.options = utils.merge(
 		_this.settings,
@@ -1603,7 +1609,6 @@ hello.login = function () {
 
 		p.qs.state.oauth = provider.oauth;
 		p.qs.state.oauth_proxy = opts.oauth_proxy;
-
 	}
 
 	p.qs.state = encodeURIComponent(JSON.stringify(p.qs.state));
@@ -1624,8 +1629,10 @@ hello.login = function () {
 
 	emit('auth.init', p);
 
-	msos.console.debug('hello.login -> display: ' + opts.display || 'undefined');	// undef. is a valid response
-alert('Stop at display.');
+	if (mtv) {
+		msos.console.debug('hello.login -> p/opts: ', p, opts);
+	}
+
 	if (opts.display === 'none') {
 	
 		utils.iframe(url);
@@ -1665,7 +1672,15 @@ alert('Stop at display.');
 			100
 		);
 	} else {
-		window.location = url;
+
+		msos.console.debug('hello.login -> forward to: ' + url);
+
+		if (msos.config.debug) {
+			// Stop new window location, so we can see debugging info
+			leave_page = confirm('Leaving page, confirm ok');
+		}
+
+		if (leave_page) { window.location = url; }
 	}
 
 	msos.console.debug('hello.login -> done!');
