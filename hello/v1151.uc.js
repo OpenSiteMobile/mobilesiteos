@@ -1802,14 +1802,252 @@ hello.getAuthResponse = function (service) {
 	return this.utils.store(service) || null;
 };
 
+hello.api = function () {
+	"use strict";
+
+	// Shorthand
+	var _this = this,
+		utils = _this.utils,
+		error = utils.error,
+		promise = utils.Promise(),
+		p = utils.args(
+			{
+				path: 's!',
+				query: 'o',
+				method: 's',
+				data: 'o',
+				timeout: 'i',
+				callback: 'f'
+			},
+			arguments
+		),
+		data,
+		a,
+		reg,
+		o,
+		url,
+		m,
+		actions,
+		query;
+
+	msos.console.debug('hello.api -> start.');
+
+	function getPath(url) {
+
+		url = url.replace(
+			/\@\{([a-z\_\-]+)(\|.*?)?\}/gi,
+			function (m, key, defaults) {
+				var val = defaults ? defaults.replace(/^\|/, '') : '';
+
+				if (key in p.query) {
+					val = p.query[key];
+					delete p.query[key];
+				} else if (p.data && key in p.data) {
+					val = p.data[key];
+					delete p.data[key];
+				} else if (!defaults) {
+					promise.reject(
+						error(
+							'missing_attribute',
+							'the attribute ' + key + ' is missing from the request'
+						)
+					);
+				}
+
+				return val;
+			}
+		);
+
+		if (!url.match(/^https?:\/\//)) {
+			url = o.base + url;
+		}
+
+		p.url = url;
+
+		utils.request(
+			p,
+			function (r, headers) {
+				var wrap,
+					b;
+
+				if (!p.formatResponse) {
+					if (typeof headers === 'object' ? (headers.statusCode >= 400) : (typeof r === 'object' && 'error' in r)) {
+						promise.reject(r);
+					} else {
+						promise.fulfill(r);
+					}
+
+					return;
+				}
+
+				if (r === true) {
+					r = {success:true};
+				} else if (!r) {
+					r = {};
+				}
+
+				if (p.method === 'delete') {
+					r = (!r || utils.isEmpty(r)) ? {success:true} : r;
+				}
+
+				if (o.wrap && ((p.path in o.wrap) || ('default' in o.wrap))) {
+					wrap = (p.path in o.wrap ? p.path : 'default');
+
+					b = o.wrap[wrap](r, headers, p);
+
+					if (b) {
+						r = b;
+					}
+				}
+
+				if (r && 'paging' in r && r.paging.next) {
+
+					if (r.paging.next[0] === '?') {
+						r.paging.next = p.path + r.paging.next;
+					} else {
+						r.paging.next += '#' + p.path;
+					}
+				}
+
+				if (!r || 'error' in r) {
+					promise.reject(r);
+				} else {
+					promise.fulfill(r);
+				}
+			}
+		);
+	}
+
+	p.method = (p.method || 'get').toLowerCase();
+	p.headers = p.headers || {};
+	p.query = p.query || {};
+
+	// If get, put all parameters into query
+	if (p.method === 'get' || p.method === 'delete') {
+		utils.extend(p.query, p.data);
+		p.data = {};
+	}
+
+	data = p.data = p.data || {};
+
+	msos.console.debug('hello.api -> data:', data);
+
+	promise.then(p.callback, p.callback);
+
+	if (!p.path) {
+		return promise.reject(
+			error(
+				'invalid_path',
+				'missing the path parameter from the request'
+			)
+		);
+	}
+
+	p.path = p.path.replace(/^\/+/, '');
+	a = (p.path.split(/[\/\:]/, 2) || [])[0].toLowerCase();
+
+	if (a in _this.services) {
+		p.network = a;
+		reg = new RegExp('^' + a + ':?\/?');
+		p.path = p.path.replace(reg, '');
+	}
+
+	p.network = _this.settings.default_service = p.network || _this.settings.default_service;
+	o = _this.services[p.network];
+
+	if (!o) {
+		return promise.reject(
+			error(
+				'invalid_network',
+				'could not match the service requested: ' + p.network
+			)
+		);
+	}
+
+	if (!(!(p.method in o) || !(p.path in o[p.method]) || o[p.method][p.path] !== false)) {
+		return promise.reject(
+			error(
+				'invalid_path',
+				'the provided path is not available on the selected network'
+			)
+		);
+	}
+
+	if (!p.oauth_proxy) {
+		p.oauth_proxy = _this.settings.oauth_proxy;
+	}
+
+	if (!('proxy' in p)) {
+		p.proxy = p.oauth_proxy && o.oauth && parseInt(o.oauth.version, 10) === 1;
+	}
+
+	if (!('timeout' in p)) {
+		p.timeout = _this.settings.timeout;
+	}
+
+	if (!('formatResponse' in p)) {
+		p.formatResponse = true;
+	}
+
+	p.authResponse = _this.getAuthResponse(p.network);
+
+	if (p.authResponse && p.authResponse.access_token) {
+		p.query.access_token = p.authResponse.access_token;
+	}
+
+	url = p.path;
+
+	p.options =	utils.clone(p.query);
+	p.data =	utils.clone(data);
+
+	actions = o[{ 'delete': 'del' }[p.method] || p.method] || {};
+
+	if (p.method === 'get') {
+
+		query = url.split(/[\?#]/)[1];
+
+		if (query) {
+			utils.extend(p.query, utils.param(query));
+			url = url.replace(/\?.*?(#|$)/, '$1');
+		}
+	}
+
+	if ((m = url.match(/#(.+)/, ''))) {
+		url = url.split('#')[0];
+		p.path = m[1];
+	} else if (url in actions) {
+		p.path = url;
+		url = actions[url];
+	} else if ('default' in actions) {
+		url = actions['default'];
+	}
+
+	p.redirect_uri = _this.settings.redirect_uri;
+
+	p.xhr = o.xhr;
+	p.jsonp = o.jsonp;
+	p.form = o.form;
+
+	if (typeof (url) === 'function') {
+		url(p, getPath);
+	} else {
+		getPath(url);
+	}
+
+	msos.console.debug('hello.api -> done!');
+	return promise.proxy;
+};
 
 // Extend the hello object with its own event instance
 hello.utils.Event.call(hello);
 
 (function (_hello) {
+	"use strict";
 
-	// Copy original function
-	var api = _hello.api = function () {
+	var api = _hello.api;
+
+	// Replace original function
+	_hello.api = function () {
 
 		var p = _hello.utils.args(
 				{
@@ -1822,7 +2060,10 @@ hello.utils.Event.call(hello);
 				arguments
 			);
 
+		msos.console.debug('hello.api (amended) -> called.');
+
 		if (p.data) {
+			msos.console.debug('hello.api (amended) -> p.data:', p.data);
 			_hello.utils.dataToJSON(p);
 		}
 
