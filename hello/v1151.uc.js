@@ -1321,9 +1321,6 @@ hello.use = function (service) {
 		self.settings.default_service = service;
 	}
 
-	// Create an instance of Events
-	self.utils.Event.call(self);
-
 	msos.console.debug('hello.use -> done!');
 	return self;
 };
@@ -1993,6 +1990,8 @@ hello.api = function () {
 	msos.console.debug('hello.api -> done!');
 	return promise.proxy;
 };
+
+hello.utils.Event.call(hello);
 
 (function (_hello) {
 	"use strict";
