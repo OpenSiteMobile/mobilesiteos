@@ -825,43 +825,6 @@ hello.utils = {
 		);
 	},
 
-	merge: function () {
-		"use strict";
-
-		var args = Array.prototype.slice.call(arguments);
-
-		args.unshift({});
-
-		return this.extend.apply(null, args);
-	},
-
-	extend: function (r) {
-		"use strict";
-
-		Array.prototype.slice.call(arguments, 1).forEach(
-			function (a) {
-				var x;
-
-				if (_.isArray(r) && _.isArray(a)) {
-						Array.prototype.push.apply(r, a);
-				} else if (r && (r instanceof Object || typeof r === 'object') && a && (a instanceof Object || typeof a === 'object') && r !== a) {
-					for (x in a) {
-						if (a.hasOwnProperty(x)) {
-							r[x] = hello.utils.extend(r[x], a[x]);
-						}
-					}
-				} else {
-					if (_.isArray(a)) {
-						a = a.slice(0);
-					}
-					r = a;
-				}
-			}
-		);
-
-		return r;
-	},
-
 	args: function (o, args) {
 		"use strict";
 
@@ -1371,7 +1334,7 @@ hello.use = function (service) {
 	var _this = this,
 		mtv = msos.config.verbose;
 
-	if (mtv) { msos.console.debug('hello.init -> start.'); }
+	if (mtv) { msos.console.debug('hello.init -> start, service/options:', service, options); }
 
 	if (service) {
 
@@ -1390,11 +1353,10 @@ hello.use = function (service) {
 		}
 
 	} else {
-		msos.console.warn('hello.init -> done, return hello.services obj.');
-		return _this.services;
+		msos.console.warn('hello.init -> done, no service input.');
 	}
 
-	if (mtv) { msos.console.debug('hello.init -> done, extend hello.services:', _this.services); }
+	if (mtv) { msos.console.debug('hello.init -> done, return hello:', _this); }
 	return _this;
 };
 
@@ -1406,10 +1368,16 @@ hello.login = function () {
 		utils = _this.utils,
 		error = utils.error,
 		promise = utils.Promise(),
-		p,
+		p = utils.args(
+			{
+				network: 's',
+				options: 'o',
+				callback: 'f'
+			},
+			arguments
+		),
 		url,
 		qs,
-		opts,
 		provider,
 		callbackId,
 		redirectUri,
@@ -1423,15 +1391,6 @@ hello.login = function () {
 		timer,
 		leave_page = true;
 
-	p = utils.args(
-		{
-			network: 's',
-			options: 'o',
-			callback: 'f'
-		},
-		arguments
-	);
-
 	msos.console.debug('hello.login -> start, p:', p);
 
 	function encodeFunction(s) { return s; }
@@ -1444,12 +1403,8 @@ hello.login = function () {
 		msos.console.debug('hello.login -> qs:', qs);
 	}
 
-	opts = p.options = utils.merge(
-		_this.settings,
-		p.options || {}
-	);
-
-	opts.popup = utils.merge(_this.settings.popup, p.options.popup || {});
+	p =			_.isObject(p) ? p : {};
+	p.options = _.isObject(p.options) ? _.extend({}, _this.settings, p.options) : {};
 
 	p.network = p.network || _this.settings.default_service;
 
@@ -1515,15 +1470,16 @@ hello.login = function () {
 		}
 	);
 
-	redirectUri = utils.url(opts.redirect_uri).href;
+	redirectUri = utils.url(p.options.redirect_uri).href;
 
-	responseType = provider.oauth.response_type || opts.response_type;
+	responseType = provider.oauth.response_type || p.options.response_type;
 
 	if (/\bcode\b/.test(responseType) && !provider.oauth.grant) {
 		responseType = responseType.replace(/\bcode\b/, 'token');
 	}
 
-	p.qs = utils.merge(
+	p.qs = _.extend(
+		{},
 		qs,
 		{
 			client_id: encodeURIComponent(provider.id),
@@ -1532,9 +1488,9 @@ hello.login = function () {
 			state: {
 				client_id: provider.id,
 				network: p.network,
-				display: opts.display,
+				display: p.options.display,
 				callback: callbackId,
-				state: opts.state,
+				state: p.options.state,
 				redirect_uri: redirectUri
 			}
 		}
@@ -1547,10 +1503,12 @@ hello.login = function () {
 		msos.console.debug('hello.login -> session/scope:', session, scope);
 	}
 
-	scopeMap = utils.merge(_this.settings.scope_map, provider.scope || {});
+	provider.scope = _.isObject(provider.scope) ? provider.scope : {};
 
-	if (opts.scope) {
-		scope.push(opts.scope.toString());
+	scopeMap = _.extend({}, _this.settings.scope_map, provider.scope);
+
+	if (p.options.scope) {
+		scope.push(p.options.scope.toString());
 	}
 
 	if (session && 'scope' in session && session.scope instanceof String) {
@@ -1574,7 +1532,7 @@ hello.login = function () {
 
 	p.qs.scope = scope.join(provider.scope_delim || ',');
 
-	if (opts.force === false) {
+	if (p.options.force === false) {
 
 		if (session && session.access_token && session.expires && session.expires > ((new Date()).getTime() / 1e3)) {
 
@@ -1597,31 +1555,31 @@ hello.login = function () {
 		}
 	}
 
-	if (opts.display === 'page' && opts.page_uri) {
-		p.qs.state.page_uri = utils.url(opts.page_uri).href;
+	if (p.options.display === 'page' && p.options.page_uri) {
+		p.qs.state.page_uri = utils.url(p.options.page_uri).href;
 	}
 
 	if (provider.login && typeof (provider.login) === 'function') {
 		provider.login(p);
 	}
 
-	if (!/\btoken\b/.test(responseType) || parseInt(provider.oauth.version, 10) < 2 || (opts.display === 'none' && provider.oauth.grant && session && session.refresh_token)) {
+	if (!/\btoken\b/.test(responseType) || parseInt(provider.oauth.version, 10) < 2 || (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token)) {
 
 		p.qs.state.oauth = provider.oauth;
-		p.qs.state.oauth_proxy = opts.oauth_proxy;
+		p.qs.state.oauth_proxy = p.options.oauth_proxy;
 	}
 
 	p.qs.state = encodeURIComponent(JSON.stringify(p.qs.state));
 
 	if (parseInt(provider.oauth.version, 10) === 1) {
 
-		url = utils.qs(opts.oauth_proxy, p.qs, encodeFunction);
+		url = utils.qs(p.options.oauth_proxy, p.qs, encodeFunction);
 
-	} else if (opts.display === 'none' && provider.oauth.grant && session && session.refresh_token) {
+	} else if (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token) {
 
 		p.qs.refresh_token = session.refresh_token;
 
-		url = utils.qs(opts.oauth_proxy, p.qs, encodeFunction);
+		url = utils.qs(p.options.oauth_proxy, p.qs, encodeFunction);
 
 	} else {
 		url = utils.qs(provider.oauth.auth, p.qs, encodeFunction);
@@ -1630,16 +1588,16 @@ hello.login = function () {
 	emit('auth.init', p);
 
 	if (mtv) {
-		msos.console.debug('hello.login -> p/opts: ', p, opts);
+		msos.console.debug('hello.login -> p: ', p);
 	}
 
-	if (opts.display === 'none') {
+	if (p.options.display === 'none') {
 	
 		utils.iframe(url);
 
-	} else if (opts.display === 'popup') {
+	} else if (p.options.display === 'popup') {
 
-		popup = utils.popup(url, redirectUri, opts.popup);
+		popup = utils.popup(url, redirectUri, p.options.popup);
 
 		timer = setInterval(
 			function () {
@@ -1671,6 +1629,7 @@ hello.login = function () {
 			},
 			100
 		);
+
 	} else {
 
 		msos.console.debug('hello.login -> forward to: ' + url);
@@ -1748,7 +1707,7 @@ hello.logout = function () {
 
 			// Emit events by default
 			promise.fulfill(
-				hello.utils.merge({ network: p.name }, opts || {})
+				_.extend({ network: p.name }, opts || {})
 			);
 		};
 
@@ -1763,7 +1722,7 @@ hello.logout = function () {
 				if (typeof (logout) === 'string') {
 					utils.iframe(logout);
 					_opts.force = null;
-					_opts.message = 'Logout success on providers site was indeterminate';
+					_opts.message = 'logout success on providers site was indeterminate';
 				} else if (logout === undefined) {
 					return promise.proxy;
 				}
@@ -1821,7 +1780,6 @@ hello.api = function () {
 			},
 			arguments
 		),
-		data,
 		a,
 		reg,
 		o,
@@ -1924,13 +1882,11 @@ hello.api = function () {
 
 	// If get, put all parameters into query
 	if (p.method === 'get' || p.method === 'delete') {
-		utils.extend(p.query, p.data);
+		_.extend(p.query, p.data);
 		p.data = {};
 	}
 
-	data = p.data = p.data || {};
-
-	msos.console.debug('hello.api -> data:', data);
+	msos.console.debug('hello.api -> p.data:', p.data);
 
 	promise.then(p.callback, p.callback);
 
@@ -1998,7 +1954,7 @@ hello.api = function () {
 	url = p.path;
 
 	p.options =	utils.clone(p.query);
-	p.data =	utils.clone(data);
+	p.data =	utils.clone(p.data);
 
 	actions = o[{ 'delete': 'del' }[p.method] || p.method] || {};
 
@@ -2037,9 +1993,6 @@ hello.api = function () {
 	msos.console.debug('hello.api -> done!');
 	return promise.proxy;
 };
-
-// Extend the hello object with its own event instance
-hello.utils.Event.call(hello);
 
 (function (_hello) {
 	"use strict";

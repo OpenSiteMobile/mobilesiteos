@@ -108,21 +108,24 @@
 		return;
 	}
 
-	p = _hello.utils.merge(
+	p = _.extend(
+			{},
 			_hello.utils.param(location.search	|| ''),
 			_hello.utils.param(location.hash	|| '')
 	);
+
+	msos.console.debug(tmp_at + 'revised p:', p);
 
     if (p && p.state) {
 
         try {
             a = JSON.parse(p.state);
-            _hello.utils.extend(p, a);
+            _.extend(p, a);
         } catch (e1) {
 			stateDecoded = decodeURIComponent(p.state);
 			try {
 				b = JSON.parse(stateDecoded);
-				_hello.utils.extend(p, b);
+				_.extend(p, b);
 			} catch (e2) {
 				msos.console.error(tmp_at + 'could not decode state parameter, ' + e2.message);
 			}
