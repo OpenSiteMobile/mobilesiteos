@@ -1563,7 +1563,7 @@ console.log('p.qs.scope:', p.qs.scope);
 		provider.login(p);
 	}
 
-	if (!/\btoken\b/.test(responseType) || parseInt(p.options.oauth.version, 10) < 2 || (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token)) {
+	if (!/\btoken\b/.test(responseType) || parseInt(provider.oauth.version, 10) < 2 || (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token)) {
 
 		p.qs.state.oauth = provider.oauth;
 		p.qs.state.oauth_proxy = p.options.oauth_proxy;
