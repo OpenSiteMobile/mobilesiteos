@@ -1504,9 +1504,7 @@ hello.login = function () {
 		msos.console.debug('hello.login -> session/scope:', session, scope);
 	}
 
-	p.options.scope = _.isObject(p.options.scope) ? p.options.scope : {};
-
-	scopeMap = _.extend({}, _this.settings.scope_map, provider.scope || {});
+	scopeMap = _.extend(_this.settings.scope_map, provider.scope);
 
 	if (p.options.scope) {
 		scope.push(p.options.scope.toString());
@@ -1515,10 +1513,11 @@ hello.login = function () {
 	if (session && session.scope && session.scope instanceof String) {
 		scope.push(session.scope);
 	}
-
+console.log('scope 1:', scope);
 	scope = scope.join(',').split(SCOPE_SPLIT);
+console.log('scope 2:', scope);
 	scope = _.uniq(scope).filter(filterEmpty);
-
+console.log('scope 3:', scope);
 	p.qs.state.scope = scope.join(',');
 
 	scope = scope.map(
@@ -1526,13 +1525,13 @@ hello.login = function () {
 			return (item in scopeMap) ? scopeMap[item] : item;
 		}
 	);
-
+console.log('scope 4:', scope);
 	scope = scope.join(',').split(SCOPE_SPLIT);
-
+console.log('scope 5:', scope);
 	scope = _.uniq(scope).filter(filterEmpty);
-
+console.log('scope 6:', scope);
 	p.qs.scope = scope.join(provider.scope_delim || ',');
-
+console.log('p.qs.scope:', p.qs.scope);
 	if (p.options.force === false) {
 
 		if (session && session.access_token && session.expires && session.expires > ((new Date()).getTime() / 1e3)) {
