@@ -1375,6 +1375,7 @@ hello.login = function () {
 		),
 		url,
 		qs,
+		provider,
 		callbackId,
 		redirectUri,
 		responseType,
@@ -1396,6 +1397,8 @@ hello.login = function () {
 	p.options = _.isObject(p.options) ? p.options : {};
 
 	qs = utils.diffKey(p.options, _this.settings);
+
+	p.options = _.extend(_this.settings, p.options);
 
 	if (mtv) {
 		msos.console.debug('hello.login -> qs:', qs);
@@ -1429,10 +1432,10 @@ hello.login = function () {
 		);
 	}
 
-	p.options = _.extend({}, _this.settings, _this.services[p.network], p.options);
+	provider = _this.services[p.network];
 
 	if (mtv) {
-		msos.console.debug('hello.login -> p w/options:', p);
+		msos.console.debug('hello.login -> provider:', provider);
 	}
 
 	callbackId = utils.globalEvent(
@@ -1447,7 +1450,7 @@ hello.login = function () {
 			} else {
 				obj = error(
 					'cancelled',
-					'The authentication was not completed'
+					'the authentication was not completed'
 				);
 			}
 
@@ -1471,21 +1474,20 @@ hello.login = function () {
 
 	redirectUri = utils.url(p.options.redirect_uri).href;
 
-	responseType = p.options.oauth.response_type || p.options.response_type;
+	responseType = provider.oauth.response_type || p.options.response_type;
 
-	if (/\bcode\b/.test(responseType) && !p.options.oauth.grant) {
+	if (/\bcode\b/.test(responseType) && !provider.oauth.grant) {
 		responseType = responseType.replace(/\bcode\b/, 'token');
 	}
 
 	p.qs = _.extend(
-		{},
 		qs,
 		{
-			client_id: encodeURIComponent(p.options.id),
+			client_id: encodeURIComponent(provider.id),
 			response_type: encodeURIComponent(responseType),
 			redirect_uri: encodeURIComponent(redirectUri),
 			state: {
-				client_id: p.options.id,
+				client_id: provider.id,
 				network: p.network,
 				display: p.options.display,
 				callback: callbackId,
@@ -1496,7 +1498,7 @@ hello.login = function () {
 	);
 
 	session = utils.store(p.network);
-	scope = _this.settings.scope ? [_this.settings.scope.toString()] : [];
+	scope = _this.settings.scope;
 
 	if (mtv) {
 		msos.console.debug('hello.login -> session/scope:', session, scope);
@@ -1504,18 +1506,18 @@ hello.login = function () {
 
 	p.options.scope = _.isObject(p.options.scope) ? p.options.scope : {};
 
-	scopeMap = _.extend({}, _this.settings.scope_map, p.options.scope);
+	scopeMap = _.extend({}, _this.settings.scope_map, provider.scope || {});
 
 	if (p.options.scope) {
 		scope.push(p.options.scope.toString());
 	}
 
-	if (session && 'scope' in session && session.scope instanceof String) {
+	if (session && session.scope && session.scope instanceof String) {
 		scope.push(session.scope);
 	}
 
 	scope = scope.join(',').split(SCOPE_SPLIT);
-	scope = _.unique(scope).filter(filterEmpty);
+	scope = _.uniq(scope).filter(filterEmpty);
 
 	p.qs.state.scope = scope.join(',');
 
@@ -1527,9 +1529,9 @@ hello.login = function () {
 
 	scope = scope.join(',').split(SCOPE_SPLIT);
 
-	scope = _.unique(scope).filter(filterEmpty);
+	scope = _.uniq(scope).filter(filterEmpty);
 
-	p.qs.scope = scope.join(p.options.scope_delim || ',');
+	p.qs.scope = scope.join(provider.scope_delim || ',');
 
 	if (p.options.force === false) {
 
@@ -1558,30 +1560,30 @@ hello.login = function () {
 		p.qs.state.page_uri = utils.url(p.options.page_uri).href;
 	}
 
-	if (p.options.login && typeof (p.options.login) === 'function') {
-		p.options.login(p);
+	if (provider.login && typeof (provider.login) === 'function') {
+		provider.login(p);
 	}
 
-	if (!/\btoken\b/.test(responseType) || parseInt(p.options.oauth.version, 10) < 2 || (p.options.display === 'none' && p.options.oauth.grant && session && session.refresh_token)) {
+	if (!/\btoken\b/.test(responseType) || parseInt(p.options.oauth.version, 10) < 2 || (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token)) {
 
-		p.qs.state.oauth = p.options.oauth;
+		p.qs.state.oauth = provider.oauth;
 		p.qs.state.oauth_proxy = p.options.oauth_proxy;
 	}
 
 	p.qs.state = encodeURIComponent(JSON.stringify(p.qs.state));
 
-	if (parseInt(p.options.oauth.version, 10) === 1) {
+	if (parseInt(provider.oauth.version, 10) === 1) {
 
 		url = utils.qs(p.options.oauth_proxy, p.qs, encodeFunction);
 
-	} else if (p.options.display === 'none' && p.options.oauth.grant && session && session.refresh_token) {
+	} else if (p.options.display === 'none' && provider.oauth.grant && session && session.refresh_token) {
 
 		p.qs.refresh_token = session.refresh_token;
 
 		url = utils.qs(p.options.oauth_proxy, p.qs, encodeFunction);
 
 	} else {
-		url = utils.qs(p.options.oauth.auth, p.qs, encodeFunction);
+		url = utils.qs(provider.oauth.auth, p.qs, encodeFunction);
 	}
 
 	emit('auth.init', p);
@@ -1591,7 +1593,7 @@ hello.login = function () {
 	}
 
 	if (p.options.display === 'none') {
-	
+
 		utils.iframe(url);
 
 	} else if (p.options.display === 'popup') {
