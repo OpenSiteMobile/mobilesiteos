@@ -149,7 +149,7 @@ var msos = {
 	if (reg_msos.test(msos.base_script_url)) { msos.base_msos_folder = 'mobilesiteos'; }
 	if ( reg_ngm.test(msos.base_script_url)) { msos.base_msos_folder = 'ngm'; }
 
-	if (!msos.base_msos_folder)	{ throw new Error('msos.base_msos_folder must be set manually.');}
+	if (!msos.base_msos_folder)	{ console.warn('msos.base_msos_folder is not set. Module loading is na.');}
 
 }());
 
