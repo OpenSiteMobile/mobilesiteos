@@ -375,7 +375,9 @@ angular.module('ng.bootstrap.ui.dropdown', ['ng.bootstrap.ui.position'])
       dropdownService.close( scope );
     }
 
-    setIsOpen($scope, isOpen);
+    if (setIsOpen !== angular.noop) {
+      setIsOpen($scope, isOpen);
+    }
     if (angular.isDefined(isOpen) && isOpen !== wasOpen) {
       toggleInvoker($scope, { open: !!isOpen });
     }

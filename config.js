@@ -61,7 +61,7 @@ if (msos.config.debug_script) {
 
 	// Debug full scripts (line no's mean something)
     msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v311_msos.uc.js'),
+		msos.resource_url('jquery', 'v321_msos.uc.js'),
 		msos.resource_url('jquery', 'ui/v1120.uc.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.uc.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.uc.js'),
@@ -75,7 +75,7 @@ if (msos.config.debug_script) {
 
 	// Standard site provided (including ext. bundles) scripts
         msos.deferred_scripts = [
-		msos.resource_url('jquery', 'v311_msos.min.js'),
+		msos.resource_url('jquery', 'v321_msos.min.js'),
 		msos.resource_url('jquery', 'ui/v1120.min.js'),		// All UI Core + Draggable Interaction + Effects Core
 		msos.resource_url('hammer', 'v204.min.js'),			// jQuery.hammer.js version of Hammer.js
 		msos.resource_url('backbone', 'v123.min.js'),
