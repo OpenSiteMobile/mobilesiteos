@@ -111,7 +111,8 @@ msos.onload_functions.push(
 
         apps.bootstrap2.start.controller(
             'MainCtrl',
-            function ($scope, $http, $document, $modal, $location, orderByFilter, $postloader) {
+			['$scope', '$http', '$document', '$modal', '$location', 'orderByFilter', '$postload',
+            function ($scope, $http, $document, $modal, $location, orderByFilter, $postload) {
 
                 $scope.showBuildModal = function() {
 				var modalInstance = null;
@@ -138,12 +139,13 @@ msos.onload_functions.push(
                     });
                 };
 
-				apps.bootstrap2.start.postloader = $postloader;
-            }
+				apps.bootstrap2.start.postloader = $postload;
+            }]
         );
 
         apps.bootstrap2.start.controller(
             'SelectModulesCtrl',
+			['$scope', '$modalInstance', 'modules',
             function($scope, $modalInstance, modules) {
                 $scope.selectedModules = [];
                 $scope.modules = modules;
@@ -174,11 +176,12 @@ msos.onload_functions.push(
                     );
                     return downloadUrl;
                 };
-            }
+            }]
         );
 
         apps.bootstrap2.start.controller(
             'DownloadCtrl',
+			['$scope', '$modalInstance',
             function ($scope, $modalInstance) {
                 $scope.options = {
                     minified: true,
@@ -204,7 +207,7 @@ msos.onload_functions.push(
                 $scope.cancel = function () {
                     $modalInstance.dismiss();
                 };
-            }
+            }]
         );
 
 		apps.bootstrap2.start.controller(

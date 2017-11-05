@@ -23,7 +23,7 @@ msos.console.time('ng');
 (function (window) {
     "use strict";
 
-    function noop() { msos.console.trace('ng - noop -> executed.'); return undefined; }
+    function noop() { return undefined; }
 
     function UNINITIALIZED_VALUE() { msos.console.debug('ng - UNINITIALIZED_VALUE -> called.'); }
 
@@ -2077,6 +2077,7 @@ msos.console.time('ng');
 
     function createInjector(modulesToLoad) {
         var temp_ci = 'ng - createInjector',
+            civ = msos_verbose === 'injector',
             providerCache = {},
             instanceCache = {},
             instanceInjector = null;
@@ -2227,8 +2228,7 @@ msos.console.time('ng');
         // internal Injector
         ////////////////////////////////////
         function internal(cache, factory, whichone) {
-            var temp_cii = ' - internal',
-                civ = msos_verbose === 'injector';
+            var temp_cii = ' - internal';
 
             function getService(serviceName, caller) {
                 var debug_out = ', name: ' + serviceName;
@@ -2388,18 +2388,27 @@ msos.console.time('ng');
                     provid_inject,
                     output;
 
-                msos_debug(temp_ci + temp_pi + ' -> start, for: ' + provid_service);
+                if (civ) {
+                    msos_debug(temp_ci + temp_pi + ' -> start, for: ' + provid_service);
+                }
 
                 provid_inject = providerCache.$injector.get(provid_service, caller);
 
-                output = instanceCache.protoInstanceInjector.invoke(
-                    provid_inject.$get,
-                    provid_inject,
-                    undefined,
-                    serviceName
-                );
+                if (_.isObject(provid_inject)) {
+                    output = instanceCache.protoInstanceInjector.invoke(
+                        provid_inject.$get,
+                        provid_inject,
+                        undefined,
+                        serviceName
+                    );
+                } else {
+                    msos.console.error(temp_ci + temp_pi + ' -> failed, for missing provider injector: ' + provid_service);
+                }
 
-                msos_debug(temp_ci + temp_pi + ' ->  done, for: ' + provid_service);
+                if (civ) {
+                    msos_debug(temp_ci + temp_pi + ' ->  done, for: ' + provid_service);
+                }
+
                 return output;
             },
             'instanceCache'
